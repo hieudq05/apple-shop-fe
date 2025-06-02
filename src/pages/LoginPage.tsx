@@ -7,7 +7,7 @@ const LoginPage: React.FC = () => {
     return (
         <>
             <Navbar/>
-            <div className={"max-w-7xl mx-auto container"}>
+            <div className={"max-w-7xl mx-auto container text-black"}>
                 <div aria-label={"Title"} className={"md:text-5xl text-3xl font-semibold text-start md:py-12 py-6"}>
                     Đăng nhập để thanh toán nhanh hơn.
                 </div>
@@ -15,16 +15,16 @@ const LoginPage: React.FC = () => {
                     <div className={"flex-1 size-full flex flex-col space-y-12"}>
                         <div className={"text-2xl font-semibold text-gray-700"}>Đăng nhập vào Apple Store</div>
                         <Button
-                            className={"flex gap-4 justify-center items-center rounded-xl py-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}>
+                            className={"flex gap-4 justify-center items-center rounded-xl bg-gray-50 py-4 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}>
                             <img
                                 src={"https://www.gstatic.com/marketing-cms/assets/images/82/9c/5e08f4b14c35b84be1821d200793/about-10things-google.png=s64-fcrop64=1,00000000ffffffff-rw"}
-                                className={"size-5"}/>
+                                className={"size-5"} alt={"Google Logo"}/>
                             Đăng nhập bằng Google
                         </Button>
                         <div className={"flex items-center"}>
-                            <hr className={"border-gray-200 w-full"}/>
+                            <hr className={"border-gray-300 w-full"}/>
                             <span className={"px-4 text-gray-500 text-xs"}>Hoặc</span>
-                            <hr className={"border-gray-200 w-full"}/>
+                            <hr className={"border-gray-300 w-full"}/>
                         </div>
                         <form action={"#"} method={"POST"}>
                             <div className={"relative"} id={"email-container"}>

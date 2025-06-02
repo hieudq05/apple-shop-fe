@@ -1,6 +1,5 @@
 import React from 'react';
 import Hero, {type HeroParams} from "../components/Hero.tsx";
-import Footer from "../components/Footer.tsx";
 
 const heroDatas: HeroParams[] = [
     {
@@ -79,7 +78,6 @@ const HomePage: React.FC = () => {
                     }
                 </div>
             </main>
-            <Footer/>
         </>
     )
         ;

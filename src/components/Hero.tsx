@@ -29,8 +29,8 @@ const Hero: React.FC<HeroParams> = ({
                      backgroundSize: 'cover',
                      backgroundPosition: 'center'
                  }}>
-            <div className={`max-w-7xl mx-auto px-6 flex flex-col items-center`}>
-                <div className="text-center z-10">
+            <div className={`container px-6 flex flex-col`}>
+                <div className="text-center z-10 mx-auto">
                     <div className={(darkText ? "text-black" : "text-white")}>
                         <h1 className={"text-[3.5rem] font-semibold mb-2"}
                             style={

@@ -190,7 +190,7 @@ const Navbar: React.FC = () => {
                         <a href="#" className="">
                             <MagnifyingGlassIcon className={"size-4"}/>
                         </a>
-                        <a href="#" className="">
+                        <a href="/bag" className="">
                             <ShoppingBagIcon className={"size-4"}/>
                         </a>
                     </div>

@@ -1,10 +1,16 @@
 import React from 'react';
 import {useRoutes} from 'react-router-dom';
-import {routesConfig} from './routes';
-import './App.css'; // Assuming you have global styles here
+import {routesConfig} from "./routes";
+import { CartProvider } from './contexts/CartContext';
 
 const App: React.FC = () => {
-    return useRoutes(routesConfig);
+    const routes = useRoutes(routesConfig);
+    
+    return (
+        <CartProvider>
+            {routes}
+        </CartProvider>
+    );
 };
 
 export default App;
