@@ -1,5 +1,6 @@
 import React from 'react';
 import {ChevronRightIcon} from "@heroicons/react/24/outline";
+import {Link} from "react-router-dom";
 
 export interface ProductColor {
     id: string;
@@ -31,12 +32,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                                  }) => {
     return (
         <div className="bg-transparent flex flex-col space-y-6" key={id}>
-            <a href={`/product/${id}`} style={{
+            <Link to={`/product/${id}`} style={{
                 backgroundImage: `url(${stock[0].imageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
             }}
-               className="h-[33rem] w-full rounded-3xl hover:scale-[1.03] transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-offset-4 focus:ring-blue-500"></a>
+               className="h-[33rem] w-full rounded-3xl hover:scale-[1.03] transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-offset-4 focus:ring-blue-500"></Link>
             <div className={"flex justify-center gap-2"}>
                 {
                     stock.map((stockItem) => (
@@ -66,10 +67,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Tìm hiểu thêm
                     </button>
-                    <button
+                    <Link to={`/product/${id}`}
                         className="mt-4 flex items-center gap-1 ml-4 bg-transparent text-blue-600 hover:underline rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Mua <ChevronRightIcon className={"size-4 mt-0.5"}/>
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>

@@ -1,0 +1,91 @@
+import OrderHistoryCard, {type OrderHistoryCardProps} from "../components/OrderHistoryCard.tsx";
+import React from "react";
+
+const orderHistoryDatas: OrderHistoryCardProps[] = [
+    {
+        id: "1",
+        orderDate: "2023-10-01",
+        items: [
+            {
+                productId: "1",
+                productName: "iPhone 16 Pro Max",
+                storageName: "512GB",
+                colorName: "Đen",
+                imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MA7E4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=TXZpSEg0MGF0QUNTNGpkTzhrU3hndllvYS9naDJJdU9KTWdGWjhKWFRmS09ndGkreVVaZTdmSmpUOUozdHRlU0pPRjNYblFJVkwzR2MyTG5BQ1RpRlE",
+                quantity: 1,
+                price: 15000000,
+                address: "123 Đường ABC, Phường 1, Quận 1, TP.HCM",
+                status: "Đang giao hàng"
+            },
+            {
+                productId: "2",
+                productName: "MacBook Pro 14 inch",
+                storageName: "1TB SSD",
+                colorName: "Bạc",
+                imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MDFX4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=a0w4aUNRdVRBU0RuTitHR3hrR2RCdllvYS9naDJJdU9KTWdGWjhKWFRmS1ZGS1d3SDlTVjBOQWIxNCszUkpvN1Z0V1grbituVlRzQkUwY0R1QWF2REE",
+                quantity: 1,
+                price: 5000000,
+                address: "123 Đường ABC, Phường 1, Quận 1, TP.HCM",
+                status: "Đang giao hàng"
+            }
+        ]
+    },
+    {
+        id: "2",
+        orderDate: "2023-09-15",
+        items: [
+            {
+                productId: "2",
+                productName: "MacBook Pro 14 inch",
+                storageName: "1TB SSD",
+                colorName: "Bạc",
+                imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MDFX4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=a0w4aUNRdVRBU0RuTitHR3hrR2RCdllvYS9naDJJdU9KTWdGWjhKWFRmS1ZGS1d3SDlTVjBOQWIxNCszUkpvN1Z0V1grbituVlRzQkUwY0R1QWF2REE",
+                quantity: 1,
+                price: 5000000,
+                address: "456 Đường DEF, Phường 2, Quận 2, TP.HCM",
+                status: "Đã giao hàng",
+                completedDate: "2023-09-20"
+            }
+        ]
+    }
+]
+
+const OrderHistoryPage: React.FC = () => {
+    return (
+        <>
+            <div className={"py-6 bg-gray-100"}>
+                <div className={"container mx-auto"}>
+                    <div className={"text-lg font-semibold"}>Đơn hàng</div>
+                </div>
+            </div>
+            <div className="container mx-auto py-12 flex flex-col gap-y-6">
+                <h1 className="text-4xl font-semibold">Lịch sử đơn hàng</h1>
+                {
+                    orderHistoryDatas.length > 0 && (
+                        orderHistoryDatas.map((orderData: OrderHistoryCardProps, idx) => (
+                            <OrderHistoryCard
+                                order={orderData}
+                                key={orderData.id}
+                                index={idx + 1}/>
+                        ))
+                    ) || (
+                        <>
+                            <p className="text-xl text-gray-500 font-medium">Bạn không có đơn hàng nào gần đây.</p>
+                            <hr className={"my-6"}/>
+                        </>
+                    )
+                }
+                <div className={"space-y-1"}>
+                    <p className="text-xl font-medium">Bạn không thấy tất cả đơn hàng của mình?</p>
+                    <p className="text-gray-500 text-sm">Bạn hiện đang đăng nhập bằng <span
+                        className={"text-blue-600"}>{"hieuu8a@gmail.com"}</span></p>
+                    <p className="text-gray-500 text-sm">
+                        Để xem tài khoản khác, hãy chuyển đổi tài khoản của bạn bằng cách nhấp vào biểu tượng tài khoản
+                        ở góc trên bên phải và chọn "Đăng xuất". Sau đó, đăng nhập lại bằng tài khoản khác của bạn.
+                    </p>
+                </div>
+            </div>
+        </>
+    )
+}
+export default OrderHistoryPage;

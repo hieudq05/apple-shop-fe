@@ -114,7 +114,7 @@ const ProductPage: React.FC = () => {
         if (!storageExists && selectedStock.storage.length > 0) {
             setSelectedStorageId(selectedStock.storage[0].id);
         }
-    }, [selectedStock]);
+    }, [selectedStock, selectedStorageId]);
 
     return (
         <div className="py-12 text-start">

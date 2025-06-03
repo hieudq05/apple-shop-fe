@@ -23,13 +23,13 @@ const Hero: React.FC<HeroParams> = ({
                                         gradient,
                                     }) => {
     return (
-        <section className={`"relative h-[42rem] py-12 overflow-hidden flex items-${position}`}
+        <section className={`"relative h-[42rem] py-12 overflow-hidden flex items-${position} justify-center`}
                  style={{
                      backgroundImage: `url(${imageUrl})`,
                      backgroundSize: 'cover',
                      backgroundPosition: 'center'
                  }}>
-            <div className={`container px-6 flex flex-col`}>
+            <div className={`container flex flex-col`}>
                 <div className="text-center z-10 mx-auto">
                     <div className={(darkText ? "text-black" : "text-white")}>
                         <h1 className={"text-[3.5rem] font-semibold mb-2"}

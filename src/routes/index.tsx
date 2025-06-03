@@ -5,6 +5,9 @@ import LoginPage from '../pages/LoginPage';
 import ProductsPage from "../pages/ProductsPage.tsx";
 import ProductPage from "../pages/ProductPage.tsx";
 import CartPage from "../pages/CartPage.tsx";
+import PaymentPage from "../pages/PaymentPage";
+import ProfilePage from "../pages/ProfilePage.tsx";
+import OrderHistoryPage from "../pages/OrderHistoryPage.tsx";
 
 export const routesConfig: RouteObject[] = [
     {
@@ -25,6 +28,18 @@ export const routesConfig: RouteObject[] = [
             {
                 path: 'cart',
                 element: <CartPage/>,
+            },
+            {
+                path: 'payment',
+                element: <PaymentPage/>,
+            },
+            {
+                path: 'profile',
+                element: <ProfilePage/>
+            },
+            {
+                path: 'order-history',
+                element: <OrderHistoryPage/>
             }
         ],
     },
