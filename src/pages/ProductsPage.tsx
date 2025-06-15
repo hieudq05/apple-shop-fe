@@ -173,7 +173,7 @@ const ProductsPage: React.FC = () => {
     return (
         <>
             <div>
-                <div className={"bg-gray-100 sticky top-[52px] z-10 bg-opacity-75 backdrop-blur-md"}>
+                <div className={"bg-gray-100 sticky top-[44px] z-10 bg-opacity-75 backdrop-blur-md"}>
                     <div
                         className={"text-start container mx-auto py-5 font-semibold text-xl"}>{productPageProps.category.name}</div>
                 </div>

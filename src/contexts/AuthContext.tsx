@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, {createContext, type ReactNode, useContext, useState} from 'react';
 
 interface AuthContextType {
     user: any | null; // Replace 'any' with your User type

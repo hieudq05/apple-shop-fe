@@ -159,7 +159,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
 
     return (
         <>
-            <nav className="bg-white text-black py-1 sticky top-0 z-50">
+            <nav className="bg-white text-black sticky top-0 z-50">
                 <div className="container mx-auto px-4 flex justify-between items-center relative">
                     <div className="xl:hidden">
                         <button
@@ -185,20 +185,20 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                         </a>
                     </div>
 
-                    <div className="hidden xl:flex items-center space-x-12">
+                    <div className="hidden xl:flex items-center py-0 h-[44px] w-full px-36">
                         {
                             navbarParams.map((link, index) => {
                                     return (
                                         <Menu
                                             as="div"
-                                            className="inline-block text-left"
+                                            className="inline-block text-left h-[44px] flex-1"
                                             key={index}
                                             onMouseEnter={() => handleMouseEnter(index.toString())}
                                             onMouseLeave={handleMouseLeave}
                                         >
-                                            <div>
+                                            <div className={"flex justify-center w-full"}>
                                                 <MenuButton
-                                                    className="text-xs font-normal focus:outline-none bg-transparent">
+                                                    className="text-xs font-normal focus:outline-none bg-transparent h-[44px]">
                                                     {link.name}
                                                 </MenuButton>
                                             </div>
@@ -214,7 +214,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                             >
                                                 <MenuItems
                                                     static
-                                                    className="absolute left-1/2 -translate-x-1/2 mt-2 w-screen origin-top border-t-0 bg-white shadow-lg ring-black/5 focus:outline-none z-[45]"
+                                                    className="absolute left-1/2 -translate-x-1/2 w-screen origin-top border-t-0 bg-white shadow-lg ring-black/5 focus:outline-none z-[45]"
                                                 >
                                                     <div className={"flex space-x-24 py-10 max-w-7xl mx-auto"}>
                                                         <div className={"space-y-4"}>
@@ -288,7 +288,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                 >
                                     <MenuItems
                                         static
-                                        className="absolute right-0 mt-2 w-64 md:w-80 origin-top-right bg-white shadow-lg focus:outline-none z-40 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-screen"
+                                        className="absolute right-0 w-64 origin-top-right bg-white shadow-lg focus:outline-none z-40 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-screen"
                                     >
                                         <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col space-y-4">
                                             <div className={"text-xs text-gray-500"}>Tài khoản</div>
@@ -307,7 +307,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                 <MenuItem>
                                                     {({active}) => (
                                                         <a
-                                                            href="#"
+                                                            href="/register"
                                                             className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
                                                             } block text-lg md:text-xl font-semibold w-fit hover:underline`}
                                                         >
@@ -363,7 +363,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                             <div className="text-xs text-gray-500 mb-4">Tài khoản</div>
                             <div className="space-y-3">
                                 <a href="/login" className={`block text-lg md:text-xl font-semibold w-fit hover:underline`}>Đăng nhập</a>
-                                <a href="#" className="block text-lg md:text-xl font-semibold w-fit hover:underline">Đăng ký</a>
+                                <a href="/register" className="block text-lg md:text-xl font-semibold w-fit hover:underline">Đăng ký</a>
                             </div>
                         </div>
 
@@ -430,7 +430,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
 
             {openMenuIndex !== null && !isMobile && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/30 backdrop-blur-md"
+                    className="fixed inset-0 z-40 bg-black/30 backdrop-blur-lg"
                     aria-hidden="true"
                     onClick={() => setOpenMenuIndex(null)}
                 />
@@ -438,7 +438,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
 
             {mobileMenuOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/30 backdrop-blur-md"
+                    className="fixed inset-0 z-40 bg-black/30 backdrop-blur-lg"
                     aria-hidden="true"
                     onClick={toggleMobileMenu}
                 />

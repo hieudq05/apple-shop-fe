@@ -2,6 +2,7 @@ import type {RouteObject} from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
+import RegisterPage from '../pages/RegisterPage';
 import ProductsPage from "../pages/ProductsPage.tsx";
 import ProductPage from "../pages/ProductPage.tsx";
 import CartPage from "../pages/CartPage.tsx";
@@ -40,12 +41,16 @@ export const routesConfig: RouteObject[] = [
             {
                 path: 'order-history',
                 element: <OrderHistoryPage/>
-            }
+            },
+            {
+                path: '/login',
+                element: <LoginPage/>, // LoginPage might not use MainLayout or use a different one
+            },
+            {
+                path: '/register',
+                element: <RegisterPage/>, // RegisterPage uses same layout as LoginPage
+            },
         ],
-    },
-    {
-        path: '/login',
-        element: <LoginPage/>, // LoginPage might not use MainLayout or use a different one
     },
     // {
     //     path: '*',
