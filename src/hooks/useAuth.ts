@@ -1,28 +1,77 @@
-import { useContext } from 'react';
-// Assuming AuthContext is defined in '../contexts/AuthContext'
-// and AuthContextType is exported from there.
-// You would need to export AuthContext from AuthContext.tsx for this to work.
-// import { AuthContext, AuthContextType } from '../contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { getAccessToken } from '../utils/storage';
+import { getUserInfoFromToken, isTokenExpired } from '../utils/jwt';
+import type { User } from '../types/user';
 
+interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  isLoading: boolean;
+}
 
-// This is a placeholder. For the above AuthContext.tsx, useAuth is already defined there.
-// If you create a separate AuthContext (e.g. const AuthContext = createContext...),
-// you would use it here.
+export const useAuth = () => {
+  const [authState, setAuthState] = useState<AuthState>({
+    isAuthenticated: false,
+    user: null,
+    isLoading: true
+  });
 
-// Example if AuthContext was exported:
-/*
-import { useContext } from 'react';
-import { AuthContext, AuthContextType } from '../contexts/AuthContext'; // Adjust path as needed
+  useEffect(() => {
+    const checkAuthState = () => {
+      const token = getAccessToken();
 
-export const useAuth = (): AuthContextType => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+      if (!token) {
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          isLoading: false
+        });
+        return;
+      }
+
+      // Check if token is expired
+      if (isTokenExpired(token)) {
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          isLoading: false
+        });
+        return;
+      }
+
+      // Get user info from token
+      const userInfo = getUserInfoFromToken(token);
+      if (userInfo) {
+        const user: User = {
+          id: 0, // Will be set from stored user or API
+          firstName: userInfo.firstName,
+          lastName: userInfo.lastName,
+          email: userInfo.email,
+          phone: '',
+          birth: '',
+          image: userInfo.imageUrl,
+          enabled: true,
+          roles: [{ authority: userInfo.role }],
+          createdAt: '',
+          updatedAt: ''
+        };
+
+        setAuthState({
+          isAuthenticated: true,
+          user,
+          isLoading: false
+        });
+      } else {
+        setAuthState({
+          isAuthenticated: false,
+          user: null,
+          isLoading: false
+        });
+      }
+    };
+
+    checkAuthState();
+  }, []);
+
+  return authState;
 };
-*/
-
-// For now, as useAuth is in AuthContext.tsx, this file can be a placeholder or not created.
-// If you want to use this file, ensure AuthContext is exported from its definition file.
-export {}; // Placeholder to make it a module

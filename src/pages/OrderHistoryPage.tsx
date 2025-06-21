@@ -3,50 +3,55 @@ import React from "react";
 
 const orderHistoryDatas: OrderHistoryCardProps[] = [
     {
-        id: "1",
-        orderDate: "2023-10-01",
-        items: [
+        id: 1,
+        createdAt: "2024-01-20T10:30:00Z",
+        paymentType: "BANK_TRANSFER",
+        status: "SHIPPED",
+        orderDetails: [
             {
-                productId: "1",
-                productName: "iPhone 16 Pro Max",
-                storageName: "512GB",
-                colorName: "Đen",
-                imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MA7E4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=TXZpSEg0MGF0QUNTNGpkTzhrU3hndllvYS9naDJJdU9KTWdGWjhKWFRmS09ndGkreVVaZTdmSmpUOUozdHRlU0pPRjNYblFJVkwzR2MyTG5BQ1RpRlE",
+                id: 1,
+                product: { id: 1 },
+                productName: "iPhone 15 Pro Max",
                 quantity: 1,
-                price: 15000000,
-                address: "123 Đường ABC, Phường 1, Quận 1, TP.HCM",
-                status: "Đang giao hàng"
+                price: 29990000,
+                note: "",
+                colorName: "Natural Titanium",
+                versionName: "256GB",
+                image_url: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MA7E4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=TXZpSEg0MGF0QUNTNGpkTzhrU3hndllvYS9naDJJdU9KTWdGWjhKWFRmS09ndGkreVVaZTdmSmpUOUozdHRlU0pPRjNYblFJVkwzR2MyTG5BQ1RpRlE"
             },
             {
-                productId: "2",
-                productName: "MacBook Pro 14 inch",
-                storageName: "1TB SSD",
-                colorName: "Bạc",
-                imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MDFX4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=a0w4aUNRdVRBU0RuTitHR3hrR2RCdllvYS9naDJJdU9KTWdGWjhKWFRmS1ZGS1d3SDlTVjBOQWIxNCszUkpvN1Z0V1grbituVlRzQkUwY0R1QWF2REE",
+                id: 2,
+                product: { id: 2 },
+                productName: "MacBook Air M3",
                 quantity: 1,
-                price: 5000000,
-                address: "123 Đường ABC, Phường 1, Quận 1, TP.HCM",
-                status: "Đang giao hàng"
+                price: 27990000,
+                note: "",
+                colorName: "Silver",
+                versionName: "8GB/256GB",
+                image_url: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MDFX4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=a0w4aUNRdVRBU0RuTitHR3hrR2RCdllvYS9naDJJdU9KTWdGWjhKWFRmS1ZGS1d3SDlTVjBOQWIxNCszUkpvN1Z0V1grbituVlRzQkUwY0R1QWF2REE"
             }
-        ]
+        ],
+        shippingTrackingCode: "VN123456789"
     },
     {
-        id: "2",
-        orderDate: "2023-09-15",
-        items: [
+        id: 2,
+        createdAt: "2024-01-15T09:15:00Z",
+        paymentType: "CREDIT_CARD",
+        status: "DELIVERED",
+        orderDetails: [
             {
-                productId: "2",
-                productName: "MacBook Pro 14 inch",
-                storageName: "1TB SSD",
-                colorName: "Bạc",
-                imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MDFX4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=a0w4aUNRdVRBU0RuTitHR3hrR2RCdllvYS9naDJJdU9KTWdGWjhKWFRmS1ZGS1d3SDlTVjBOQWIxNCszUkpvN1Z0V1grbituVlRzQkUwY0R1QWF2REE",
+                id: 3,
+                product: { id: 3 },
+                productName: "iPad Pro 12.9\"",
                 quantity: 1,
-                price: 5000000,
-                address: "456 Đường DEF, Phường 2, Quận 2, TP.HCM",
-                status: "Đã giao hàng",
-                completedDate: "2023-09-20"
+                price: 25990000,
+                note: "Giao hàng buổi chiều",
+                colorName: "Space Gray",
+                versionName: "128GB WiFi",
+                image_url: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/MDFX4?wid=400&hei=400&fmt=jpeg&qlt=90&.v=a0w4aUNRdVRBU0RuTitHR3hrR2RCdllvYS9naDJJdU9KTWdGWjhKWFRmS1ZGS1d3SDlTVjBOQWIxNCszUkpvN1Z0V1grbituVlRzQkUwY0R1QWF2REE"
             }
-        ]
+        ],
+        shippingTrackingCode: "VN987654321"
     }
 ]
 

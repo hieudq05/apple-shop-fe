@@ -2,6 +2,9 @@ import React, {useState, useEffect} from 'react';
 import {MagnifyingGlassIcon, ShoppingBagIcon, UserIcon, Bars3Icon, XMarkIcon} from "@heroicons/react/24/outline";
 import {Menu, MenuButton, MenuItem, MenuItems, Transition} from "@headlessui/react";
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+
+import UserDropdown from '../UserDropdown';
 import {Link} from "react-router-dom";
 
 const navbarParams = [
@@ -116,6 +119,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const { getCartCount } = useCart();
+    const { isAuthenticated, user, isLoading, logout } = useAuth();
 
     const cartCount = getCartCount();
 
@@ -263,63 +267,74 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                             <MagnifyingGlassIcon className="size-4"/>
                         </button>
                         <div className="hidden xl:block">
-                            <Menu
-                                as="div"
-                                id={"user-menu"}
-                                className="inline-block text-left"
-                                onMouseEnter={() => handleMouseEnter("user-menu")}
-                                onMouseLeave={handleMouseLeave}
-                            >
-                                <div>
-                                    <MenuButton aria-label="User Account"
-                                                className="hover:text-gray-700 bg-transparent focus:outline-none px-0">
-                                        <UserIcon className="size-4"/>
-                                    </MenuButton>
-                                </div>
-                                <Transition
-                                    show={openMenuIndex === "user-menu"}
-                                    as={React.Fragment}
-                                    enter="transition ease-out duration-500"
-                                    enterFrom="transform opacity-0"
-                                    enterTo="transform opacity-100"
-                                    leave="transition ease-in duration-150"
-                                    leaveFrom="transform opacity-100"
-                                    leaveTo="transform opacity-0"
-                                >
-                                    <MenuItems
-                                        static
-                                        className="absolute right-0 w-64 origin-top-right bg-white shadow-lg focus:outline-none z-40 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-screen"
+                            {!isLoading && (
+                                isAuthenticated && user ? (
+                                    <UserDropdown
+                                        user={user}
+                                        openMenuIndex={openMenuIndex}
+                                        onMouseEnter={() => handleMouseEnter("user-menu")}
+                                        onMouseLeave={handleMouseLeave}
+                                    />
+                                ) : (
+                                    <Menu
+                                        as="div"
+                                        id={"user-menu"}
+                                        className="inline-block text-left"
+                                        onMouseEnter={() => handleMouseEnter("user-menu")}
+                                        onMouseLeave={handleMouseLeave}
                                     >
-                                        <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col space-y-4">
-                                            <div className={"text-xs text-gray-500"}>Tài khoản</div>
-                                            <div className={"flex flex-col space-y-2"}>
-                                                <MenuItem>
-                                                    {({active}) => (
-                                                        <a
-                                                            href="/login"
-                                                            className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                                                            } block text-lg md:text-xl font-semibold w-fit hover:underline`}
-                                                        >
-                                                            Đăng nhập
-                                                        </a>
-                                                    )}
-                                                </MenuItem>
-                                                <MenuItem>
-                                                    {({active}) => (
-                                                        <a
-                                                            href="/register"
-                                                            className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                                                            } block text-lg md:text-xl font-semibold w-fit hover:underline`}
-                                                        >
-                                                            Đăng ký
-                                                        </a>
-                                                    )}
-                                                </MenuItem>
-                                            </div>
+                                        <div>
+                                            <MenuButton aria-label="User Account"
+                                                        className="hover:text-gray-700 bg-transparent focus:outline-none px-0">
+                                                <UserIcon className="size-4"/>
+                                            </MenuButton>
                                         </div>
-                                    </MenuItems>
-                                </Transition>
-                            </Menu>
+                                        <Transition
+                                            show={openMenuIndex === "user-menu"}
+                                            as={React.Fragment}
+                                            enter="transition ease-out duration-500"
+                                            enterFrom="transform opacity-0"
+                                            enterTo="transform opacity-100"
+                                            leave="transition ease-in duration-150"
+                                            leaveFrom="transform opacity-100"
+                                            leaveTo="transform opacity-0"
+                                        >
+                                            <MenuItems
+                                                static
+                                                className="absolute right-0 w-64 origin-top-right bg-white shadow-lg focus:outline-none z-40 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-screen"
+                                            >
+                                                <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col space-y-4">
+                                                    <div className={"text-xs text-gray-500"}>Tài khoản</div>
+                                                    <div className={"flex flex-col space-y-2"}>
+                                                        <MenuItem>
+                                                            {({active}) => (
+                                                                <a
+                                                                    href="/login"
+                                                                    className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
+                                                                    } block text-lg md:text-xl font-semibold w-fit hover:underline`}
+                                                                >
+                                                                    Đăng nhập
+                                                                </a>
+                                                            )}
+                                                        </MenuItem>
+                                                        <MenuItem>
+                                                            {({active}) => (
+                                                                <a
+                                                                    href="/register"
+                                                                    className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
+                                                                    } block text-lg md:text-xl font-semibold w-fit hover:underline`}
+                                                                >
+                                                                    Đăng ký
+                                                                </a>
+                                                            )}
+                                                        </MenuItem>
+                                                    </div>
+                                                </div>
+                                            </MenuItems>
+                                        </Transition>
+                                    </Menu>
+                                )
+                            )}
                         </div>
                         <div className="relative">
                             <Link to={"/cart"} aria-label="Shopping Bag"
@@ -361,10 +376,53 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                     <div className="space-y-6">
                         <div className="border-b border-gray-200 pb-6 text-start">
                             <div className="text-xs text-gray-500 mb-4">Tài khoản</div>
-                            <div className="space-y-3">
-                                <a href="/login" className={`block text-lg md:text-xl font-semibold w-fit hover:underline`}>Đăng nhập</a>
-                                <a href="/register" className="block text-lg md:text-xl font-semibold w-fit hover:underline">Đăng ký</a>
-                            </div>
+                            {!isLoading && (
+                                isAuthenticated && user ? (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-12 rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
+                                                {user.image ? (
+                                                    <img
+                                                        src={user.image}
+                                                        alt={`${user.firstName} ${user.lastName}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                                                        {user.firstName?.charAt(0)?.toUpperCase() || user.email.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <div className="text-lg font-semibold text-gray-900">
+                                                    {`${user.firstName} ${user.lastName}`.trim() || 'User'}
+                                                </div>
+                                                <div className="text-sm text-gray-500">
+                                                    {user.email}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <a href="/order-history" className="block text-lg font-semibold w-fit hover:underline">Đơn hàng</a>
+                                            <a href="/profile" className="block text-lg font-semibold w-fit hover:underline">Tài khoản</a>
+                                            <button
+                                                onClick={async () => {
+                                                    await logout();
+                                                    window.location.href = '/';
+                                                }}
+                                                className="block text-lg font-semibold w-fit hover:underline text-left"
+                                            >
+                                                Đăng xuất
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <a href="/login" className="block text-lg md:text-xl font-semibold w-fit hover:underline">Đăng nhập</a>
+                                        <a href="/register" className="block text-lg md:text-xl font-semibold w-fit hover:underline">Đăng ký</a>
+                                    </div>
+                                )
+                            )}
                         </div>
 
                         <div>

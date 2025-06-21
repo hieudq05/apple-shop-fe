@@ -1,64 +1,109 @@
 // Authentication service using axios
-import axios from 'axios';
-import type { RegisterRequest, ApiResponse, OtpResponse } from '../types/api';
+import { publicAxios } from '../utils/axios';
+import type {
+  RegisterRequest,
+  ApiResponse,
+  OtpResponse,
+  LoginRequest,
+  AuthenticationResponse,
+  GgTokenRequest,
+  OtpValidationRequest
+} from '../types/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
-
-// Create axios instance
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Use the centralized public axios instance (no auth interceptor for public endpoints)
+const axiosInstance = publicAxios;
 
 const AuthService = {
-    login: async (credentials: any) => {
-        // Replace with actual API call
-        console.log('AuthService login:', credentials);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        // Simulate successful login
-        return { token: 'fake-jwt-token', user: { id: '1', name: 'Test User' } };
-        // Simulate failed login
-        // throw new Error('Invalid credentials');
-    },
-
-    register: async (registerData: RegisterRequest): Promise<ApiResponse<OtpResponse>> => {
+    login: async (credentials: LoginRequest): Promise<ApiResponse<AuthenticationResponse>> => {
         try {
-            const response = await axiosInstance.post('/auth/register', registerData);
-            if(response.)
+            const response = await axiosInstance.post('/auth/login', credentials);
+            return response.data;
         } catch (error: any) {
             return {
                 success: false,
-                message: error?.response?.data?.message || error?.message || 'Đăng ký thất bại',
+                message: error?.response?.data?.message || error?.message || 'Đăng nhập thất bại',
                 data: undefined,
                 error: error?.response?.data?.error || {
-                    errorCode: 'REGISTRATION_FAILED',
-                    errorMessage: error?.message || 'Đăng ký thất bại',
+                    code: 'LOGIN_FAILED',
+                    message: error?.message || 'Đăng nhập thất bại',
                     errors: error?.response?.data?.errors || []
                 }
             };
         }
     },
 
-    googleRegister: async (googleToken: string): Promise<ApiResponse<any>> => {
+    register: async (registerData: RegisterRequest): Promise<ApiResponse<OtpResponse>> => {
         try {
-            console.log('🌐 AuthService: Google registration');
-            const response = await axiosInstance.post('/auth/google/register', { token: googleToken });
-
-            console.log('✅ AuthService: Google registration successful');
+            const response = await axiosInstance.post('/auth/register', registerData);
             return response.data;
         } catch (error: any) {
-            console.error('❌ AuthService: Google registration error:', error);
             return {
                 success: false,
-                message: error?.response?.data?.message || error?.message || 'Đăng ký bằng Google thất bại',
+                message: error?.response?.data?.message || error?.message || 'Đăng ký thất bại',
                 data: undefined,
                 error: error?.response?.data?.error || {
-                    errorCode: 'GOOGLE_REGISTRATION_FAILED',
-                    errorMessage: error?.message || 'Đăng ký bằng Google thất bại'
+                    code: 'REGISTRATION_FAILED',
+                    message: error?.message || 'Đăng ký thất bại',
+                    errors: error?.response?.data?.errors || []
+                }
+            };
+        }
+    },
+
+    verifyOtp: async (otpData: OtpValidationRequest): Promise<ApiResponse<AuthenticationResponse>> => {
+        try {
+            const response = await axiosInstance.post('/auth/register/verify', otpData);
+            return response.data;
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error?.response?.data?.message || error?.message || 'Xác thực OTP thất bại',
+                data: undefined,
+                error: error?.response?.data?.error || {
+                    code: 'OTP_VERIFICATION_FAILED',
+                    message: error?.message || 'Xác thực OTP thất bại',
+                    errors: error?.response?.data?.errors || []
+                }
+            };
+        }
+    },
+
+    googleAuth: async (googleToken: string): Promise<ApiResponse<AuthenticationResponse>> => {
+        try {
+            console.log('🌐 AuthService: Google authentication');
+            const tokenRequest: GgTokenRequest = { token: googleToken };
+            const response = await axiosInstance.post('/auth/google', tokenRequest);
+
+            console.log('✅ AuthService: Google authentication successful');
+            return response.data;
+        } catch (error: any) {
+            console.error('❌ AuthService: Google authentication error:', error);
+            return {
+                success: false,
+                message: error?.response?.data?.message || error?.message || 'Đăng nhập bằng Google thất bại',
+                data: undefined,
+                error: error?.response?.data?.error || {
+                    code: 'GOOGLE_AUTH_FAILED',
+                    message: error?.message || 'Đăng nhập bằng Google thất bại'
+                }
+            };
+        }
+    },
+
+    refreshToken: async (refreshToken: string): Promise<ApiResponse<string>> => {
+        try {
+            const response = await axiosInstance.post('/auth/refresh-token', null, {
+                params: { refreshToken: `${refreshToken}` }
+            });
+            return response.data;
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error?.response?.data?.message || error?.message || 'Làm mới token thất bại',
+                data: undefined,
+                error: error?.response?.data?.error || {
+                    code: 'REFRESH_TOKEN_FAILED',
+                    message: error?.message || 'Làm mới token thất bại'
                 }
             };
         }
