@@ -198,3 +198,44 @@ export interface CreateInstancePropertyRequest {
 export interface UpdateProductRequest extends CreateProductRequest {
     id: number;
 }
+
+// Blog Types
+export interface BlogPost {
+    id: number;
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    featuredImage?: string;
+    author: {
+        id: number;
+        name: string;
+        email: string;
+    };
+    category: {
+        id: number;
+        name: string;
+    };
+    tags: string[];
+    status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+    publishedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+    viewCount: number;
+    commentCount: number;
+}
+
+export interface CreateBlogRequest {
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    featuredImage?: string;
+    categoryId: number;
+    tags: string[];
+    status: 'DRAFT' | 'PUBLISHED';
+}
+
+export interface UpdateBlogRequest extends CreateBlogRequest {
+    id: number;
+}

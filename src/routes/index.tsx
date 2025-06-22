@@ -26,6 +26,12 @@ import OrderDetailPage from "../pages/admin/OrderDetailPage";
 import UserDetailPage from "../pages/admin/UserDetailPage";
 import CategoryManagementPage from "../pages/admin/CategoryManagementPage";
 import PromotionManagementPage from "../pages/admin/PromotionManagementPage";
+import BlogManagementPage from "../pages/admin/BlogManagementPage";
+import CreateBlogPage from "../pages/admin/CreateBlogPage";
+import BlogDetailPage from "../pages/admin/BlogDetailPage";
+import EditBlogPage from "../pages/admin/EditBlogPage";
+import BlogPage from "../pages/BlogPage";
+import BlogPostPage from "../pages/BlogPostPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
@@ -72,6 +78,14 @@ export const routesConfig: RouteObject[] = [
             {
                 path: 'support',
                 element: <SupportPage/>
+            },
+            {
+                path: 'blog',
+                element: <BlogPage/>
+            },
+            {
+                path: 'blog/:slug',
+                element: <BlogPostPage/>
             },
         ],
     },
@@ -152,6 +166,22 @@ export const routesConfig: RouteObject[] = [
             {
                 path: 'promotions',
                 element: <PromotionManagementPage/>,
+            },
+            {
+                path: 'blog',
+                element: <BlogManagementPage/>,
+            },
+            {
+                path: 'blog/create',
+                element: <CreateBlogPage/>,
+            },
+            {
+                path: 'blog/:id',
+                element: <BlogDetailPage/>,
+            },
+            {
+                path: 'blog/:id/edit',
+                element: <EditBlogPage/>,
             },
             {
                 path: 'analytics',

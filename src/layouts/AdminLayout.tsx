@@ -11,6 +11,7 @@ import {
     Cog6ToothIcon,
     TagIcon,
     GiftIcon,
+    DocumentTextIcon,
     ArrowRightStartOnRectangleIcon,
     UserIcon
 } from "@heroicons/react/24/outline";
@@ -27,6 +28,7 @@ const AdminLayout: React.FC = () => {
         { name: 'Đơn hàng', href: '/admin/orders', icon: ShoppingBagIcon },
         { name: 'Danh mục', href: '/admin/categories', icon: TagIcon },
         { name: 'Khuyến mãi', href: '/admin/promotions', icon: GiftIcon },
+        { name: 'Blog', href: '/admin/blog', icon: DocumentTextIcon },
         { name: 'Người dùng', href: '/admin/users', icon: UserGroupIcon, adminOnly: true },
         { name: 'Thống kê', href: '/admin/analytics', icon: ChartBarIcon },
         { name: 'Cài đặt', href: '/admin/settings', icon: Cog6ToothIcon, adminOnly: true },
@@ -98,7 +100,7 @@ const AdminLayout: React.FC = () => {
                             <Link
                                 key={item.name}
                                 to={item.href}
-                                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                                className={`group flex items-center px-3 py-4 text-sm font-medium rounded-xl ${
                                     isCurrentPath(item.href)
                                         ? 'bg-blue-100 text-blue-900'
                                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'

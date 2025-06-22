@@ -87,16 +87,12 @@ const navbarParams = [
         ]
     },
     {
-        name: "Blog", href: "#", childLinks: [
-            {name: "Tin tức", href: "#"},
-            {name: "Hướng dẫn", href: "#"},
-            {name: "Đánh giá", href: "#"},
-        ], accessories: [
-            {name: "Phụ kiện", href: "#"},
-            {name: "Apple TV", href: "#"},
-            {name: "HomePod", href: "#"},
-            {name: "AirTag", href: "#"},
-            {name: "Apple Gift Card", href: "#"},
+        name: "Blog", href: "/blog", childLinks: [
+            {name: "Tất cả bài viết", href: "/blog"},
+            {name: "Tin tức", href: "/blog?category=1"},
+            {name: "Đánh giá sản phẩm", href: "/blog?category=2"},
+            {name: "Hướng dẫn", href: "/blog?category=3"},
+            {name: "Khuyến mãi", href: "/blog?category=4"},
         ]
     },
     {
