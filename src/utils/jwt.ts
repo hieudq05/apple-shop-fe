@@ -10,21 +10,53 @@ export interface JWTPayload {
     iat: number;
 }
 
+// Helper function to properly decode Base64 with Unicode support
+const base64UrlDecode = (str: string): string => {
+    // Replace URL-safe characters
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+
+    // Add padding if necessary
+    const paddedStr = str + '='.repeat((4 - str.length % 4) % 4);
+
+    try {
+        // Use TextDecoder for proper Unicode handling
+        if (typeof TextDecoder !== 'undefined') {
+            const bytes = Uint8Array.from(atob(paddedStr), c => c.charCodeAt(0));
+            return new TextDecoder('utf-8').decode(bytes);
+        } else {
+            // Fallback for older browsers - properly handle Unicode
+            const decoded = atob(paddedStr);
+            return decodeURIComponent(escape(decoded));
+        }
+    } catch (error) {
+        // Final fallback with proper Unicode handling
+        try {
+            const decoded = atob(paddedStr);
+            return decodeURIComponent(Array.prototype.map.call(decoded, (c: string) => {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        } catch (fallbackError) {
+            console.error('Error in base64 decode fallback:', fallbackError);
+            return atob(paddedStr); // Return raw decoded string as last resort
+        }
+    }
+};
+
 export const decodeJWT = (token: string): JWTPayload | null => {
     try {
         // Remove 'Bearer ' prefix if present
         const cleanToken = token.replace(/^Bearer\s+/, '');
-        
+
         // Split the token into parts
         const parts = cleanToken.split('.');
         if (parts.length !== 3) {
             return null;
         }
 
-        // Decode the payload (second part)
+        // Decode the payload (second part) with proper Unicode support
         const payload = parts[1];
-        const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-        
+        const decodedPayload = base64UrlDecode(payload);
+
         return JSON.parse(decodedPayload) as JWTPayload;
     } catch (error) {
         console.error('Error decoding JWT:', error);
@@ -43,14 +75,40 @@ export const isTokenExpired = (token: string): boolean => {
 export const getUserFromToken = (token: string): any | null => {
     const payload = decodeJWT(token);
     if (!payload) return null;
-    
+
+    // Extract user data with proper Unicode handling
+    const firstName = payload.firstName || '';
+    const lastName = payload.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    const email = payload.sub || '';
+
+    // Debug logging for Unicode issues (only in development)
+    if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 JWT Decode Debug:', {
+            rawPayload: payload,
+            extractedData: {
+                email,
+                firstName,
+                lastName,
+                fullName,
+                roles: payload.roles
+            },
+            unicodeCheck: {
+                firstNameLength: firstName.length,
+                lastNameLength: lastName.length,
+                firstNameCharCodes: firstName.split('').map(c => c.charCodeAt(0)),
+                lastNameCharCodes: lastName.split('').map(c => c.charCodeAt(0))
+            }
+        });
+    }
+
     return {
-        email: payload.sub,
-        firstName: payload.firstName,
-        lastName: payload.lastName,
+        email,
+        firstName,
+        lastName,
         imageUrl: payload.imageUrl,
         roles: payload.roles,
-        fullName: `${payload.firstName || ''} ${payload.lastName || ''}`.trim()
+        fullName
     };
 };
 

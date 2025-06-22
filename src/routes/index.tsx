@@ -32,6 +32,7 @@ import BlogDetailPage from "../pages/admin/BlogDetailPage";
 import EditBlogPage from "../pages/admin/EditBlogPage";
 import BlogPage from "../pages/BlogPage";
 import BlogPostPage from "../pages/BlogPostPage";
+import JWTTestComponent from "../components/debug/JWTTestComponent";
 import NotFoundPage from "../pages/NotFoundPage";
 import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
@@ -106,6 +107,11 @@ export const routesConfig: RouteObject[] = [
     {
         path: '/admin/login',
         element: <AdminLoginPage/>,
+    },
+    // Debug route for JWT testing (remove in production)
+    {
+        path: '/debug/jwt-test',
+        element: <JWTTestComponent/>,
     },
     {
         path: '/admin',
