@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import { Link } from 'react-router-dom';
+import {
     EyeIcon,
     MagnifyingGlassIcon,
     FunnelIcon,
@@ -302,12 +303,13 @@ const AdminUsersPage: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex items-center justify-end space-x-2">
-                                            <button
+                                            <Link
+                                                to={`/admin/users/${user.id}`}
                                                 className="text-blue-600 hover:text-blue-900 p-1"
                                                 title="Xem chi tiết"
                                             >
                                                 <EyeIcon className="w-4 h-4" />
-                                            </button>
+                                            </Link>
                                             {user.roles.some(role => role.authority !== 'ROLE_ADMIN') && (
                                                 <button
                                                     onClick={() => handleToggleUserStatus(user.id, user.enabled)}

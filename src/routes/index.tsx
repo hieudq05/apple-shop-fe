@@ -22,6 +22,10 @@ import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
 import CreateProductPage from "../pages/admin/CreateProductPage";
 import ProductDetailPage from "../pages/admin/ProductDetailPage";
 import EditProductPage from "../pages/admin/EditProductPage";
+import OrderDetailPage from "../pages/admin/OrderDetailPage";
+import UserDetailPage from "../pages/admin/UserDetailPage";
+import CategoryManagementPage from "../pages/admin/CategoryManagementPage";
+import PromotionManagementPage from "../pages/admin/PromotionManagementPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
@@ -122,12 +126,32 @@ export const routesConfig: RouteObject[] = [
                 element: <AdminOrdersPage/>,
             },
             {
+                path: 'orders/:id',
+                element: <OrderDetailPage/>,
+            },
+            {
                 path: 'users',
                 element: (
                     <ProtectedRoute requireAdmin={true}>
                         <AdminUsersPage/>
                     </ProtectedRoute>
                 ),
+            },
+            {
+                path: 'users/:id',
+                element: (
+                    <ProtectedRoute requireAdmin={true}>
+                        <UserDetailPage/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'categories',
+                element: <CategoryManagementPage/>,
+            },
+            {
+                path: 'promotions',
+                element: <PromotionManagementPage/>,
             },
             {
                 path: 'analytics',

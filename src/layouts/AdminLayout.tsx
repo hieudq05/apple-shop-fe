@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { 
-    Bars3Icon, 
+import {
+    Bars3Icon,
     XMarkIcon,
     HomeIcon,
     ShoppingBagIcon,
@@ -9,6 +9,8 @@ import {
     UserGroupIcon,
     ChartBarIcon,
     Cog6ToothIcon,
+    TagIcon,
+    GiftIcon,
     ArrowRightStartOnRectangleIcon,
     UserIcon
 } from "@heroicons/react/24/outline";
@@ -23,6 +25,8 @@ const AdminLayout: React.FC = () => {
         { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
         { name: 'Sản phẩm', href: '/admin/products', icon: CubeIcon },
         { name: 'Đơn hàng', href: '/admin/orders', icon: ShoppingBagIcon },
+        { name: 'Danh mục', href: '/admin/categories', icon: TagIcon },
+        { name: 'Khuyến mãi', href: '/admin/promotions', icon: GiftIcon },
         { name: 'Người dùng', href: '/admin/users', icon: UserGroupIcon, adminOnly: true },
         { name: 'Thống kê', href: '/admin/analytics', icon: ChartBarIcon },
         { name: 'Cài đặt', href: '/admin/settings', icon: Cog6ToothIcon, adminOnly: true },

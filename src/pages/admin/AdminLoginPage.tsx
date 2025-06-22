@@ -54,12 +54,12 @@ const AdminLoginPage: React.FC = () => {
     };
 
     return (
-        <>
-            <div className={"max-w-7xl mx-auto container text-black"}>
-                <div aria-label={"Title"} className={"md:text-5xl text-3xl font-semibold text-start md:py-12 py-6"}>
+        <div className={"h-full flex items-center justify-center"}>
+            <div className={"max-w-xl mx-auto my-auto container text-black"}>
+                <div aria-label={"Title"} className={"md:text-5xl text-4xl font-semibold text-start pb-6"}>
                     Đăng nhập vào trang quản trị.
                 </div>
-                <div className={"flex w-full h-fit space-x-12"}>
+                <div className={"flex w-full h-fit justify-center"}>
                     <div className={"flex-1 size-full flex flex-col space-y-12"}>
                         <div className={"text-2xl font-semibold text-gray-700"}>Đăng nhập quản trị viên</div>
                         
@@ -131,15 +131,9 @@ const AdminLoginPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <div className={"flex-1 size-[35rem] rounded-2xl"} style={{
-                        backgroundImage: "url('https://www.apple.com/v/home/ce/images/promos/macbook-pro/promo_mbp_avail__buwssod9ek2u_large_2x.jpg')",
-                        backgroundSize: "cover",
-                        backgroundPosition: "center"
-                    }}>
-                    </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
