@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
-import {MagnifyingGlassIcon, ShoppingBagIcon, UserIcon, Bars3Icon, XMarkIcon} from "@heroicons/react/24/outline";
+import {MagnifyingGlassIcon, ShoppingBagIcon, UserIcon, Bars3Icon, XMarkIcon, ArrowRightStartOnRectangleIcon} from "@heroicons/react/24/outline";
 import {Menu, MenuButton, MenuItem, MenuItems, Transition} from "@headlessui/react";
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 import {Link} from "react-router-dom";
 
 const navbarParams = [
@@ -116,6 +117,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const { getCartCount } = useCart();
+    const { user, isAuthenticated, logout } = useAuth();
 
     const cartCount = getCartCount();
 
@@ -288,35 +290,99 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                 >
                                     <MenuItems
                                         static
-                                        className="absolute right-0 w-64 origin-top-right bg-white shadow-lg focus:outline-none z-40 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-screen"
+                                        className="absolute right-0 w-80 origin-top-right bg-white shadow-lg focus:outline-none z-40 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-screen"
                                     >
-                                        <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col space-y-4">
-                                            <div className={"text-xs text-gray-500"}>Tài khoản</div>
-                                            <div className={"flex flex-col space-y-2"}>
-                                                <MenuItem>
-                                                    {({active}) => (
-                                                        <a
-                                                            href="/login"
-                                                            className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                                                            } block text-lg md:text-xl font-semibold w-fit hover:underline`}
-                                                        >
-                                                            Đăng nhập
-                                                        </a>
-                                                    )}
-                                                </MenuItem>
-                                                <MenuItem>
-                                                    {({active}) => (
-                                                        <a
-                                                            href="/register"
-                                                            className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                                                            } block text-lg md:text-xl font-semibold w-fit hover:underline`}
-                                                        >
-                                                            Đăng ký
-                                                        </a>
-                                                    )}
-                                                </MenuItem>
+                                        {isAuthenticated && user ? (
+                                            <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto">
+                                                <div className="flex items-start space-x-4 pb-6 border-b border-gray-200">
+                                                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                                        {user.imageUrl ? (
+                                                            <img
+                                                                src={user.imageUrl}
+                                                                alt={user.fullName}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <UserIcon className="w-8 h-8 text-gray-400" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="text-lg font-semibold text-gray-900">
+                                                            {user.fullName || 'Người dùng'}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500">
+                                                            {user.email}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="pt-4 space-y-2">
+                                                    <MenuItem>
+                                                        {({active}) => (
+                                                            <Link
+                                                                to="/order-history"
+                                                                className={`${active ? 'bg-gray-50' : ''}
+                                                                    flex items-center px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md`}
+                                                            >
+                                                                <span className="text-base">📦</span>
+                                                                <span className="ml-3">Đơn hàng</span>
+                                                            </Link>
+                                                        )}
+                                                    </MenuItem>
+                                                    <MenuItem>
+                                                        {({active}) => (
+                                                            <Link
+                                                                to="/profile"
+                                                                className={`${active ? 'bg-gray-50' : ''}
+                                                                    flex items-center px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md`}
+                                                            >
+                                                                <span className="text-base">👤</span>
+                                                                <span className="ml-3">Tài khoản</span>
+                                                            </Link>
+                                                        )}
+                                                    </MenuItem>
+                                                    <MenuItem>
+                                                        {({active}) => (
+                                                            <button
+                                                                onClick={logout}
+                                                                className={`${active ? 'bg-gray-50' : ''}
+                                                                    flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md`}
+                                                            >
+                                                                <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
+                                                                <span className="ml-3">Đăng xuất</span>
+                                                            </button>
+                                                        )}
+                                                    </MenuItem>
+                                                </div>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col space-y-4">
+                                                <div className={"text-xs text-gray-500"}>Tài khoản</div>
+                                                <div className={"flex flex-col space-y-2"}>
+                                                    <MenuItem>
+                                                        {({active}) => (
+                                                            <a
+                                                                href="/login"
+                                                                className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
+                                                                } block text-lg md:text-xl font-semibold w-fit hover:underline`}
+                                                            >
+                                                                Đăng nhập
+                                                            </a>
+                                                        )}
+                                                    </MenuItem>
+                                                    <MenuItem>
+                                                        {({active}) => (
+                                                            <a
+                                                                href="/register"
+                                                                className={`${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
+                                                                } block text-lg md:text-xl font-semibold w-fit hover:underline`}
+                                                            >
+                                                                Đăng ký
+                                                            </a>
+                                                        )}
+                                                    </MenuItem>
+                                                </div>
+                                            </div>
+                                        )}
                                     </MenuItems>
                                 </Transition>
                             </Menu>
@@ -360,11 +426,56 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
 
                     <div className="space-y-6">
                         <div className="border-b border-gray-200 pb-6 text-start">
-                            <div className="text-xs text-gray-500 mb-4">Tài khoản</div>
-                            <div className="space-y-3">
-                                <a href="/login" className={`block text-lg md:text-xl font-semibold w-fit hover:underline`}>Đăng nhập</a>
-                                <a href="/register" className="block text-lg md:text-xl font-semibold w-fit hover:underline">Đăng ký</a>
-                            </div>
+                            {isAuthenticated && user ? (
+                                <div>
+                                    <div className="flex items-center space-x-3 mb-4">
+                                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                            {user.imageUrl ? (
+                                                <img
+                                                    src={user.imageUrl}
+                                                    alt={user.fullName}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <UserIcon className="w-6 h-6 text-gray-400" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-gray-900">
+                                                {user.fullName || 'Người dùng'}
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                {user.email}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <a href="/order-history" className="flex items-center text-lg font-semibold w-fit hover:underline">
+                                            <span className="mr-2">📦</span>
+                                            Đơn hàng
+                                        </a>
+                                        <a href="/profile" className="flex items-center text-lg font-semibold w-fit hover:underline">
+                                            <span className="mr-2">👤</span>
+                                            Tài khoản
+                                        </a>
+                                        <button
+                                            onClick={logout}
+                                            className="flex items-center text-lg font-semibold w-fit hover:underline text-left"
+                                        >
+                                            <ArrowRightStartOnRectangleIcon className="w-5 h-5 mr-2" />
+                                            Đăng xuất
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="text-xs text-gray-500 mb-4">Tài khoản</div>
+                                    <div className="space-y-3">
+                                        <a href="/login" className={`block text-lg md:text-xl font-semibold w-fit hover:underline`}>Đăng nhập</a>
+                                        <a href="/register" className="block text-lg md:text-xl font-semibold w-fit hover:underline">Đăng ký</a>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div>

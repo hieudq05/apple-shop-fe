@@ -1,30 +1,36 @@
 import type {RouteObject} from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import AdminLayout from '../layouts/AdminLayout';
+import ProtectedRoute from '../components/ProtectedRoute';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import OtpVerificationPage from '../pages/OtpVerificationPage';
 import ProductsPage from "../pages/ProductsPage.tsx";
 import ProductPage from "../pages/ProductPage.tsx";
 import CartPage from "../pages/CartPage.tsx";
 import PaymentPage from "../pages/PaymentPage";
 import ProfilePage from "../pages/ProfilePage.tsx";
 import OrderHistoryPage from "../pages/OrderHistoryPage.tsx";
+import AdminLoginPage from "../pages/admin/AdminLoginPage";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminProductsPage from "../pages/admin/AdminProductsPage";
+import AdminOrdersPage from "../pages/admin/AdminOrdersPage";
 
 export const routesConfig: RouteObject[] = [
+    // User routes with MainLayout
     {
         path: '/',
         element: <MainLayout/>,
         children: [
             {index: true, element: <HomePage/>},
-            // Add other pages that use MainLayout here
-            // { path: 'products', element: <ProductsPage /> },
             {
                 path: 'products/:categoryId',
-                element: <ProductsPage/>, // Example for a products page
+                element: <ProductsPage/>,
             },
             {
                 path: 'product/:productId',
-                element: <ProductPage/>, // Example for a specific product page
+                element: <ProductPage/>,
             },
             {
                 path: 'cart',
@@ -42,14 +48,47 @@ export const routesConfig: RouteObject[] = [
                 path: 'order-history',
                 element: <OrderHistoryPage/>
             },
+        ],
+    },
+    // Auth routes without layout
+    {
+        path: '/login',
+        element: <LoginPage/>,
+    },
+    {
+        path: '/register',
+        element: <RegisterPage/>,
+    },
+    {
+        path: '/verify-otp',
+        element: <OtpVerificationPage/>,
+    },
+    // Admin routes
+    {
+        path: '/admin/login',
+        element: <AdminLoginPage/>,
+    },
+    {
+        path: '/admin',
+        element: (
+            <ProtectedRoute requireAdmin={true}>
+                <AdminLayout/>
+            </ProtectedRoute>
+        ),
+        children: [
             {
-                path: '/login',
-                element: <LoginPage/>, // LoginPage might not use MainLayout or use a different one
+                path: 'dashboard',
+                element: <AdminDashboard/>,
             },
             {
-                path: '/register',
-                element: <RegisterPage/>, // RegisterPage uses same layout as LoginPage
+                path: 'products',
+                element: <AdminProductsPage/>,
             },
+            {
+                path: 'orders',
+                element: <AdminOrdersPage/>,
+            },
+            // Add more admin routes here
         ],
     },
     // {
