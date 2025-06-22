@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-    PlusIcon, 
-    PencilIcon, 
-    TrashIcon, 
+import {
+    PlusIcon,
+    PencilIcon,
+    TrashIcon,
     EyeIcon,
     MagnifyingGlassIcon,
     FunnelIcon
 } from "@heroicons/react/24/outline";
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 interface Product {
     id: number;
@@ -37,6 +38,17 @@ const AdminProductsPage: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [deleteDialog, setDeleteDialog] = useState<{
+        isOpen: boolean;
+        productId: number | null;
+        productName: string;
+        isDeleting: boolean;
+    }>({
+        isOpen: false,
+        productId: null,
+        productName: '',
+        isDeleting: false
+    });
 
     useEffect(() => {
         fetchProducts();
@@ -85,16 +97,40 @@ const AdminProductsPage: React.FC = () => {
         }
     };
 
-    const handleDeleteProduct = async (productId: number) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-            try {
-                // Replace with actual API call
-                console.log('Deleting product:', productId);
-                // Remove from local state
-                setProducts(products.filter(p => p.id !== productId));
-            } catch (error) {
-                console.error('Error deleting product:', error);
-            }
+    const openDeleteDialog = (productId: number, productName: string) => {
+        setDeleteDialog({
+            isOpen: true,
+            productId,
+            productName,
+            isDeleting: false
+        });
+    };
+
+    const closeDeleteDialog = () => {
+        setDeleteDialog({
+            isOpen: false,
+            productId: null,
+            productName: '',
+            isDeleting: false
+        });
+    };
+
+    const handleDeleteProduct = async () => {
+        if (!deleteDialog.productId) return;
+
+        setDeleteDialog(prev => ({ ...prev, isDeleting: true }));
+
+        try {
+            // Replace with actual API call
+            console.log('Deleting product:', deleteDialog.productId);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+
+            // Remove from local state
+            setProducts(products.filter(p => p.id !== deleteDialog.productId));
+            closeDeleteDialog();
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            setDeleteDialog(prev => ({ ...prev, isDeleting: false }));
         }
     };
 
@@ -255,7 +291,7 @@ const AdminProductsPage: React.FC = () => {
                                                 <PencilIcon className="w-4 h-4" />
                                             </Link>
                                             <button
-                                                onClick={() => handleDeleteProduct(product.id)}
+                                                onClick={() => openDeleteDialog(product.id, product.name)}
                                                 className="text-red-600 hover:text-red-900 p-1"
                                                 title="Xóa"
                                             >
@@ -329,6 +365,19 @@ const AdminProductsPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={deleteDialog.isOpen}
+                onClose={closeDeleteDialog}
+                onConfirm={handleDeleteProduct}
+                title="Xóa sản phẩm"
+                message={`Bạn có chắc chắn muốn xóa sản phẩm "${deleteDialog.productName}"? Hành động này không thể hoàn tác.`}
+                confirmText="Xóa"
+                cancelText="Hủy"
+                type="danger"
+                isLoading={deleteDialog.isDeleting}
+            />
         </div>
     );
 };

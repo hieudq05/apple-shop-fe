@@ -65,6 +65,18 @@ export const isAdmin = (token: string): boolean => {
     return hasRole(token, 'ROLE_ADMIN');
 };
 
+export const isStaff = (token: string): boolean => {
+    return hasRole(token, 'ROLE_STAFF');
+};
+
 export const isUser = (token: string): boolean => {
     return hasRole(token, 'ROLE_USER');
+};
+
+export const isAdminOrStaff = (token: string): boolean => {
+    return isAdmin(token) || isStaff(token);
+};
+
+export const canAccessAdminPanel = (token: string): boolean => {
+    return isAdmin(token) || isStaff(token);
 };

@@ -16,17 +16,17 @@ import { useAuth } from '../contexts/AuthContext';
 
 const AdminLayout: React.FC = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const { user, logout } = useAuth();
+    const { user, logout, isAdmin, isStaff } = useAuth();
     const location = useLocation();
 
     const navigation = [
         { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
         { name: 'Sản phẩm', href: '/admin/products', icon: CubeIcon },
         { name: 'Đơn hàng', href: '/admin/orders', icon: ShoppingBagIcon },
-        { name: 'Người dùng', href: '/admin/users', icon: UserGroupIcon },
+        { name: 'Người dùng', href: '/admin/users', icon: UserGroupIcon, adminOnly: true },
         { name: 'Thống kê', href: '/admin/analytics', icon: ChartBarIcon },
-        { name: 'Cài đặt', href: '/admin/settings', icon: Cog6ToothIcon },
-    ];
+        { name: 'Cài đặt', href: '/admin/settings', icon: Cog6ToothIcon, adminOnly: true },
+    ].filter(item => !item.adminOnly || isAdmin);
 
     const isCurrentPath = (path: string) => {
         return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -143,7 +143,7 @@ const AdminLayout: React.FC = () => {
                                         {user?.fullName || 'Admin'}
                                     </div>
                                     <div className="text-xs text-gray-500">
-                                        Quản trị viên
+                                        {isAdmin ? 'Quản trị viên' : isStaff ? 'Nhân viên' : 'Người dùng'}
                                     </div>
                                 </div>
                                 <button

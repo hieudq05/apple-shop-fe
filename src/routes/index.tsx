@@ -19,15 +19,22 @@ import AdminOrdersPage from "../pages/admin/AdminOrdersPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminAnalyticsPage from "../pages/admin/AdminAnalyticsPage";
 import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
+import CreateProductPage from "../pages/admin/CreateProductPage";
+import ProductDetailPage from "../pages/admin/ProductDetailPage";
+import EditProductPage from "../pages/admin/EditProductPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
 
 export const routesConfig: RouteObject[] = [
-    // User routes with MainLayout
+    // User routes with MainLayout (only for ROLE_USER)
     {
         path: '/',
-        element: <MainLayout/>,
+        element: (
+            <ProtectedRoute requireUserOnly={true} requireAuth={false}>
+                <MainLayout/>
+            </ProtectedRoute>
+        ),
         children: [
             {index: true, element: <HomePage/>},
             {
@@ -85,7 +92,7 @@ export const routesConfig: RouteObject[] = [
     {
         path: '/admin',
         element: (
-            <ProtectedRoute requireAdmin={true}>
+            <ProtectedRoute requireAdminOrStaff={true}>
                 <AdminLayout/>
             </ProtectedRoute>
         ),
@@ -99,12 +106,28 @@ export const routesConfig: RouteObject[] = [
                 element: <AdminProductsPage/>,
             },
             {
+                path: 'products/create',
+                element: <CreateProductPage/>,
+            },
+            {
+                path: 'products/:id',
+                element: <ProductDetailPage/>,
+            },
+            {
+                path: 'products/:id/edit',
+                element: <EditProductPage/>,
+            },
+            {
                 path: 'orders',
                 element: <AdminOrdersPage/>,
             },
             {
                 path: 'users',
-                element: <AdminUsersPage/>,
+                element: (
+                    <ProtectedRoute requireAdmin={true}>
+                        <AdminUsersPage/>
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'analytics',
@@ -112,7 +135,11 @@ export const routesConfig: RouteObject[] = [
             },
             {
                 path: 'settings',
-                element: <AdminSettingsPage/>,
+                element: (
+                    <ProtectedRoute requireAdmin={true}>
+                        <AdminSettingsPage/>
+                    </ProtectedRoute>
+                ),
             },
         ],
     },

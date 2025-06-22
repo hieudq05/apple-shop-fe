@@ -18,7 +18,9 @@ interface AuthContextType {
     logout: () => void;
     isAuthenticated: boolean;
     isAdmin: boolean;
+    isStaff: boolean;
     isUser: boolean;
+    canAccessAdminPanel: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,7 +65,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const isAuthenticated = !!token && !!user;
     const isAdmin = user?.roles?.some(role => role.authority === 'ROLE_ADMIN') || false;
+    const isStaff = user?.roles?.some(role => role.authority === 'ROLE_STAFF') || false;
     const isUser = user?.roles?.some(role => role.authority === 'ROLE_USER') || false;
+    const canAccessAdminPanel = isAdmin || isStaff;
 
     return (
         <AuthContext.Provider value={{
@@ -73,7 +77,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             logout,
             isAuthenticated,
             isAdmin,
-            isUser
+            isStaff,
+            isUser,
+            canAccessAdminPanel
         }}>
             {children}
         </AuthContext.Provider>
