@@ -16,6 +16,12 @@ import AdminLoginPage from "../pages/admin/AdminLoginPage";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminProductsPage from "../pages/admin/AdminProductsPage";
 import AdminOrdersPage from "../pages/admin/AdminOrdersPage";
+import AdminUsersPage from "../pages/admin/AdminUsersPage";
+import AdminAnalyticsPage from "../pages/admin/AdminAnalyticsPage";
+import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
+import NotFoundPage from "../pages/NotFoundPage";
+import SearchPage from "../pages/SearchPage";
+import SupportPage from "../pages/SupportPage";
 
 export const routesConfig: RouteObject[] = [
     // User routes with MainLayout
@@ -47,6 +53,14 @@ export const routesConfig: RouteObject[] = [
             {
                 path: 'order-history',
                 element: <OrderHistoryPage/>
+            },
+            {
+                path: 'search',
+                element: <SearchPage/>
+            },
+            {
+                path: 'support',
+                element: <SupportPage/>
             },
         ],
     },
@@ -88,11 +102,23 @@ export const routesConfig: RouteObject[] = [
                 path: 'orders',
                 element: <AdminOrdersPage/>,
             },
-            // Add more admin routes here
+            {
+                path: 'users',
+                element: <AdminUsersPage/>,
+            },
+            {
+                path: 'analytics',
+                element: <AdminAnalyticsPage/>,
+            },
+            {
+                path: 'settings',
+                element: <AdminSettingsPage/>,
+            },
         ],
     },
-    // {
-    //     path: '*',
-    //     element: <NotFoundPage /> // A catch-all 404 page
-    // }
+    // 404 catch-all route
+    {
+        path: '*',
+        element: <NotFoundPage />
+    }
 ];

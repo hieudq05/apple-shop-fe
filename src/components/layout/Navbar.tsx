@@ -3,16 +3,16 @@ import {MagnifyingGlassIcon, ShoppingBagIcon, UserIcon, Bars3Icon, XMarkIcon, Ar
 import {Menu, MenuButton, MenuItem, MenuItems, Transition} from "@headlessui/react";
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 const navbarParams = [
     {
         name: "Cửa hàng", href: "#", childLinks: [
-            {name: "Mac", href: "#"},
-            {name: "iPad", href: "#"},
-            {name: "iPhone", href: "#"},
-            {name: "Watch", href: "#"},
-            {name: "AirPods", href: "#"},
+            {name: "Mac", href: "/products/mac"},
+            {name: "iPad", href: "/products/ipad"},
+            {name: "iPhone", href: "/products/iphone"},
+            {name: "Watch", href: "/products/watch"},
+            {name: "AirPods", href: "/products/airpods"},
         ]
     },
     {
@@ -101,9 +101,9 @@ const navbarParams = [
     },
     {
         name: "Liên hệ", href: "#", childLinks: [
-            {name: "Hỗ trợ", href: "#"},
-            {name: "Bảo hành", href: "#"},
-            {name: "Đổi trả", href: "#"},
+            {name: "Hỗ trợ", href: "/support"},
+            {name: "Bảo hành", href: "/support"},
+            {name: "Đổi trả", href: "/support"},
         ]
     }
 ]
@@ -116,8 +116,10 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
     const [openMenuIndex, setOpenMenuIndex] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const { getCartCount } = useCart();
     const { user, isAuthenticated, logout } = useAuth();
+    const navigate = useNavigate();
 
     const cartCount = getCartCount();
 
@@ -156,6 +158,14 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
     const toggleMobileSubmenu = (index: string) => {
         if (isMobile) {
             setOpenMenuIndex(openMenuIndex === index ? null : index);
+        }
+    };
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchTerm.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+            setSearchTerm('');
         }
     };
 
@@ -260,8 +270,21 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                     </div>
 
                     <div className="flex items-center space-x-12">
-                        <button aria-label="Search"
-                                className="text-black hover:text-gray-700 bg-transparent focus:outline-none px-0">
+                        <form onSubmit={handleSearch} className="relative hidden md:block">
+                            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Tìm kiếm..."
+                                className="w-64 pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
+                            />
+                        </form>
+                        <button
+                            onClick={() => navigate('/search')}
+                            aria-label="Search"
+                            className="md:hidden text-black hover:text-gray-700 bg-transparent focus:outline-none px-0"
+                        >
                             <MagnifyingGlassIcon className="size-4"/>
                         </button>
                         <div className="hidden xl:block">
@@ -425,6 +448,20 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                     </div>
 
                     <div className="space-y-6">
+                        {/* Mobile Search */}
+                        <div className="border-b border-gray-200 pb-6">
+                            <form onSubmit={handleSearch} className="relative">
+                                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Tìm kiếm sản phẩm..."
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                            </form>
+                        </div>
+
                         <div className="border-b border-gray-200 pb-6 text-start">
                             {isAuthenticated && user ? (
                                 <div>
