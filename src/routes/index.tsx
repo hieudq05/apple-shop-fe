@@ -134,11 +134,11 @@ export const routesConfig: RouteObject[] = [
                 element: <CreateProductPage/>,
             },
             {
-                path: 'products/:id',
+                path: 'products/:categoryId/:id',
                 element: <ProductDetailPage/>,
             },
             {
-                path: 'products/:id/edit',
+                path: 'products/:categoryId/:id/edit',
                 element: <EditProductPage/>,
             },
             {

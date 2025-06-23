@@ -21,6 +21,7 @@ interface AuthContextType {
     isStaff: boolean;
     isUser: boolean;
     canAccessAdminPanel: boolean;
+    isAuthLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,23 +29,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
 
     useEffect(() => {
-        // Initialize auth state from localStorage
-        const accessToken = getAccessToken();
-        if (accessToken && !isTokenExpired(accessToken)) {
-            const userData = getUserFromToken(accessToken);
-            if (userData) {
-                setUser(userData);
-                setToken(accessToken);
-                setUserData(userData);
+        try {
+            const accessToken = getAccessToken();
+            if (accessToken && !isTokenExpired(accessToken)) {
+                const userData = getUserFromToken(accessToken);
+                if (userData) {
+                    setUser(userData);
+                    setToken(accessToken);
+                    setUserData(userData);
+                } else {
+                    clearAllStorage();
+                }
             } else {
-                // Invalid token, clear storage
                 clearAllStorage();
             }
-        } else {
-            // Token expired or doesn't exist, clear storage
+        } catch (error) {
+            console.error("Failed to initialize auth state:", error);
             clearAllStorage();
+        } finally {
+            setIsAuthLoading(false);
         }
     }, []);
 
@@ -79,7 +85,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             isAdmin,
             isStaff,
             isUser,
-            canAccessAdminPanel
+            canAccessAdminPanel,
+            isAuthLoading
         }}>
             {children}
         </AuthContext.Provider>

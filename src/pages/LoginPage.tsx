@@ -4,10 +4,10 @@ import axios from "axios";
 import {setAccessToken, setRefreshToken} from "../utils/storage.ts";
 import {GoogleLogin} from "@react-oauth/google";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
-    const { login } = useAuth();
+    const { login, isAuthenticated, isUser, isAuthLoading } = useAuth();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -16,6 +16,18 @@ const LoginPage: React.FC = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<string[]>([]);
+
+    if (isAuthLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (isAuthenticated && isUser) {
+        return <Navigate to="/" replace />;
+    }
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,19 +46,28 @@ const LoginPage: React.FC = () => {
                 navigate("/");
                 setIsLoading(false);
             }
-        } catch (error: any) {
-            console.log(error);
-            if (error.response.data.error.errors) {
-                setErrors(error.response.data.error.errors.map((error: any) => error.message));
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error) && error.response) {
+                const responseData = error.response.data;
+                if (responseData?.error?.errors) {
+                    setErrors(responseData.error.errors.map((err: { message: string }) => err.message));
+                } else {
+                    setErrors([responseData?.error?.message || "An unexpected error occurred."]);
+                }
             } else {
-                setErrors([error.response.data.error.message]);
+                setErrors(["An unexpected error occurred."]);
             }
             setIsLoading(false);
         }
     }
 
-    const handleLoginSuccess = async (credentialResponse: any) => {
+    const handleLoginSuccess = async (credentialResponse: { credential?: string }) => {
         const idToken = credentialResponse.credential;
+
+        if (!idToken) {
+            setErrors(["Google login failed: No credential returned."]);
+            return;
+        }
 
         try {
             const response = await axios.post('http://localhost:8080/api/v1/auth/google', {
@@ -60,8 +81,12 @@ const LoginPage: React.FC = () => {
                 navigate("/");
             }
 
-        } catch (error: any) {
-            setErrors([error])
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error) && error.response) {
+                setErrors([error.response.data?.message || "Google login failed."]);
+            } else {
+                setErrors(["An unexpected error occurred during Google login."]);
+            }
         }
     };
 

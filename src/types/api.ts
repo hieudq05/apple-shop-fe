@@ -4,13 +4,20 @@ export interface ApiResponse<T> {
     success: boolean;
     message: string;
     data?: T;
-    error?: ErrorResponse;
+    meta?: MetadataResponse;
 }
 
 export interface ErrorResponse {
     errorCode: string;
     errorMessage: string;
     errors?: ValidationErrorDetail[];
+}
+
+export interface MetadataResponse {
+    currentPage: number,
+    pageSize: number,
+    totalElements: number,
+    totalPage: number,
 }
 
 export interface ValidationErrorDetail {
@@ -217,7 +224,7 @@ export interface BlogPost {
         name: string;
     };
     tags: string[];
-    status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     publishedAt?: string;
     createdAt: string;
     updatedAt: string;
@@ -233,7 +240,7 @@ export interface CreateBlogRequest {
     featuredImage?: string;
     categoryId: number;
     tags: string[];
-    status: 'DRAFT' | 'PUBLISHED';
+    status: "DRAFT" | "PUBLISHED";
 }
 
 export interface UpdateBlogRequest extends CreateBlogRequest {

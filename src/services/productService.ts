@@ -1,6 +1,6 @@
 // Product service for public product operations
 import { publicAPI, privateAPI } from '../utils/axios';
-import type { ApiResponse, PaginationParams } from '../types/api';
+import type { ApiResponse } from '../types/api';
 
 export interface Product {
   id: number;
@@ -55,7 +55,7 @@ export interface Category {
   productCount?: number;
 }
 
-export interface ProductsParams extends PaginationParams {
+export interface ProductsParams {
   categoryId?: number;
   minPrice?: number;
   maxPrice?: number;
