@@ -50,6 +50,7 @@ interface ExtendedProduct extends Omit<AdminProduct, 'stocks'> {
         }>;
     }>;
 }
+
 import type {MetadataResponse} from "../../types/api.ts";
 
 const AdminProductsPage: React.FC = () => {
@@ -86,7 +87,7 @@ const AdminProductsPage: React.FC = () => {
         };
     }, [searchTerm]);
 
-    const { data: productsData, isLoading, isError: isErrorProducts } = useQuery({
+    const {data: productsData, isLoading, isError: isErrorProducts} = useQuery({
         queryKey: ['adminProducts', metadata.currentPage, debouncedSearchTerm, selectedCategory],
         queryFn: async () => {
             const params: AdminProductsParams = {
@@ -141,7 +142,7 @@ const AdminProductsPage: React.FC = () => {
     const deleteMutation = useMutation({
         mutationFn: (productId: number) => adminProductService.deleteProduct(productId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['adminProducts'] });
+            queryClient.invalidateQueries({queryKey: ['adminProducts']});
             closeDeleteDialog();
         },
         onError: (error) => {
@@ -277,13 +278,18 @@ const AdminProductsPage: React.FC = () => {
                         {products.map((product) => (
                             <tr key={product.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {product.name}
-                                        </div>
-                                        <div className="text-sm text-gray-500 truncate max-w-xs">
-                                            {product.description?.substring(0, 50)}
-                                            {product.description && product.description.length > 50 ? '...' : ''}
+                                    <div className={"flex gap-3"}>
+                                        <img src={product.stocks[0]?.productPhotos[0]?.imageUrl}
+                                             alt={product.stocks[0]?.productPhotos[0]?.alt || product.name}
+                                             className="size-12 rounded-lg"/>
+                                        <div>
+                                            <Link to={`${product.category.id}/${product.id}`} className="text-sm hover:underline font-medium text-gray-900">
+                                                {product.name}
+                                            </Link>
+                                            <div className="text-sm text-gray-500 truncate max-w-xs">
+                                                {product.description?.substring(0, 50)}
+                                                {product.description && product.description.length > 50 ? '...' : ''}
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
@@ -352,7 +358,7 @@ const AdminProductsPage: React.FC = () => {
                                                 <Menu.Item>
                                                     {({active}) => (
                                                         <Link
-                                                            to={`/admin/products/${product.id}/edit`}
+                                                            to={`/admin/products/${product.category.id}/${product.id}/edit`}
                                                             className={`${
                                                                 active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
                                                             } group flex items-center px-4 py-2 text-sm`}
@@ -393,14 +399,20 @@ const AdminProductsPage: React.FC = () => {
                 <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                     <div className="flex-1 flex justify-between sm:hidden">
                         <button
-                            onClick={() => setMetadata(prev => ({ ...prev, currentPage: Math.max(0, prev.currentPage - 1) }))}
+                            onClick={() => setMetadata(prev => ({
+                                ...prev,
+                                currentPage: Math.max(0, prev.currentPage - 1)
+                            }))}
                             disabled={currentMetadata.currentPage === 0}
                             className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                         >
                             Trước
                         </button>
                         <button
-                            onClick={() => setMetadata(prev => ({ ...prev, currentPage: Math.min(prev.currentPage + 1, currentMetadata.totalPage - 1) }))}
+                            onClick={() => setMetadata(prev => ({
+                                ...prev,
+                                currentPage: Math.min(prev.currentPage + 1, currentMetadata.totalPage - 1)
+                            }))}
                             disabled={currentMetadata.currentPage === currentMetadata.totalPage - 1}
                             className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                         >
@@ -410,24 +422,29 @@ const AdminProductsPage: React.FC = () => {
                     <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                         <div>
                             <p className="text-sm text-gray-700">
-                                Hiển thị <span className="font-medium">{currentMetadata.totalElements === 0 ? 0 : currentMetadata.currentPage * currentMetadata.pageSize + 1}</span> - <span className="font-medium">{Math.min((currentMetadata.currentPage + 1) * currentMetadata.pageSize, currentMetadata.totalElements)}</span> trong{' '}
+                                Hiển thị <span
+                                className="font-medium">{currentMetadata.totalElements === 0 ? 0 : currentMetadata.currentPage * currentMetadata.pageSize + 1}</span> - <span
+                                className="font-medium">{Math.min((currentMetadata.currentPage + 1) * currentMetadata.pageSize, currentMetadata.totalElements)}</span> trong{' '}
                                 <span className="font-medium">{currentMetadata.totalElements}</span> kết quả
                             </p>
                         </div>
                         <div>
                             <nav className="relative z-0 inline-flex rounded-md -space-x-px">
                                 <button
-                                    onClick={() => setMetadata(prev => ({ ...prev, currentPage: Math.max(0, prev.currentPage - 1) }))}
+                                    onClick={() => setMetadata(prev => ({
+                                        ...prev,
+                                        currentPage: Math.max(0, prev.currentPage - 1)
+                                    }))}
                                     disabled={currentMetadata.currentPage === 0}
                                     className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                                 >
                                     <ArrowLeftIcon className={"size-[0.8rem]"}/>
                                 </button>
-                                <div className={"flex gap-1 px-3"}>
+                                <div className={"flex gap-3 px-3"}>
                                     {[...Array(currentMetadata.totalPage)].map((_, i) => (
                                         <button
                                             key={i}
-                                            onClick={() => setMetadata(prev => ({ ...prev, currentPage: i }))}
+                                            onClick={() => setMetadata(prev => ({...prev, currentPage: i}))}
                                             className={`relative inline-flex items-center p-0 text-sm font-medium ${
                                                 currentMetadata.currentPage === i
                                                     ? 'text-black'
@@ -439,7 +456,10 @@ const AdminProductsPage: React.FC = () => {
                                     ))}
                                 </div>
                                 <button
-                                    onClick={() => setMetadata(prev => ({ ...prev, currentPage: Math.min(prev.currentPage + 1, currentMetadata.totalPage - 1) }))}
+                                    onClick={() => setMetadata(prev => ({
+                                        ...prev,
+                                        currentPage: Math.min(prev.currentPage + 1, currentMetadata.totalPage - 1)
+                                    }))}
                                     disabled={currentMetadata.currentPage === currentMetadata.totalPage - 1}
                                     className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                                 >

@@ -76,7 +76,7 @@ export interface UpdateProductRequest extends CreateProductRequest {
     id: number;
 }
 
-class AdminProductService {
+export class AdminProductService {
     /**
      * Get all products for admin with pagination and filters
      */

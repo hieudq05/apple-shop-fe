@@ -100,7 +100,7 @@ const AdminLayout: React.FC = () => {
                             <Link
                                 key={item.name}
                                 to={item.href}
-                                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                                className={`group flex items-center p-4 text-sm font-medium rounded-lg ${
                                     isCurrentPath(item.href)
                                         ? 'bg-blue-100 text-blue-900'
                                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'

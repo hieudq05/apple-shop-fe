@@ -1,19 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, {useState, useEffect} from "react";
+import {useParams, useNavigate} from "react-router-dom";
 import {
     PlusIcon,
     XMarkIcon,
     ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
-import type { UpdateProductRequest } from "../../types/api";
+import type {ApiResponse, UpdateProductRequest} from "../../types/api";
+import {fetchAdminCategories, type Category} from "../../services/categoryService";
+import {fetchAdminColors, type Color} from "../../services/colorService";
+import {fetchAdminFeatures, type Feature} from "../../services/featureService";
+import {fetchAdminInstances, type Instance} from "../../services/instanceService";
+import {type AdminProduct, adminProductService, AdminProductService} from "../../services/adminProductService";
+import type {Product} from "../../services/productService.ts";
 
 interface ProductForm extends Omit<UpdateProductRequest, "categoryId"> {
     categoryId: string;
 }
 
 const EditProductPage: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
-    const { categoryId } = useParams<{ categoryId: string }>();
+    const {id} = useParams<{ id: string }>();
+    const {categoryId} = useParams<{ categoryId: string }>();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -28,79 +34,87 @@ const EditProductPage: React.FC = () => {
         instanceProperties: [],
     });
 
-    const categories = [
-        { id: "1", name: "iPhone" },
-        { id: "2", name: "Mac" },
-        { id: "3", name: "iPad" },
-        { id: "4", name: "Apple Watch" },
-        { id: "5", name: "AirPods" },
-        { id: "6", name: "Phụ kiện" },
-    ];
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [colors, setColors] = useState<Color[]>([]);
+    const [features, setFeatures] = useState<Feature[]>([]);
+    const [instances, setInstances] = useState<Instance[]>([]);
+    const [errors, setErrors] = useState<any[]>([]);
 
-    const colors = [
-        { id: 1, name: "Natural Titanium", hex: "#8E8E93" },
-        { id: 2, name: "Blue Titanium", hex: "#5E7CE2" },
-        { id: 3, name: "White Titanium", hex: "#F5F5F7" },
-        { id: 4, name: "Black Titanium", hex: "#1D1D1F" },
-        { id: 5, name: "Space Gray", hex: "#5C5C5C" },
-        { id: 6, name: "Silver", hex: "#E3E3E3" },
-        { id: 7, name: "Gold", hex: "#FCEBD3" },
-        { id: 8, name: "Rose Gold", hex: "#E8B5CE" },
-    ];
+    const productService = new AdminProductService();
 
     useEffect(() => {
-        fetchProductData();
+        // Fetch product data first
+        const loadData = async () => {
+            fetchProductData();
+
+            await fetchSupportingData();
+        };
+
+        loadData();
     }, [id]);
+
+    const fetchSupportingData = async () => {
+        try {
+            // Load categories
+            const categoriesData = await fetchAdminCategories();
+            setCategories(categoriesData);
+
+            // Load colors
+            const colorsData = await fetchAdminColors();
+            setColors(colorsData);
+
+            // Load features
+            const featuresData = await fetchAdminFeatures();
+            setFeatures(featuresData);
+
+            // Load instances
+            const instancesData = await fetchAdminInstances();
+            setInstances(instancesData);
+        } catch (error) {
+            console.error("Error fetching supporting data:", error);
+        }
+    };
 
     const fetchProductData = async () => {
         try {
             setIsLoading(true);
-            // Replace with actual API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
 
-            // Mock data - in real app, fetch from API
-            const mockProduct = {
-                id: parseInt(id || "1"),
-                name: "iPhone 15 Pro",
-                title: "iPhone 15 Pro. Titan mạnh mẽ. Camera tiên tiến.",
-                description:
-                    "iPhone 15 Pro được chế tác từ titan cấp hàng không vũ trụ và có camera chuyên nghiệp với khả năng zoom quang học 3x.",
-                categoryId: "1",
-                features: [
-                    { name: "Chip", value: "A17 Pro" },
-                    {
-                        name: "Camera",
-                        value: "48MP Main + 12MP Ultra Wide + 12MP Telephoto",
-                    },
-                    { name: "Màn hình", value: "6.1 inch Super Retina XDR" },
-                ],
-                stocks: [
-                    {
-                        colorId: 1,
-                        quantity: 50,
-                        price: 28990000,
-                        photos: [
-                            "https://cdn.hoanghamobile.com/i/productlist/dsp/Uploads/2023/09/13/iphone-15-pro-natural-titanium.png",
-                        ],
-                    },
-                    {
-                        colorId: 2,
-                        quantity: 30,
-                        price: 28990000,
-                        photos: [
-                            "https://cdn.hoanghamobile.com/i/productlist/dsp/Uploads/2023/09/13/iphone-15-pro-blue-titanium.png",
-                        ],
-                    },
-                ],
-                instanceProperties: [
-                    { name: "Bộ nhớ", value: "128GB" },
-                    { name: "Kết nối", value: "5G" },
-                ],
+            const productApiResponse: ApiResponse<AdminProduct> = await productService.getAdminProductById(categoryId, id);
+
+            // Check if the response has the expected data structure
+            if (!productApiResponse || !productApiResponse.data) {
+                console.error("Invalid product data structure received:", productData);
+                throw new Error('Invalid product data structure received from API');
+            }
+
+            const productData = productApiResponse.data;
+
+            // Transform API data to match the form structure
+            const transformedData = {
+                id: productData.id,
+                name: productData.name || '',
+                description: productData.description || '',
+                categoryId: productData.category?.id?.toString() || '',
+                features: Array.isArray(productData.features) ? productData.features?.map(feat => ({
+                    name: feat.name || '',
+                    value: feat.id || ''
+                })) : [],
+                stocks: Array.isArray(productData.stocks) ? productData.stocks?.map(stock => ({
+                    colorId: stock.color?.id || 0,
+                    quantity: stock.quantity || 0,
+                    price: stock.price || 0,
+                    photos: Array.isArray(stock.photos) ? [...stock.photos] : [],
+                    instances: Array.isArray(stock.instanceProperties) ? [...stock.instanceProperties] : []
+                })) : [],
             };
 
-            setFormData(mockProduct);
+            setFormData(transformedData);
+
+            return true; // Return success status
         } catch (error) {
             console.error("Error fetching product:", error);
+            setErrors([{field: 'fetch', message: `Không thể tải thông tin sản phẩm: ${error.message}`}]);
+            return false; // Return failure status
         } finally {
             setIsLoading(false);
         }
@@ -109,7 +123,7 @@ const EditProductPage: React.FC = () => {
     const addFeature = () => {
         setFormData((prev) => ({
             ...prev,
-            features: [...prev.features, { name: "", value: "" }],
+            features: [...prev.features, {name: "", value: ""}],
         }));
     };
 
@@ -127,8 +141,8 @@ const EditProductPage: React.FC = () => {
     ) => {
         setFormData((prev) => ({
             ...prev,
-            features: prev.features.map((feature, i) =>
-                i === index ? { ...feature, [field]: value } : feature
+            features: prev.features?.map((feature, i) =>
+                i === index ? {...feature, [field]: value} : feature
             ),
         }));
     };
@@ -138,7 +152,7 @@ const EditProductPage: React.FC = () => {
             ...prev,
             stocks: [
                 ...prev.stocks,
-                { colorId: 0, quantity: 0, price: 0, photos: [] },
+                {colorId: 0, quantity: 0, price: 0, photos: []},
             ],
         }));
     };
@@ -157,8 +171,8 @@ const EditProductPage: React.FC = () => {
     ) => {
         setFormData((prev) => ({
             ...prev,
-            stocks: prev.stocks.map((stock, i) =>
-                i === index ? { ...stock, [field]: value } : stock
+            stocks: prev.stocks?.map((stock, i) =>
+                i === index ? {...stock, [field]: value} : stock
             ),
         }));
     };
@@ -168,7 +182,7 @@ const EditProductPage: React.FC = () => {
             ...prev,
             instanceProperties: [
                 ...prev.instanceProperties,
-                { name: "", value: "" },
+                {name: "", value: ""},
             ],
         }));
     };
@@ -189,8 +203,8 @@ const EditProductPage: React.FC = () => {
     ) => {
         setFormData((prev) => ({
             ...prev,
-            instanceProperties: prev.instanceProperties.map((prop, i) =>
-                i === index ? { ...prop, [field]: value } : prop
+            instanceProperties: prev.instanceProperties?.map((prop, i) =>
+                i === index ? {...prop, [field]: value} : prop
             ),
         }));
     };
@@ -200,21 +214,29 @@ const EditProductPage: React.FC = () => {
         setIsSaving(true);
 
         try {
-            // Convert categoryId to number
-            const productData: UpdateProductRequest = {
-                ...formData,
+            // Prepare data for the API request
+            const updateData: UpdateProductRequest = {
+                id: formData.id,
+                name: formData.name,
+                description: formData.description,
                 categoryId: parseInt(formData.categoryId),
+                features: formData.features,
+                stocks: formData.stocks,
+                instanceProperties: formData.instanceProperties,
             };
 
-            // Replace with actual API call
-            console.log("Updating product:", productData);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // Call the service method to update the product
+            const response = await productService.updateProduct(formData.id, updateData);
 
-            alert("Sản phẩm đã được cập nhật thành công!");
-            navigate(`/admin/products/${id}`);
+            if (response && response.status === 'success') {
+                alert('Sản phẩm đã được cập nhật thành công!');
+                navigate(`/admin/products/${id}`);
+            } else {
+                alert(response?.error?.message || 'Có lỗi xảy ra khi cập nhật sản phẩm!');
+            }
         } catch (error) {
-            console.error("Error updating product:", error);
-            alert("Có lỗi xảy ra khi cập nhật sản phẩm!");
+            console.error('Error updating product:', error);
+            alert('Có lỗi xảy ra khi cập nhật sản phẩm!');
         } finally {
             setIsSaving(false);
         }
@@ -244,7 +266,7 @@ const EditProductPage: React.FC = () => {
                         onClick={() => navigate(`/admin/products/${categoryId}/${id}`)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                        <ArrowLeftIcon className="w-5 h-5" />
+                        <ArrowLeftIcon className="w-5 h-5"/>
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">
@@ -285,24 +307,6 @@ const EditProductPage: React.FC = () => {
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Tiêu đề *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.title}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                title: e.target.value,
-                                            }))
-                                        }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Danh mục *
                                     </label>
                                     <select
@@ -317,7 +321,7 @@ const EditProductPage: React.FC = () => {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value="">Chọn danh mục</option>
-                                        {categories.map((category) => (
+                                        {categories?.map((category) => (
                                             <option
                                                 key={category.id}
                                                 value={category.id}
@@ -358,13 +362,13 @@ const EditProductPage: React.FC = () => {
                                     onClick={addFeature}
                                     className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                 >
-                                    <PlusIcon className="w-4 h-4 mr-1" />
+                                    <PlusIcon className="w-4 h-4 mr-1"/>
                                     Thêm tính năng
                                 </button>
                             </div>
 
                             <div className="space-y-3">
-                                {formData.features.map((feature, index) => (
+                                {formData.features?.map((feature, index) => (
                                     <div key={index} className="flex gap-3">
                                         <input
                                             type="text"
@@ -397,7 +401,7 @@ const EditProductPage: React.FC = () => {
                                             onClick={() => removeFeature(index)}
                                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                                         >
-                                            <XMarkIcon className="w-4 h-4" />
+                                            <XMarkIcon className="w-4 h-4"/>
                                         </button>
                                     </div>
                                 ))}
@@ -415,13 +419,13 @@ const EditProductPage: React.FC = () => {
                                     onClick={addStock}
                                     className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                 >
-                                    <PlusIcon className="w-4 h-4 mr-1" />
+                                    <PlusIcon className="w-4 h-4 mr-1"/>
                                     Thêm màu sắc
                                 </button>
                             </div>
 
                             <div className="space-y-4">
-                                {formData.stocks.map((stock, index) => (
+                                {formData.stocks?.map((stock, index) => (
                                     <div
                                         key={index}
                                         className="p-4 border border-gray-200 rounded-lg"
@@ -437,7 +441,7 @@ const EditProductPage: React.FC = () => {
                                                 }
                                                 className="p-1 text-red-600 hover:bg-red-50 rounded"
                                             >
-                                                <XMarkIcon className="w-4 h-4" />
+                                                <XMarkIcon className="w-4 h-4"/>
                                             </button>
                                         </div>
 
@@ -462,7 +466,7 @@ const EditProductPage: React.FC = () => {
                                                     <option value={0}>
                                                         Chọn màu
                                                     </option>
-                                                    {colors.map((color) => (
+                                                    {colors?.map((color) => (
                                                         <option
                                                             key={color.id}
                                                             value={color.id}
@@ -557,13 +561,13 @@ const EditProductPage: React.FC = () => {
                                     onClick={addProperty}
                                     className="flex items-center px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                                 >
-                                    <PlusIcon className="w-3 h-3 mr-1" />
+                                    <PlusIcon className="w-3 h-3 mr-1"/>
                                     Thêm
                                 </button>
                             </div>
 
                             <div className="space-y-3">
-                                {formData.instanceProperties.map(
+                                {formData.instanceProperties?.map(
                                     (property, index) => (
                                         <div key={index} className="space-y-2">
                                             <div className="flex gap-2">
@@ -587,7 +591,7 @@ const EditProductPage: React.FC = () => {
                                                     }
                                                     className="p-1 text-red-600 hover:bg-red-50 rounded"
                                                 >
-                                                    <XMarkIcon className="w-3 h-3" />
+                                                    <XMarkIcon className="w-3 h-3"/>
                                                 </button>
                                             </div>
                                             <input
@@ -625,7 +629,7 @@ const EditProductPage: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        navigate(`/admin/products/${id}`)
+                                        navigate(`/admin/products/${categoryId}/${id}`)
                                     }
                                     className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 font-medium"
                                 >

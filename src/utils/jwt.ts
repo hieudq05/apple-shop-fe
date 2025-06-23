@@ -82,26 +82,6 @@ export const getUserFromToken = (token: string): any | null => {
     const fullName = `${firstName} ${lastName}`.trim();
     const email = payload.sub || '';
 
-    // Debug logging for Unicode issues (only in development)
-    if (process.env.NODE_ENV === 'development') {
-        console.log('🔍 JWT Decode Debug:', {
-            rawPayload: payload,
-            extractedData: {
-                email,
-                firstName,
-                lastName,
-                fullName,
-                roles: payload.roles
-            },
-            unicodeCheck: {
-                firstNameLength: firstName.length,
-                lastNameLength: lastName.length,
-                firstNameCharCodes: firstName.split('').map(c => c.charCodeAt(0)),
-                lastNameCharCodes: lastName.split('').map(c => c.charCodeAt(0))
-            }
-        });
-    }
-
     return {
         email,
         firstName,
