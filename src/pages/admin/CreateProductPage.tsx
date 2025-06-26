@@ -1,22 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-    PlusIcon, 
-    XMarkIcon,
-    ArrowLeftIcon,
-    CheckIcon,
-    ChevronRightIcon,
-    ChevronLeftIcon,
-    PhotoIcon,
-    DocumentTextIcon,
-    TagIcon,
-    SwatchIcon,
-    CubeIcon
-} from '@heroicons/react/24/outline';
-import { fetchAdminCategories, createCategory, type Category } from '../../services/categoryService';
-import { fetchAdminFeatures, createFeature, type Feature } from '../../services/featureService';
-import { fetchAdminColors, createColor, type Color } from '../../services/colorService';
-import { fetchAdminInstances, createInstance, type Instance } from '../../services/instanceService';
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {
+    ArrowLeft,
+    Check,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    Plus,
+    Palette,
+    Tag,
+    X,
+    Upload,
+    Trash2,
+    Save,
+    Eye
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {type Category, fetchAdminCategories} from '@/services/categoryService.ts';
+import {type Feature, fetchAdminFeatures} from '@/services/featureService.ts';
+import {type Color, fetchAdminColors} from '@/services/colorService.ts';
+import {fetchAdminInstances, type Instance} from '@/services/instanceService.ts';
+import adminProductService from "@/services/adminProductService.ts";
 
 interface ProductPhoto {
     imageUrl: string;
@@ -61,14 +75,14 @@ const CreateProductPage: React.FC = () => {
     // Step management for wizard
     const [currentStep, setCurrentStep] = useState<number>(0);
     const steps = [
-        { title: 'Thông tin cơ bản', icon: <DocumentTextIcon className="w-5 h-5" /> },
-        { title: 'Tính năng', icon: <TagIcon className="w-5 h-5" /> },
-        { title: 'Màu sắc & Phiên bản', icon: <SwatchIcon className="w-5 h-5" /> },
-        { title: 'Xem trước & Hoàn tất', icon: <CheckIcon className="w-5 h-5" /> }
+        {title: 'Thông tin cơ bản', icon: <FileText className="w-5 h-5"/>},
+        {title: 'Tính năng', icon: <Tag className="w-5 h-5"/>},
+        {title: 'Màu sắc & Phiên bản', icon: <Palette className="w-5 h-5"/>},
+        {title: 'Xem trước & Hoàn tất', icon: <Check className="w-5 h-5"/>}
     ];
 
     // Errors grouped by step
-    const [stepErrors, setStepErrors] = useState<{[key: number]: ErrorData[]}>({
+    const [stepErrors, setStepErrors] = useState<{ [key: number]: ErrorData[] }>({
         0: [],  // Basic info errors
         1: [],  // Feature errors
         2: [],  // Stock errors
@@ -81,7 +95,7 @@ const CreateProductPage: React.FC = () => {
     // Category state
     const [categories, setCategories] = useState<Category[]>([]);
     const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
-    const [newCategory, setNewCategory] = useState<{name: string, file: File | null}>({
+    const [newCategory, setNewCategory] = useState<{ name: string, file: File | null }>({
         name: '',
         file: null
     });
@@ -90,7 +104,7 @@ const CreateProductPage: React.FC = () => {
     // Feature state
     const [predefinedFeatures, setPredefinedFeatures] = useState<Feature[]>([]);
     const [showCreateFeatureModal, setShowCreateFeatureModal] = useState(false);
-    const [newFeature, setNewFeature] = useState<{name: string, description: string, file: File | null}>({
+    const [newFeature, setNewFeature] = useState<{ name: string, description: string, file: File | null }>({
         name: '',
         description: '',
         file: null
@@ -100,7 +114,7 @@ const CreateProductPage: React.FC = () => {
     // Color state
     const [predefinedColors, setPredefinedColors] = useState<Color[]>([]);
     const [showCreateColorModal, setShowCreateColorModal] = useState(false);
-    const [newColor, setNewColor] = useState<{name: string, hexCode: string}>({
+    const [newColor, setNewColor] = useState<{ name: string, hexCode: string }>({
         name: '',
         hexCode: ''
     });
@@ -109,7 +123,7 @@ const CreateProductPage: React.FC = () => {
     // Instance state
     const [predefinedInstances, setPredefinedInstances] = useState<Instance[]>([]);
     const [showCreateInstanceModal, setShowCreateInstanceModal] = useState(false);
-    const [newInstance, setNewInstance] = useState<{name: string, description: string}>({
+    const [newInstance, setNewInstance] = useState<{ name: string, description: string }>({
         name: '',
         description: ''
     });
@@ -133,7 +147,7 @@ const CreateProductPage: React.FC = () => {
     const addFeature = () => {
         setFormData(prev => ({
             ...prev,
-            features: [...prev.features, { id: null, name: '', description: '', image: '' }]
+            features: [...prev.features, {id: null, name: '', description: '', image: ''}]
         }));
         setFeatureFiles(prev => [...prev, new File([], '')]);
     };
@@ -148,8 +162,8 @@ const CreateProductPage: React.FC = () => {
 
     const updateFeature = (index: number, field: keyof Feature, value: string) => {
         const newFeatures = [...formData.features];
-        newFeatures[index] = { ...newFeatures[index], [field]: value };
-        setFormData(prev => ({ ...prev, features: newFeatures }));
+        newFeatures[index] = {...newFeatures[index], [field]: value};
+        setFormData(prev => ({...prev, features: newFeatures}));
     };
 
     const handleFeatureFileChange = (index: number, file: File) => {
@@ -162,7 +176,13 @@ const CreateProductPage: React.FC = () => {
     const addStock = () => {
         setFormData(prev => ({
             ...prev,
-            stocks: [...prev.stocks, { color: { id: null, name: '', hexCode: '' }, quantity: 0, price: 0, productPhotos: [], instanceProperties: [] }]
+            stocks: [...prev.stocks, {
+                color: {id: null, name: '', hexCode: ''},
+                quantity: 0,
+                price: 0,
+                productPhotos: [],
+                instanceProperties: []
+            }]
         }));
         setStockPhotoFiles(prev => [...prev, []]);
     };
@@ -175,10 +195,13 @@ const CreateProductPage: React.FC = () => {
         setStockPhotoFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    const updateStock = (stockIndex: number, field: keyof Stock, value: string | number | { name: string; hexCode: string; } | ProductPhoto[] | InstanceProperty[]) => {
+    const updateStock = (stockIndex: number, field: keyof Stock, value: string | number | {
+        name: string;
+        hexCode: string;
+    } | ProductPhoto[] | InstanceProperty[]) => {
         const newStocks = [...formData.stocks];
-        newStocks[stockIndex] = { ...newStocks[stockIndex], [field]: value };
-        setFormData(prev => ({ ...prev, stocks: newStocks }));
+        newStocks[stockIndex] = {...newStocks[stockIndex], [field]: value};
+        setFormData(prev => ({...prev, stocks: newStocks}));
     };
 
     const handleStockPhotoChange = (stockIndex: number, photoIndex: number, file: File) => {
@@ -188,13 +211,13 @@ const CreateProductPage: React.FC = () => {
 
         const newStocks = [...formData.stocks];
         newStocks[stockIndex].productPhotos[photoIndex].imageUrl = `placeholder_stock_${stockIndex}_${photoIndex}`;
-        setFormData(prev => ({ ...prev, stocks: newStocks }));
+        setFormData(prev => ({...prev, stocks: newStocks}));
     };
 
     const addStockPhoto = (stockIndex: number) => {
         const newStocks = [...formData.stocks];
-        newStocks[stockIndex].productPhotos.push({ imageUrl: '', alt: '' });
-        setFormData(prev => ({ ...prev, stocks: newStocks }));
+        newStocks[stockIndex].productPhotos.push({imageUrl: '', alt: ''});
+        setFormData(prev => ({...prev, stocks: newStocks}));
 
         const newStockPhotoFiles = [...stockPhotoFiles];
         newStockPhotoFiles[stockIndex].push(new File([], ''));
@@ -204,7 +227,7 @@ const CreateProductPage: React.FC = () => {
     const removeStockPhoto = (stockIndex: number, photoIndex: number) => {
         const newStocks = [...formData.stocks];
         newStocks[stockIndex].productPhotos = newStocks[stockIndex].productPhotos.filter((_, i) => i !== photoIndex);
-        setFormData(prev => ({ ...prev, stocks: newStocks }));
+        setFormData(prev => ({...prev, stocks: newStocks}));
 
         const newStockPhotoFiles = [...stockPhotoFiles];
         newStockPhotoFiles[stockIndex] = newStockPhotoFiles[stockIndex].filter((_, i) => i !== photoIndex);
@@ -213,20 +236,20 @@ const CreateProductPage: React.FC = () => {
 
     const addInstanceProperty = (stockIndex: number) => {
         const newStocks = [...formData.stocks];
-        newStocks[stockIndex].instanceProperties.push({ id: null, name: '' });
-        setFormData(prev => ({ ...prev, stocks: newStocks }));
+        newStocks[stockIndex].instanceProperties.push({id: null, name: ''});
+        setFormData(prev => ({...prev, stocks: newStocks}));
     };
 
     const removeInstanceProperty = (stockIndex: number, propIndex: number) => {
         const newStocks = [...formData.stocks];
         newStocks[stockIndex].instanceProperties = newStocks[stockIndex].instanceProperties.filter((_, i) => i !== propIndex);
-        setFormData(prev => ({ ...prev, stocks: newStocks }));
+        setFormData(prev => ({...prev, stocks: newStocks}));
     };
 
     const updateInstanceProperty = (stockIndex: number, propIndex: number, name: string) => {
         const newStocks = [...formData.stocks];
         newStocks[stockIndex].instanceProperties[propIndex].name = name;
-        setFormData(prev => ({ ...prev, stocks: newStocks }));
+        setFormData(prev => ({...prev, stocks: newStocks}));
     };
 
 
@@ -238,61 +261,85 @@ const CreateProductPage: React.FC = () => {
 
         // Validate basic product information
         if (!formData.name.trim()) {
-            validationErrors.push({ field: 'name', message: 'Tên sản phẩm không được để trống' });
+            validationErrors.push({field: 'name', message: 'Tên sản phẩm không được để trống'});
         }
 
         if (!formData.description.trim()) {
-            validationErrors.push({ field: 'description', message: 'Mô tả sản phẩm không được để trống' });
+            validationErrors.push({field: 'description', message: 'Mô tả sản phẩm không được để trống'});
         }
 
         // Validate features
         formData.features.forEach((feature, index) => {
             if (!feature.name.trim()) {
-                validationErrors.push({ field: `features[${index}].name`, message: `Tên tính năng #${index + 1} không được để trống` });
+                validationErrors.push({
+                    field: `features[${index}].name`,
+                    message: `Tên tính năng #${index + 1} không được để trống`
+                });
             }
 
             if (!feature.description.trim()) {
-                validationErrors.push({ field: `features[${index}].description`, message: `Mô tả tính năng #${index + 1} không được để trống` });
+                validationErrors.push({
+                    field: `features[${index}].description`,
+                    message: `Mô tả tính năng #${index + 1} không được để trống`
+                });
             }
 
             // Check if feature image file exists
             if (feature.image.startsWith('placeholder_') && (!featureFiles[index] || featureFiles[index].size === 0)) {
-                validationErrors.push({ field: `features[${index}].image`, message: `Ảnh tính năng #${index + 1} chưa được chọn` });
+                validationErrors.push({
+                    field: `features[${index}].image`,
+                    message: `Ảnh tính năng #${index + 1} chưa được chọn`
+                });
             }
         });
 
         // Validate stocks
         if (formData.stocks.length === 0) {
-            validationErrors.push({ field: 'stocks', message: 'Sản phẩm cần có ít nhất một phiên bản màu sắc' });
+            validationErrors.push({field: 'stocks', message: 'Sản phẩm cần có ít nhất một phiên bản màu sắc'});
         }
 
         formData.stocks.forEach((stock, stockIndex) => {
             if (!stock.color.name.trim()) {
-                validationErrors.push({ field: `stocks[${stockIndex}].color.name`, message: `Tên màu #${stockIndex + 1} không được để trống` });
+                validationErrors.push({
+                    field: `stocks[${stockIndex}].color.name`,
+                    message: `Tên màu #${stockIndex + 1} không được để trống`
+                });
             }
 
             if (!stock.color.hexCode.trim()) {
-                validationErrors.push({ field: `stocks[${stockIndex}].color.hexCode`, message: `Mã hex màu #${stockIndex + 1} không được để trống` });
+                validationErrors.push({
+                    field: `stocks[${stockIndex}].color.hexCode`,
+                    message: `Mã hex màu #${stockIndex + 1} không được để trống`
+                });
             }
 
             if (stock.quantity <= 0) {
-                validationErrors.push({ field: `stocks[${stockIndex}].quantity`, message: `Số lượng cho màu #${stockIndex + 1} phải lớn hơn 0` });
+                validationErrors.push({
+                    field: `stocks[${stockIndex}].quantity`,
+                    message: `Số lượng cho màu #${stockIndex + 1} phải lớn hơn 0`
+                });
             }
 
             if (stock.price <= 0) {
-                validationErrors.push({ field: `stocks[${stockIndex}].price`, message: `Giá cho màu #${stockIndex + 1} phải lớn hơn 0` });
+                validationErrors.push({
+                    field: `stocks[${stockIndex}].price`,
+                    message: `Giá cho màu #${stockIndex + 1} phải lớn hơn 0`
+                });
             }
 
             // Validate product photos
             if (stock.productPhotos.length === 0) {
-                validationErrors.push({ field: `stocks[${stockIndex}].productPhotos`, message: `Màu #${stockIndex + 1} cần có ít nhất một ảnh sản phẩm` });
+                validationErrors.push({
+                    field: `stocks[${stockIndex}].productPhotos`,
+                    message: `Màu #${stockIndex + 1} cần có ít nhất một ảnh sản phẩm`
+                });
             }
 
             stock.productPhotos.forEach((photo, photoIndex) => {
                 if (photo.imageUrl.startsWith('placeholder_') &&
                     (!stockPhotoFiles[stockIndex] ||
-                     !stockPhotoFiles[stockIndex][photoIndex] ||
-                     stockPhotoFiles[stockIndex][photoIndex].size === 0)) {
+                        !stockPhotoFiles[stockIndex][photoIndex] ||
+                        stockPhotoFiles[stockIndex][photoIndex].size === 0)) {
                     validationErrors.push({
                         field: `stocks[${stockIndex}].productPhotos[${photoIndex}]`,
                         message: `Ảnh #${photoIndex + 1} của màu #${stockIndex + 1} chưa được chọn`
@@ -312,14 +359,14 @@ const CreateProductPage: React.FC = () => {
         if (validationErrors.length > 0) {
             setErrors(validationErrors);
             // Scroll to the top of the error section
-            document.querySelector('.bg-red-50')?.scrollIntoView({ behavior: 'smooth' });
+            document.querySelector('.bg-red-50')?.scrollIntoView({behavior: 'smooth'});
             return;
         }
 
         setIsLoading(true);
 
         const data = new FormData();
-        data.append('product', JSON.stringify({ ...formData, createdBy: 'hieuu8a@gmail.com' }));
+        data.append('product', JSON.stringify({...formData, createdBy: 'hieuu8a@gmail.com'}));
 
         formData.features.forEach((feature, index) => {
             if (feature.image.startsWith('placeholder_')) {
@@ -336,20 +383,21 @@ const CreateProductPage: React.FC = () => {
         });
 
         try {
-            const response = await fetch('http://localhost:8080/api/v1/admin/products', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJmaXJzdE5hbWUiOiJEdW9uZyBRdW9jIiwibGFzdE5hbWUiOiJIaWV1Iiwicm9sZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImltYWdlVXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS0xQeTZyYWgyRWRhX3J2a3lZSDdLc1VfY1J1YjlSdkFiYnM4ZDdJdTlFNFkyVnc2ST1zNTc2LWMtbm8iLCJzdWIiOiJoaWV1dThhQGdtYWlsLmNvbSIsImlhdCI6MTc1MDYxMTQzMCwiZXhwIjoxNzUwNjk3ODMwfQ.uwilgUCH45a29Qnm3Kn5b-DytpO7jxqUrnyPwCCLcKjVbVS4k6wxf7WyFSI5B1Fg'
-                },
-                body: data,
-            });
+            const response = await adminProductService.createProduct(data);
+            //     = await fetch('http://localhost:8080/api/v1/admin/products', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJmaXJzdE5hbWUiOiJEdW9uZyBRdW9jIiwibGFzdE5hbWUiOiJIaWV1Iiwicm9sZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImltYWdlVXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS0xQeTZyYWgyRWRhX3J2a3lZSDdLc1VfY1J1YjlSdkFiYnM4ZDdJdTlFNFkyVnc2ST1zNTc2LWMtbm8iLCJzdWIiOiJoaWV1dThhQGdtYWlsLmNvbSIsImlhdCI6MTc1MDYxMTQzMCwiZXhwIjoxNzUwNjk3ODMwfQ.uwilgUCH45a29Qnm3Kn5b-DytpO7jxqUrnyPwCCLcKjVbVS4k6wxf7WyFSI5B1Fg'
+            //     },
+            //     body: data,
+            // });
 
-            if (response.ok) {
-                alert('Sản phẩm đã được tạo thành công!');
+            if (response.success) {
+                alert(response.message);
                 navigate('/admin/products');
             } else {
-                const errorData = await response.json();
-                setErrors(errorData.error.errors);
+                const errorData = await response.message;
+                setErrors(errorData);
             }
         } catch (error) {
             console.error('Error creating product:', error);
@@ -375,7 +423,7 @@ const CreateProductPage: React.FC = () => {
                 }
             } catch (error) {
                 console.error('Error fetching categories:', error);
-                setErrors([{ field: 'categories', message: 'Không thể tải danh mục sản phẩm' }]);
+                setErrors([{field: 'categories', message: 'Không thể tải danh mục sản phẩm'}]);
             }
         };
 
@@ -400,8 +448,8 @@ const CreateProductPage: React.FC = () => {
             } catch (error) {
                 console.error('Error fetching data:', error);
                 setErrors(prev => [
-                    ...prev, 
-                    { field: 'dataLoading', message: 'Không thể tải dữ liệu tính năng, màu sắc hoặc phiên bản' }
+                    ...prev,
+                    {field: 'dataLoading', message: 'Không thể tải dữ liệu tính năng, màu sắc hoặc phiên bản'}
                 ]);
             }
         };
@@ -413,48 +461,72 @@ const CreateProductPage: React.FC = () => {
         let errors: ErrorData[] = [];
         if (step === 0) {
             if (!formData.name.trim()) {
-                errors.push({ field: 'name', message: 'Tên sản phẩm không được để trống' });
+                errors.push({field: 'name', message: 'Tên sản phẩm không được để trống'});
             }
             if (!formData.category || !formData.category.id) {
-                errors.push({ field: 'category', message: 'Danh mục không được để trống' });
+                errors.push({field: 'category', message: 'Danh mục không được để trống'});
             }
             if (!formData.description.trim()) {
-                errors.push({ field: 'description', message: 'Mô tả sản phẩm không được để trống' });
+                errors.push({field: 'description', message: 'Mô tả sản phẩm không được để trống'});
             }
         } else if (step === 1) {
             formData.features.forEach((feature, index) => {
                 if (!feature.name.trim()) {
-                    errors.push({ field: `feature_name_${index}`, message: `Tên tính năng #${index + 1} không được để trống` });
+                    errors.push({
+                        field: `feature_name_${index}`,
+                        message: `Tên tính năng #${index + 1} không được để trống`
+                    });
                 }
                 if (!feature.description.trim()) {
-                    errors.push({ field: `feature_description_${index}`, message: `Mô tả tính năng #${index + 1} không được để trống` });
+                    errors.push({
+                        field: `feature_description_${index}`,
+                        message: `Mô tả tính năng #${index + 1} không được để trống`
+                    });
                 }
             });
         } else if (step === 2) {
             formData.stocks.forEach((stock, stockIndex) => {
                 if (!stock.color.name.trim()) {
-                    errors.push({ field: `stock_color_name_${stockIndex}`, message: `Tên màu #${stockIndex + 1} không được để trống` });
+                    errors.push({
+                        field: `stock_color_name_${stockIndex}`,
+                        message: `Tên màu #${stockIndex + 1} không được để trống`
+                    });
                 }
                 if (!stock.color.hexCode.trim()) {
-                    errors.push({ field: `stock_color_hex_${stockIndex}`, message: `Mã hex màu #${stockIndex + 1} không được để trống` });
+                    errors.push({
+                        field: `stock_color_hex_${stockIndex}`,
+                        message: `Mã hex màu #${stockIndex + 1} không được để trống`
+                    });
                 }
                 if (!stock.quantity || stock.quantity <= 0) {
-                    errors.push({ field: `stock_quantity_${stockIndex}`, message: `Số lượng cho màu #${stockIndex + 1} phải lớn hơn 0` });
+                    errors.push({
+                        field: `stock_quantity_${stockIndex}`,
+                        message: `Số lượng cho màu #${stockIndex + 1} phải lớn hơn 0`
+                    });
                 }
                 if (!stock.price || stock.price <= 0) {
-                    errors.push({ field: `stock_price_${stockIndex}`, message: `Giá cho màu #${stockIndex + 1} phải lớn hơn 0` });
+                    errors.push({
+                        field: `stock_price_${stockIndex}`,
+                        message: `Giá cho màu #${stockIndex + 1} phải lớn hơn 0`
+                    });
                 }
                 stock.productPhotos.forEach((photo, photoIndex) => {
                     if (!photo.imageUrl) {
-                        errors.push({ field: `stock_photo_${stockIndex}_${photoIndex}`, message: `Ảnh #${photoIndex + 1} của màu #${stockIndex + 1} chưa được chọn` });
+                        errors.push({
+                            field: `stock_photo_${stockIndex}_${photoIndex}`,
+                            message: `Ảnh #${photoIndex + 1} của màu #${stockIndex + 1} chưa được chọn`
+                        });
                     }
                     if (!photo.alt.trim()) {
-                        errors.push({ field: `stock_photo_alt_${stockIndex}_${photoIndex}`, message: `Alt text cho ảnh #${photoIndex + 1} của màu #${stockIndex + 1} không được để trống` });
+                        errors.push({
+                            field: `stock_photo_alt_${stockIndex}_${photoIndex}`,
+                            message: `Alt text cho ảnh #${photoIndex + 1} của màu #${stockIndex + 1} không được để trống`
+                        });
                     }
                 });
             });
         }
-        setStepErrors(prev => ({ ...prev, [step]: errors }));
+        setStepErrors(prev => ({...prev, [step]: errors}));
         return errors.length === 0;
     };
 
@@ -518,7 +590,7 @@ const CreateProductPage: React.FC = () => {
 
         // Đóng modal và reset form
         setShowCreateCategoryModal(false);
-        setNewCategory({ name: '', file: null });
+        setNewCategory({name: '', file: null});
     };
 
     const handleCreateFeature = () => {
@@ -541,7 +613,7 @@ const CreateProductPage: React.FC = () => {
         }));
 
         setShowCreateFeatureModal(false);
-        setNewFeature({ name: '', description: '', file: null });
+        setNewFeature({name: '', description: '', file: null});
     };
 
     const handleCreateColor = () => {
@@ -558,7 +630,7 @@ const CreateProductPage: React.FC = () => {
 
         setPredefinedColors(prev => [...prev, createdColor]);
         setShowCreateColorModal(false);
-        setNewColor({ name: '', hexCode: '' });
+        setNewColor({name: '', hexCode: ''});
     };
 
     const handleCreateInstance = () => {
@@ -575,7 +647,7 @@ const CreateProductPage: React.FC = () => {
 
         setPredefinedInstances(prev => [...prev, createdInstance]);
         setShowCreateInstanceModal(false);
-        setNewInstance({ name: '', description: '' });
+        setNewInstance({name: '', description: ''});
     };
 
     return (
@@ -587,7 +659,7 @@ const CreateProductPage: React.FC = () => {
                         onClick={() => navigate('/admin/products')}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                        <ArrowLeftIcon className="w-5 h-5" />
+                        <ArrowLeft className="w-5 h-5"/>
                     </button>
                     <h1 className="text-2xl font-bold text-gray-900">Thêm sản phẩm mới</h1>
                 </div>
@@ -601,11 +673,13 @@ const CreateProductPage: React.FC = () => {
                             {steps.map((step, index) => (
                                 <div key={index} className="flex items-center gap">
                                     <div className="flex items-center">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === index ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                                            {currentStep === index ? <CheckIcon className="w-5 h-5" /> : step.icon}
+                                        <div
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === index ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                            {currentStep === index ? <Check className="w-5 h-5"/> : step.icon}
                                         </div>
                                         {index < steps.length - 1 && (
-                                            <div className={`h-0.5 flex-1 ${currentStep > index ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                                            <div
+                                                className={`h-0.5 flex-1 ${currentStep > index ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
                                         )}
                                     </div>
                                     <div className="ml-3">
@@ -634,7 +708,7 @@ const CreateProductPage: React.FC = () => {
                                             type="text"
                                             required
                                             value={formData.name}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                                            onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
                                             className={"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}
                                             placeholder="iPhone 15 Pro"
                                         />
@@ -659,7 +733,8 @@ const CreateProductPage: React.FC = () => {
                                                 ) : (
                                                     <>
                                                         {categories?.map((category) => (
-                                                            <option key={category.id} value={category.id !== null ? category.id : ''}>
+                                                            <option key={category.id}
+                                                                    value={category.id !== null ? category.id : ''}>
                                                                 {category.name}
                                                             </option>
                                                         ))}
@@ -672,7 +747,7 @@ const CreateProductPage: React.FC = () => {
                                                 onClick={() => setShowCreateCategoryModal(true)}
                                                 className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                             >
-                                                <PlusIcon className="w-5 h-5" />
+                                                <Plus className="w-5 h-5"/>
                                             </button>
                                         </div>
                                         {formData.category.id !== null && (
@@ -685,7 +760,8 @@ const CreateProductPage: React.FC = () => {
                                                     />
                                                 )}
                                                 <span className="text-sm text-gray-600">
-                                                    Danh mục đã chọn: <span className="font-semibold">{formData.category.name}</span>
+                                                    Danh mục đã chọn: <span
+                                                    className="font-semibold">{formData.category.name}</span>
                                                 </span>
                                             </div>
                                         )}
@@ -701,7 +777,10 @@ const CreateProductPage: React.FC = () => {
                                         <textarea
                                             rows={4}
                                             value={formData.description}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                                            onChange={(e) => setFormData(prev => ({
+                                                ...prev,
+                                                description: e.target.value
+                                            }))}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             placeholder="Mô tả chi tiết về sản phẩm..."
                                         />
@@ -756,7 +835,8 @@ const CreateProductPage: React.FC = () => {
                                             >
                                                 <option value="-2">-- Chọn tính năng có sẵn --</option>
                                                 {predefinedFeatures?.map((feature) => (
-                                                    <option key={feature.id} value={feature.id !== null ? feature.id : ''}>
+                                                    <option key={feature.id}
+                                                            value={feature.id !== null ? feature.id : ''}>
                                                         {feature.name}
                                                     </option>
                                                 ))}
@@ -767,7 +847,7 @@ const CreateProductPage: React.FC = () => {
                                                 onClick={addFeature}
                                                 className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                             >
-                                                <PlusIcon className="w-4 h-4 mr-1" />
+                                                <Plus className="w-4 h-4 mr-1"/>
                                                 Thêm tính năng mới
                                             </button>
                                         </div>
@@ -777,13 +857,14 @@ const CreateProductPage: React.FC = () => {
                                         {formData.features?.map((feature, index) => (
                                             <div key={index} className="p-4 border border-gray-200 rounded-lg">
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <h3 className="font-medium text-gray-900">Tính năng #{index + 1}</h3>
+                                                    <h3 className="font-medium text-gray-900">Tính năng
+                                                        #{index + 1}</h3>
                                                     <button
                                                         type="button"
                                                         onClick={() => removeFeature(index)}
                                                         className="p-1 text-red-600 hover:bg-red-50 rounded"
                                                     >
-                                                        <XMarkIcon className="w-4 h-4" />
+                                                        <X className="w-4 h-4"/>
                                                     </button>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -806,10 +887,12 @@ const CreateProductPage: React.FC = () => {
                                                 </div>
                                                 {/* Feature field errors */}
                                                 {stepErrors[1]?.filter(error => error.field === `feature_name_${index}`).map((error, idx) => (
-                                                    <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                    <p key={idx}
+                                                       className="text-red-600 text-xs mt-1">{error.message}</p>
                                                 ))}
                                                 {stepErrors[1]?.filter(error => error.field === `feature_description_${index}`).map((error, idx) => (
-                                                    <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                    <p key={idx}
+                                                       className="text-red-600 text-xs mt-1">{error.message}</p>
                                                 ))}
                                                 {/* File upload for feature image */}
                                                 <div className="mt-4">
@@ -823,7 +906,8 @@ const CreateProductPage: React.FC = () => {
                                                     />
                                                     {/* Error message for feature image */}
                                                     {stepErrors[1]?.filter(error => error.field === `feature_image_${index}`).map((error, idx) => (
-                                                        <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                        <p key={idx}
+                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
                                                     ))}
                                                 </div>
                                             </div>
@@ -905,7 +989,7 @@ const CreateProductPage: React.FC = () => {
                                                 onClick={addStock}
                                                 className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                             >
-                                                <PlusIcon className="w-4 h-4 mr-1" />
+                                                <Plus className="w-4 h-4 mr-1"/>
                                                 Thêm màu mới
                                             </button>
                                         </div>
@@ -915,13 +999,14 @@ const CreateProductPage: React.FC = () => {
                                         {formData.stocks?.map((stock, stockIndex) => (
                                             <div key={stockIndex} className="p-4 border border-gray-200 rounded-lg">
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <h3 className="font-medium text-gray-900">Màu sắc #{stockIndex + 1}</h3>
+                                                    <h3 className="font-medium text-gray-900">Màu sắc
+                                                        #{stockIndex + 1}</h3>
                                                     <button
                                                         type="button"
                                                         onClick={() => removeStock(stockIndex)}
                                                         className="p-1 text-red-600 hover:bg-red-50 rounded"
                                                     >
-                                                        <XMarkIcon className="w-4 h-4" />
+                                                        <X className="w-4 h-4"/>
                                                     </button>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -930,30 +1015,38 @@ const CreateProductPage: React.FC = () => {
                                                             type="text"
                                                             placeholder="Tên màu"
                                                             value={stock.color.name}
-                                                            onChange={(e) => updateStock(stockIndex, 'color', { ...stock.color, name: e.target.value })}
+                                                            onChange={(e) => updateStock(stockIndex, 'color', {
+                                                                ...stock.color,
+                                                                name: e.target.value
+                                                            })}
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                                             disabled={stock.color.id !== null && stock.color.id !== undefined}
                                                         />
                                                         {stock.color.hexCode && (
                                                             <div
                                                                 className="w-6 h-6 ml-2 rounded-full border border-gray-300"
-                                                                style={{ backgroundColor: stock.color.hexCode }}
+                                                                style={{backgroundColor: stock.color.hexCode}}
                                                             ></div>
                                                         )}
                                                     </div>
                                                     {stepErrors[2]?.filter(error => error.field === `stock_color_name_${stockIndex}`).map((error, idx) => (
-                                                        <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                        <p key={idx}
+                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
                                                     ))}
                                                     <input
                                                         type="text"
                                                         placeholder="Mã hex"
                                                         value={stock.color.hexCode}
-                                                        onChange={(e) => updateStock(stockIndex, 'color', { ...stock.color, hexCode: e.target.value })}
+                                                        onChange={(e) => updateStock(stockIndex, 'color', {
+                                                            ...stock.color,
+                                                            hexCode: e.target.value
+                                                        })}
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                                         disabled={stock.color.id !== null && stock.color.id !== undefined}
                                                     />
                                                     {stepErrors[2]?.filter(error => error.field === `stock_color_hex_${stockIndex}`).map((error, idx) => (
-                                                        <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                        <p key={idx}
+                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
                                                     ))}
                                                     <input
                                                         type="number"
@@ -963,7 +1056,8 @@ const CreateProductPage: React.FC = () => {
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                                     />
                                                     {stepErrors[2]?.filter(error => error.field === `stock_quantity_${stockIndex}`).map((error, idx) => (
-                                                        <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                        <p key={idx}
+                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
                                                     ))}
                                                     <input
                                                         type="number"
@@ -973,29 +1067,47 @@ const CreateProductPage: React.FC = () => {
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                                     />
                                                     {stepErrors[2]?.filter(error => error.field === `stock_price_${stockIndex}`).map((error, idx) => (
-                                                        <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                        <p key={idx}
+                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
                                                     ))}
                                                 </div>
                                                 <div className="mt-3">
-                                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Ảnh sản phẩm</h4>
+                                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Ảnh sản
+                                                        phẩm</h4>
                                                     {stock.productPhotos?.map((photo, photoIndex) => (
                                                         <div key={photoIndex} className="flex items-center gap-2 mb-2">
-                                                            <input type="file" onChange={(e) => e.target.files && handleStockPhotoChange(stockIndex, photoIndex, e.target.files[0])} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                                                            <input type="text" placeholder="Alt text" value={photo.alt} onChange={(e) => { const newPhotos = [...stock.productPhotos]; newPhotos[photoIndex].alt = e.target.value; updateStock(stockIndex, 'productPhotos', newPhotos); }} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                                                            <button type="button" onClick={() => removeStockPhoto(stockIndex, photoIndex)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><XMarkIcon className="w-4 h-4" /></button>
+                                                            <input type="file"
+                                                                   onChange={(e) => e.target.files && handleStockPhotoChange(stockIndex, photoIndex, e.target.files[0])}
+                                                                   className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                                                            <input type="text" placeholder="Alt text" value={photo.alt}
+                                                                   onChange={(e) => {
+                                                                       const newPhotos = [...stock.productPhotos];
+                                                                       newPhotos[photoIndex].alt = e.target.value;
+                                                                       updateStock(stockIndex, 'productPhotos', newPhotos);
+                                                                   }}
+                                                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
+                                                            <button type="button"
+                                                                    onClick={() => removeStockPhoto(stockIndex, photoIndex)}
+                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                                                                <X className="w-4 h-4"/></button>
                                                             {stepErrors[2]?.filter(error => error.field === `stock_photo_${stockIndex}_${photoIndex}`).map((error, idx) => (
-                                                                <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                                <p key={idx}
+                                                                   className="text-red-600 text-xs mt-1">{error.message}</p>
                                                             ))}
                                                             {stepErrors[2]?.filter(error => error.field === `stock_photo_alt_${stockIndex}_${photoIndex}`).map((error, idx) => (
-                                                                <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
+                                                                <p key={idx}
+                                                                   className="text-red-600 text-xs mt-1">{error.message}</p>
                                                             ))}
                                                         </div>
                                                     ))}
-                                                    <button type="button" onClick={() => addStockPhoto(stockIndex)} className="text-sm text-blue-600 hover:underline">Thêm ảnh</button>
+                                                    <button type="button" onClick={() => addStockPhoto(stockIndex)}
+                                                            className="text-sm text-blue-600 hover:underline">Thêm ảnh
+                                                    </button>
                                                 </div>
                                                 <div className="mt-3">
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <h4 className="text-sm font-medium text-gray-700">Thuộc tính</h4>
+                                                        <h4 className="text-sm font-medium text-gray-700">Thuộc
+                                                            tính</h4>
                                                         <select
                                                             onChange={(e) => {
                                                                 const instanceId = parseInt(e.target.value);
@@ -1024,7 +1136,10 @@ const CreateProductPage: React.FC = () => {
                                                                             id: selectedInstance.id,
                                                                             name: selectedInstance.name
                                                                         });
-                                                                        setFormData(prev => ({ ...prev, stocks: newStocks }));
+                                                                        setFormData(prev => ({
+                                                                            ...prev,
+                                                                            stocks: newStocks
+                                                                        }));
                                                                     }
                                                                 }
                                                                 // Reset selection
@@ -1034,7 +1149,8 @@ const CreateProductPage: React.FC = () => {
                                                         >
                                                             <option value="-2">-- Chọn thuộc tính --</option>
                                                             {predefinedInstances?.map((instance) => (
-                                                                <option key={instance.id} value={instance.id !== null ? instance.id : ''}>
+                                                                <option key={instance.id}
+                                                                        value={instance.id !== null ? instance.id : ''}>
                                                                     {instance.name}
                                                                 </option>
                                                             ))}
@@ -1051,10 +1167,17 @@ const CreateProductPage: React.FC = () => {
                                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                                                 disabled={prop.id !== null && prop.id !== undefined}
                                                             />
-                                                            <button type="button" onClick={() => removeInstanceProperty(stockIndex, propIndex)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><XMarkIcon className="w-4 h-4" /></button>
+                                                            <button type="button"
+                                                                    onClick={() => removeInstanceProperty(stockIndex, propIndex)}
+                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                                                                <X className="w-4 h-4"/></button>
                                                         </div>
                                                     ))}
-                                                    <button type="button" onClick={() => addInstanceProperty(stockIndex)} className="text-sm text-blue-600 hover:underline">Thêm thuộc tính mới</button>
+                                                    <button type="button"
+                                                            onClick={() => addInstanceProperty(stockIndex)}
+                                                            className="text-sm text-blue-600 hover:underline">Thêm thuộc
+                                                        tính mới
+                                                    </button>
                                                 </div>
                                             </div>
                                         ))}
@@ -1096,7 +1219,8 @@ const CreateProductPage: React.FC = () => {
                                         <h3 className="font-medium text-gray-900 mb-3">Tính năng</h3>
                                         <div className="space-y-2">
                                             {formData.features.length === 0 ? (
-                                                <p className="text-gray-500 text-sm">Chưa có tính năng nào được thêm.</p>
+                                                <p className="text-gray-500 text-sm">Chưa có tính năng nào được
+                                                    thêm.</p>
                                             ) : (
                                                 formData.features.map((feature, index) => (
                                                     <div key={index} className="p-3 border border-gray-300 rounded-lg">
@@ -1116,7 +1240,8 @@ const CreateProductPage: React.FC = () => {
                                                 <p className="text-gray-500 text-sm">Chưa có màu sắc nào được thêm.</p>
                                             ) : (
                                                 formData.stocks.map((stock, stockIndex) => (
-                                                    <div key={stockIndex} className="p-3 border border-gray-300 rounded-lg">
+                                                    <div key={stockIndex}
+                                                         className="p-3 border border-gray-300 rounded-lg">
                                                         <div className="flex items-center justify-between">
                                                             <h4 className="font-medium text-gray-900">{stock.color.name}</h4>
                                                             <button
@@ -1124,7 +1249,7 @@ const CreateProductPage: React.FC = () => {
                                                                 onClick={() => removeStock(stockIndex)}
                                                                 className="p-1 text-red-600 hover:bg-red-50 rounded"
                                                             >
-                                                                <XMarkIcon className="w-4 h-4" />
+                                                                <X className="w-4 h-4"/>
                                                             </button>
                                                         </div>
                                                         <div className="mt-2 grid grid-cols-2 gap-4">
@@ -1133,7 +1258,8 @@ const CreateProductPage: React.FC = () => {
                                                                 <p className="mt-1 text-gray-900">{stock.quantity}</p>
                                                             </div>
                                                             <div>
-                                                                <span className="text-sm font-medium text-gray-700">Giá:</span>
+                                                                <span
+                                                                    className="text-sm font-medium text-gray-700">Giá:</span>
                                                                 <p className="mt-1 text-gray-900">{stock.price} đ</p>
                                                             </div>
                                                         </div>
@@ -1141,7 +1267,8 @@ const CreateProductPage: React.FC = () => {
                                                             <span className="text-sm font-medium text-gray-700">Ảnh sản phẩm:</span>
                                                             <div className="mt-1 grid grid-cols-3 gap-2">
                                                                 {stock.productPhotos.map((photo, photoIndex) => (
-                                                                    <div key={photoIndex} className="w-full h-20 bg-gray-100 rounded-lg overflow-hidden">
+                                                                    <div key={photoIndex}
+                                                                         className="w-full h-20 bg-gray-100 rounded-lg overflow-hidden">
                                                                         <img
                                                                             src={photo.imageUrl}
                                                                             alt={photo.alt}
@@ -1155,11 +1282,13 @@ const CreateProductPage: React.FC = () => {
                                                             <span className="text-sm font-medium text-gray-700">Thuộc tính:</span>
                                                             <div className="mt-1">
                                                                 {stock.instanceProperties.length === 0 ? (
-                                                                    <p className="text-gray-500 text-sm">Chưa có thuộc tính nào.</p>
+                                                                    <p className="text-gray-500 text-sm">Chưa có thuộc
+                                                                        tính nào.</p>
                                                                 ) : (
                                                                     <ul className="list-disc list-inside">
                                                                         {stock.instanceProperties.map((prop, propIndex) => (
-                                                                            <li key={propIndex} className="text-gray-900">{prop.name}</li>
+                                                                            <li key={propIndex}
+                                                                                className="text-gray-900">{prop.name}</li>
                                                                         ))}
                                                                     </ul>
                                                                 )}
@@ -1186,7 +1315,7 @@ const CreateProductPage: React.FC = () => {
                                             onClick={() => setCurrentStep(prev => prev - 1)}
                                             className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 font-medium flex items-center justify-center gap-2"
                                         >
-                                            <ChevronLeftIcon className="w-5 h-5" />
+                                            <ChevronLeft className="w-5 h-5"/>
                                             Quay lại
                                         </button>
                                     )}
@@ -1202,7 +1331,7 @@ const CreateProductPage: React.FC = () => {
                                             className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
                                         >
                                             Tiếp theo
-                                            <ChevronRightIcon className="w-5 h-5" />
+                                            <ChevronRight className="w-5 h-5"/>
                                         </button>
                                     ) : (
                                         <>
@@ -1218,10 +1347,13 @@ const CreateProductPage: React.FC = () => {
                                             {showConfirmSubmission && (
                                                 <div className="fixed inset-0 flex items-center justify-center z-50">
                                                     <div className="absolute inset-0 bg-black opacity-30"></div>
-                                                    <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full z-10">
-                                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Xác nhận tạo sản phẩm</h3>
+                                                    <div
+                                                        className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full z-10">
+                                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Xác
+                                                            nhận tạo sản phẩm</h3>
                                                         <p className="text-gray-700 text-sm mb-4">
-                                                            Bạn có chắc chắn muốn tạo sản phẩm này không? Vui lòng kiểm tra lại tất cả thông tin trước khi xác nhận.
+                                                            Bạn có chắc chắn muốn tạo sản phẩm này không? Vui lòng kiểm
+                                                            tra lại tất cả thông tin trước khi xác nhận.
                                                         </p>
                                                         <div className="flex justify-end gap-2">
                                                             <button
@@ -1255,7 +1387,8 @@ const CreateProductPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <div className={"w-full bg-red-50 border border-red-300 text-red-700 p-6 mb-5 rounded relative" + (errors?.length > 0 ? " block" : " hidden")}>
+                    <div
+                        className={"w-full bg-red-50 border border-red-300 text-red-700 p-6 mb-5 rounded relative" + (errors?.length > 0 ? " block" : " hidden")}>
                         <div className={"text-lg font-medium"}>Vui lòng sửa các lỗi sau:</div>
                         <ul className={"list-outside list-decimal"}>
                             {
@@ -1342,7 +1475,7 @@ const CreateProductPage: React.FC = () => {
                                 <input
                                     type="text"
                                     value={newFeature.name}
-                                    onChange={(e) => setNewFeature(prev => ({ ...prev, name: e.target.value }))}
+                                    onChange={(e) => setNewFeature(prev => ({...prev, name: e.target.value}))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Tính năng nổi bật"
                                 />
@@ -1355,7 +1488,7 @@ const CreateProductPage: React.FC = () => {
                                 <textarea
                                     rows={3}
                                     value={newFeature.description}
-                                    onChange={(e) => setNewFeature(prev => ({ ...prev, description: e.target.value }))}
+                                    onChange={(e) => setNewFeature(prev => ({...prev, description: e.target.value}))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Mô tả chi tiết về tính năng..."
                                 />
@@ -1367,7 +1500,10 @@ const CreateProductPage: React.FC = () => {
                                 </label>
                                 <input
                                     type="file"
-                                    onChange={(e) => e.target.files && setNewFeature(prev => ({ ...prev, file: e.target.files[0] }))}
+                                    onChange={(e) => e.target.files && setNewFeature(prev => ({
+                                        ...prev,
+                                        file: e.target.files[0]
+                                    }))}
                                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
                             </div>
@@ -1381,7 +1517,9 @@ const CreateProductPage: React.FC = () => {
                         )}
 
                         <div className="mt-4 flex justify-end gap-2">
-                            <button onClick={() => setShowCreateFeatureModal(false)} className="px-4 py-2 rounded-lg border">Hủy</button>
+                            <button onClick={() => setShowCreateFeatureModal(false)}
+                                    className="px-4 py-2 rounded-lg border">Hủy
+                            </button>
                             <button
                                 onClick={handleCreateFeature}
                                 disabled={featureLoading}
@@ -1404,19 +1542,21 @@ const CreateProductPage: React.FC = () => {
                                 type="text"
                                 placeholder="Tên màu (e.g., Space Black)"
                                 value={newColor.name}
-                                onChange={(e) => setNewColor(prev => ({ ...prev, name: e.target.value }))}
+                                onChange={(e) => setNewColor(prev => ({...prev, name: e.target.value}))}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             />
                             <input
                                 type="text"
                                 placeholder="Mã hex (e.g., #000000)"
                                 value={newColor.hexCode}
-                                onChange={(e) => setNewColor(prev => ({ ...prev, hexCode: e.target.value }))}
+                                onChange={(e) => setNewColor(prev => ({...prev, hexCode: e.target.value}))}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             />
                         </div>
                         <div className="flex justify-end gap-2 mt-4">
-                            <button onClick={() => setShowCreateColorModal(false)} className="px-4 py-2 rounded-lg border">Hủy</button>
+                            <button onClick={() => setShowCreateColorModal(false)}
+                                    className="px-4 py-2 rounded-lg border">Hủy
+                            </button>
                             <button
                                 onClick={handleCreateColor}
                                 disabled={colorLoading}
@@ -1439,19 +1579,21 @@ const CreateProductPage: React.FC = () => {
                                 type="text"
                                 placeholder="Tên thuộc tính (e.g., 128GB)"
                                 value={newInstance.name}
-                                onChange={(e) => setNewInstance(prev => ({ ...prev, name: e.target.value }))}
+                                onChange={(e) => setNewInstance(prev => ({...prev, name: e.target.value}))}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             />
                             <input
                                 type="text"
                                 placeholder="Mô tả (không bắt buộc)"
                                 value={newInstance.description}
-                                onChange={(e) => setNewInstance(prev => ({ ...prev, description: e.target.value }))}
+                                onChange={(e) => setNewInstance(prev => ({...prev, description: e.target.value}))}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             />
                         </div>
                         <div className="flex justify-end gap-2 mt-4">
-                            <button onClick={() => setShowCreateInstanceModal(false)} className="px-4 py-2 rounded-lg border">Hủy</button>
+                            <button onClick={() => setShowCreateInstanceModal(false)}
+                                    className="px-4 py-2 rounded-lg border">Hủy
+                            </button>
                             <button
                                 onClick={handleCreateInstance}
                                 disabled={instanceLoading}

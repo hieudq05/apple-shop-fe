@@ -2,19 +2,46 @@ import React, {useState, useEffect} from 'react';
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import {Link} from 'react-router-dom';
 import {
-    PlusIcon,
-    PencilIcon,
-    TrashIcon,
-    EyeIcon,
-    MagnifyingGlassIcon,
-    FunnelIcon, ArrowLeftIcon, ArrowRightIcon, EllipsisVerticalIcon
-} from "@heroicons/react/24/outline";
-import {Menu} from "@headlessui/react";
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
+    Plus,
+    Pencil,
+    Trash2,
+    Eye,
+    Search,
+    Filter,
+    ChevronLeft,
+    ChevronRight,
+    MoreHorizontal
+} from "lucide-react";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Badge} from "@/components/ui/badge";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from "@/components/ui/alert-dialog";
+import {Skeleton} from "@/components/ui/skeleton";
 import adminProductService, {type AdminProduct, type AdminProductsParams} from '../../services/adminProductService';
 
 // Extended product interface to match the actual API response
-interface ExtendedProduct extends Omit<AdminProduct, 'stocks'> {
+interface ExtendedProduct extends Omit<AdminProduct, 'stocks' | 'features'> {
+    categoryId: number;
+    categoryName: string;
+    features: Array<{
+        id: number;
+        name: string;
+        image: string;
+    }>;
     createdBy?: {
         id: number;
         email: string;
@@ -31,22 +58,20 @@ interface ExtendedProduct extends Omit<AdminProduct, 'stocks'> {
     };
     stocks: Array<{
         id: number;
-        color: {
-            id: number;
-            name: string;
-            hexCode: string;
-        };
+        productId: number;
+        colorId: number;
+        colorName: string;
+        colorHexCode: string;
         quantity: number;
         price: number;
-        productPhotos?: Array<{
+        productPhotos: Array<{
             id: number;
             imageUrl: string;
-            alt?: string;
+            alt: string;
         }>;
-        instanceProperties?: Array<{
+        instanceProperties: Array<{
             id: number;
             name: string;
-            value: string;
         }>;
     }>;
 }
@@ -94,7 +119,7 @@ const AdminProductsPage: React.FC = () => {
                 page: metadata.currentPage,
                 size: metadata.pageSize,
                 search: debouncedSearchTerm || undefined,
-                categoryId: selectedCategory ? parseInt(selectedCategory) : undefined,
+                categoryId: selectedCategory && selectedCategory !== 'all' ? parseInt(selectedCategory) : undefined,
             };
             const response = await adminProductService.getAdminProducts(params);
             if (response.success && response.data) {
@@ -178,311 +203,284 @@ const AdminProductsPage: React.FC = () => {
         return stocks.reduce((total, stock) => total + stock.quantity, 0);
     };
 
-    if (isLoading) {
-        return (
-            <div className="p-6">
-                <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-                    <div className="space-y-4">
-                        {[...Array(5)].map((_, i) => (
-                            <div key={i} className="h-16 bg-gray-200 rounded"></div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (isErrorProducts) {
-        return (
-            <div className="p-6 text-center text-red-500">
-                Đã có lỗi xảy ra khi tải danh sách sản phẩm.
-            </div>
-        )
-    }
-
     return (
-        <div className="p-6">
+        <div className="space-y-6">
             {/* Header */}
-            <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold text-gray-900">Quản lý sản phẩm</h1>
-                    <Link
-                        to="/admin/products/create"
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        <PlusIcon className="w-4 h-4 mr-2"/>
-                        Thêm sản phẩm
-                    </Link>
-                </div>
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle className="text-2xl">Quản lý sản phẩm</CardTitle>
+                            <CardDescription>
+                                Quản lý danh sách sản phẩm của cửa hàng
+                            </CardDescription>
+                        </div>
+                        <Button asChild>
+                            <Link to="/admin/products/create">
+                                <Plus className="w-4 h-4 mr-2"/>
+                                Thêm sản phẩm
+                            </Link>
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {/* Filters */}
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="relative flex-1">
+                            <Search
+                                className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"/>
+                            <Input
+                                placeholder="Tìm kiếm sản phẩm..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
+                        <div className="relative">
+                            <Select value={selectedCategory || undefined}
+                                    onValueChange={(value) => setSelectedCategory(value || '')}>
+                                <SelectTrigger className="w-[180px]">
+                                    <Filter className="w-4 h-4 mr-2"/>
+                                    <SelectValue placeholder="Tất cả danh mục"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Tất cả danh mục</SelectItem>
+                                    <SelectItem value="1">iPhone</SelectItem>
+                                    <SelectItem value="2">Mac</SelectItem>
+                                    <SelectItem value="3">iPad</SelectItem>
+                                    <SelectItem value="4">Apple Watch</SelectItem>
+                                    <SelectItem value="5">AirPods</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
-                {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1">
-                        <MagnifyingGlassIcon
-                            className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"/>
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm sản phẩm..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                    <div className="relative">
-                        <FunnelIcon
-                            className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"/>
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
-                        >
-                            <option value="">Tất cả danh mục</option>
-                            <option value="1">iPhone</option>
-                            <option value="2">Mac</option>
-                            <option value="3">iPad</option>
-                            <option value="4">Apple Watch</option>
-                            <option value="5">AirPods</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
+            {/* Loading State */}
+            {isLoading && (
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="space-y-4">
+                            {[...Array(5)].map((_, i) => (
+                                <div key={i} className="flex items-center space-x-4">
+                                    <Skeleton className="h-12 w-12 rounded-lg"/>
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-4 w-[250px]"/>
+                                        <Skeleton className="h-4 w-[200px]"/>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Error State */}
+            {isErrorProducts && (
+                <Card>
+                    <CardContent className="p-6 text-center text-destructive">
+                        Đã có lỗi xảy ra khi tải danh sách sản phẩm.
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Products Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-sm font-medium text-black">
-                                Sản phẩm
-                            </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium text-black">
-                                Danh mục
-                            </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium text-black">
-                                Giá
-                            </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium text-black">
-                                Tồn kho
-                            </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium text-black">
-                                Ngày tạo
-                            </th>
-                            <th className="px-6 py-3 text-right text-sm font-medium text-black">
-                                Thao tác
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                        {products.map((product) => (
-                            <tr key={product.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className={"flex gap-3"}>
-                                        <img src={product.stocks[0]?.productPhotos[0]?.imageUrl}
-                                             alt={product.stocks[0]?.productPhotos[0]?.alt || product.name}
-                                             className="size-12 rounded-lg"/>
-                                        <div>
-                                            <Link to={`${product.category.id}/${product.id}`} className="text-sm hover:underline font-medium text-gray-900">
-                                                {product.name}
-                                            </Link>
-                                            <div className="text-sm text-gray-500 truncate max-w-xs">
-                                                {product.description?.substring(0, 50)}
-                                                {product.description && product.description.length > 50 ? '...' : ''}
+            {!isLoading && !isErrorProducts && (
+                <Card className={"py-0"}>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Sản phẩm</TableHead>
+                                <TableHead>Danh mục</TableHead>
+                                <TableHead>Giá</TableHead>
+                                <TableHead>Tồn kho</TableHead>
+                                <TableHead>Ngày tạo</TableHead>
+                                <TableHead className="text-right">Thao tác</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {products.map((product) => (
+                                <TableRow key={product.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-12 w-12 rounded-lg">
+                                                <AvatarImage
+                                                    src={product.stocks[0]?.productPhotos[0]?.imageUrl}
+                                                    alt={product.stocks[0]?.productPhotos[0]?.alt || product.name}
+                                                    className="object-cover"
+                                                />
+                                                <AvatarFallback className="rounded-lg">
+                                                    {product.name.charAt(0)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <Link
+                                                    to={`${product.categoryId}/${product.id}`}
+                                                    className="font-medium hover:underline"
+                                                >
+                                                    {product.name}
+                                                </Link>
+                                                <p className="text-sm text-muted-foreground truncate max-w-xs">
+                                                    {product.description?.substring(0, 50)}
+                                                    {product.description && product.description.length > 50 ? '...' : ''}
+                                                </p>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {product.category?.name || 'Không có danh mục'}
-                                        </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">
-                                        {formatCurrency(getMinPrice(product.stocks))}
-                                    </div>
-                                    {product.stocks && product.stocks.length > 1 && (
-                                        <div className="text-xs text-gray-500">
-                                            {product.stocks.length} phiên bản
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="secondary">
+                                            {product.categoryName || 'Không có danh mục'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="font-medium">
+                                            {formatCurrency(getMinPrice(product.stocks))}
                                         </div>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        {product.stocks && product.stocks.length > 1 && (
+                                            <p className="text-xs text-muted-foreground">
+                                                {product.stocks.length} phiên bản
+                                            </p>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={
                                                 getTotalStock(product.stocks) > 20
-                                                    ? 'bg-green-100 text-green-800'
+                                                    ? 'default'
                                                     : getTotalStock(product.stocks) > 5
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : 'bg-red-100 text-red-800'
-                                            }`}>
-                                            {getTotalStock(product.stocks)} sản phẩm
-                                        </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-500">
-                                        {formatDate(product.createdAt)}
-                                    </div>
-                                    <div className="text-xs text-gray-400">
-                                        bởi {product.createdBy?.firstName} {product.createdBy?.lastName}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Menu as="div" className="relative inline-block text-left">
-                                        <div>
-                                            <Menu.Button
-                                                className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-2 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500">
-                                                <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true"/>
-                                            </Menu.Button>
-                                        </div>
-                                        <Menu.Items
-                                            className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                            <div className="py-1">
-                                                <Menu.Item>
-                                                    {({active}) => (
-                                                        <Link
-                                                            to={`/admin/products/${product.category.id}/${product.id}`}
-                                                            className={`${
-                                                                active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                                                            } group flex items-center px-4 py-2 text-sm`}
-                                                        >
-                                                            <EyeIcon
-                                                                className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                                                                aria-hidden="true"/>
-                                                            Xem chi tiết
-                                                        </Link>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({active}) => (
-                                                        <Link
-                                                            to={`/admin/products/${product.category.id}/${product.id}/edit`}
-                                                            className={`${
-                                                                active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                                                            } group flex items-center px-4 py-2 text-sm`}
-                                                        >
-                                                            <PencilIcon
-                                                                className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                                                                aria-hidden="true"/>
-                                                            Chỉnh sửa
-                                                        </Link>
-                                                    )}
-                                                </Menu.Item>
-                                                <Menu.Item>
-                                                    {({active}) => (
-                                                        <button
-                                                            onClick={() => openDeleteDialog(product.id, product.name)}
-                                                            className={`${
-                                                                active ? 'bg-gray-100 text-red-900' : 'text-red-700'
-                                                            } group flex items-center px-4 py-2 text-sm w-full`}
-                                                        >
-                                                            <TrashIcon
-                                                                className="mr-3 h-5 w-5 text-red-400 group-hover:text-red-500"
-                                                                aria-hidden="true"/>
-                                                            Xóa
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                            </div>
-                                        </Menu.Items>
-                                    </Menu>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination */}
-                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                    <div className="flex-1 flex justify-between sm:hidden">
-                        <button
-                            onClick={() => setMetadata(prev => ({
-                                ...prev,
-                                currentPage: Math.max(0, prev.currentPage - 1)
-                            }))}
-                            disabled={currentMetadata.currentPage === 0}
-                            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                        >
-                            Trước
-                        </button>
-                        <button
-                            onClick={() => setMetadata(prev => ({
-                                ...prev,
-                                currentPage: Math.min(prev.currentPage + 1, currentMetadata.totalPage - 1)
-                            }))}
-                            disabled={currentMetadata.currentPage === currentMetadata.totalPage - 1}
-                            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                        >
-                            Sau
-                        </button>
-                    </div>
-                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm text-gray-700">
-                                Hiển thị <span
-                                className="font-medium">{currentMetadata.totalElements === 0 ? 0 : currentMetadata.currentPage * currentMetadata.pageSize + 1}</span> - <span
-                                className="font-medium">{Math.min((currentMetadata.currentPage + 1) * currentMetadata.pageSize, currentMetadata.totalElements)}</span> trong{' '}
-                                <span className="font-medium">{currentMetadata.totalElements}</span> kết quả
-                            </p>
-                        </div>
-                        <div>
-                            <nav className="relative z-0 inline-flex rounded-md -space-x-px">
-                                <button
-                                    onClick={() => setMetadata(prev => ({
-                                        ...prev,
-                                        currentPage: Math.max(0, prev.currentPage - 1)
-                                    }))}
-                                    disabled={currentMetadata.currentPage === 0}
-                                    className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    <ArrowLeftIcon className={"size-[0.8rem]"}/>
-                                </button>
-                                <div className={"flex gap-3 px-3"}>
-                                    {[...Array(currentMetadata.totalPage)].map((_, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => setMetadata(prev => ({...prev, currentPage: i}))}
-                                            className={`relative inline-flex items-center p-0 text-sm font-medium ${
-                                                currentMetadata.currentPage === i
-                                                    ? 'text-black'
-                                                    : 'text-gray-500'
-                                            }`}
+                                                        ? 'secondary'
+                                                        : 'destructive'
+                                            }
                                         >
-                                            {i + 1}
-                                        </button>
-                                    ))}
-                                </div>
-                                <button
-                                    onClick={() => setMetadata(prev => ({
-                                        ...prev,
-                                        currentPage: Math.min(prev.currentPage + 1, currentMetadata.totalPage - 1)
-                                    }))}
-                                    disabled={currentMetadata.currentPage === currentMetadata.totalPage - 1}
-                                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    <ArrowRightIcon className={"size-[0.8rem]"}/>
-                                </button>
-                            </nav>
+                                            {getTotalStock(product.stocks)} sản phẩm
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="text-sm">
+                                            {formatDate(product.createdAt)}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            bởi {product.createdBy}
+                                        </p>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="sm">
+                                                    <MoreHorizontal className="w-4 h-4"/>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem asChild>
+                                                    <Link to={`/admin/products/${product.categoryId}/${product.id}`}>
+                                                        <Eye className="w-4 h-4 mr-2"/>
+                                                        Xem chi tiết
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem asChild>
+                                                    <Link
+                                                        to={`/admin/products/${product.categoryId}/${product.id}/edit`}>
+                                                        <Pencil className="w-4 h-4 mr-2"/>
+                                                        Chỉnh sửa
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => openDeleteDialog(product.id, product.name)}
+                                                    className="text-destructive"
+                                                >
+                                                    <Trash2 className="w-4 h-4 mr-2"/>
+                                                    Xóa
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between px-6 py-4 border-t">
+                        <div className="flex-1 text-sm text-muted-foreground">
+                            Hiển thị{' '}
+                            <span className="font-medium">
+                                {currentMetadata.totalElements === 0 ? 0 : currentMetadata.currentPage * currentMetadata.pageSize + 1}
+                            </span>{' '}
+                            -{' '}
+                            <span className="font-medium">
+                                {Math.min((currentMetadata.currentPage + 1) * currentMetadata.pageSize, currentMetadata.totalElements)}
+                            </span>{' '}
+                            trong{' '}
+                            <span className="font-medium">{currentMetadata.totalElements}</span> kết quả
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Button
+                                className={"cursor-pointer"}
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setMetadata(prev => ({
+                                    ...prev,
+                                    currentPage: Math.max(0, prev.currentPage - 1)
+                                }))}
+                                disabled={currentMetadata.currentPage === 0}
+                            >
+                                <ChevronLeft className="w-4 h-4"/>
+                                Trước
+                            </Button>
+                            <div className="flex items-center space-x-1">
+                                {[...Array(currentMetadata.totalPage)].map((_, i) => (
+                                    <Button
+                                        className={"cursor-pointer " + (currentMetadata.currentPage === i ? "underline" : "")}
+                                        key={i}
+                                        variant={"link"}
+                                        size="sm"
+                                        onClick={() => setMetadata(prev => ({...prev, currentPage: i}))}
+                                    >
+                                        {i + 1}
+                                    </Button>
+                                ))}
+                            </div>
+                            <Button
+                                className={"cursor-pointer"}
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setMetadata(prev => ({
+                                    ...prev,
+                                    currentPage: Math.min(prev.currentPage + 1, currentMetadata.totalPage - 1)
+                                }))}
+                                disabled={currentMetadata.currentPage === currentMetadata.totalPage - 1}
+                            >
+                                Sau
+                                <ChevronRight className="w-4 h-4"/>
+                            </Button>
                         </div>
                     </div>
-                </div>
-            </div>
+                </Card>
+            )}
 
             {/* Delete Confirmation Dialog */}
-            <ConfirmDialog
-                isOpen={deleteDialog.isOpen}
-                onClose={closeDeleteDialog}
-                onConfirm={handleDeleteProduct}
-                title="Xóa sản phẩm"
-                message={`Bạn có chắc chắn muốn xóa sản phẩm "${deleteDialog.productName}"? Hành động này không thể hoàn tác.`}
-                confirmText="Xóa"
-                cancelText="Hủy"
-                type="danger"
-                isLoading={deleteDialog.isDeleting}
-            />
+            <AlertDialog open={deleteDialog.isOpen} onOpenChange={closeDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Xóa sản phẩm</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Bạn có chắc chắn muốn xóa sản phẩm "{deleteDialog.productName}"? Hành động này không thể
+                            hoàn tác.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteProduct}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={deleteDialog.isDeleting}
+                        >
+                            {deleteDialog.isDeleting ? 'Đang xóa...' : 'Xóa'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

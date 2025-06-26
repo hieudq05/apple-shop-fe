@@ -206,6 +206,6 @@ export const routesConfig: RouteObject[] = [
     // 404 catch-all route
     {
         path: '*',
-        element: <NotFoundPage />
+        element: <NotFoundPage/>
     }
 ];

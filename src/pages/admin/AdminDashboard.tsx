@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-    ShoppingBagIcon,
-    UserGroupIcon,
-    CubeIcon,
-    ChartBarIcon,
-    ArrowTrendingUpIcon,
-    ArrowTrendingDownIcon
-} from "@heroicons/react/24/outline";
+    ShoppingBag,
+    Users,
+    Package,
+    BarChart3,
+    TrendingUp,
+    TrendingDown,
+    ArrowUpRight,
+    Activity,
+    CreditCard,
+    DollarSign
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface DashboardStats {
     totalOrders: number;
@@ -18,6 +27,15 @@ interface DashboardStats {
     usersGrowth: number;
     productsGrowth: number;
     revenueGrowth: number;
+}
+
+interface RecentActivity {
+    id: string;
+    type: 'order' | 'user' | 'product';
+    title: string;
+    description: string;
+    time: string;
+    status: 'success' | 'warning' | 'info';
 }
 
 const AdminDashboard: React.FC = () => {
@@ -32,6 +50,7 @@ const AdminDashboard: React.FC = () => {
         revenueGrowth: 0
     });
     const [isLoading, setIsLoading] = useState(true);
+    const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
     useEffect(() => {
         // Simulate API call to fetch dashboard stats
@@ -50,6 +69,33 @@ const AdminDashboard: React.FC = () => {
                     productsGrowth: -2.1,
                     revenueGrowth: 15.7
                 });
+
+                setRecentActivities([
+                    {
+                        id: '1',
+                        type: 'order',
+                        title: 'Đơn hàng mới #1234',
+                        description: 'Nguyễn Văn A đã đặt đơn hàng iPhone 15 Pro',
+                        time: '2 phút trước',
+                        status: 'success'
+                    },
+                    {
+                        id: '2',
+                        type: 'user',
+                        title: 'Người dùng mới đăng ký',
+                        description: 'Trần Thị B đã tạo tài khoản mới',
+                        time: '5 phút trước',
+                        status: 'info'
+                    },
+                    {
+                        id: '3',
+                        type: 'product',
+                        title: 'Sản phẩm sắp hết hàng',
+                        description: 'iPhone 14 Pro Max chỉ còn 5 sản phẩm',
+                        time: '10 phút trước',
+                        status: 'warning'
+                    }
+                ]);
             } catch (error) {
                 console.error('Error fetching dashboard stats:', error);
             } finally {
@@ -71,158 +117,288 @@ const AdminDashboard: React.FC = () => {
         return new Intl.NumberFormat('vi-VN').format(num);
     };
 
-    const StatCard: React.FC<{
-        title: string;
-        value: string;
-        growth: number;
-        icon: React.ReactNode;
-        color: string;
-    }> = ({ title, value, growth, icon, color }) => (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-600">{title}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
-                </div>
-                <div className={`p-3 rounded-lg ${color}`}>
-                    {icon}
-                </div>
-            </div>
-            <div className="mt-4 flex items-center">
-                {growth >= 0 ? (
-                    <ArrowTrendingUpIcon className="w-4 h-4 text-green-500 mr-1" />
-                ) : (
-                    <ArrowTrendingDownIcon className="w-4 h-4 text-red-500 mr-1" />
-                )}
-                <span className={`text-sm font-medium ${growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {Math.abs(growth)}%
-                </span>
-                <span className="text-sm text-gray-500 ml-1">so với tháng trước</span>
-            </div>
-        </div>
-    );
-
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Đang tải dữ liệu...</p>
+            <div className="flex h-[450px] shrink-0 items-center justify-center rounded-md border border-dashed">
+                <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <h3 className="mt-4 text-lg font-semibold">Đang tải dữ liệu...</h3>
+                    <p className="mb-4 mt-2 text-sm text-muted-foreground">
+                        Vui lòng chờ một chút
+                    </p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                    <p className="mt-2 text-gray-600">Tổng quan về hoạt động của cửa hàng</p>
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <StatCard
-                        title="Tổng đơn hàng"
-                        value={formatNumber(stats.totalOrders)}
-                        growth={stats.ordersGrowth}
-                        icon={<ShoppingBagIcon className="w-6 h-6 text-blue-600" />}
-                        color="bg-blue-100"
-                    />
-                    <StatCard
-                        title="Tổng người dùng"
-                        value={formatNumber(stats.totalUsers)}
-                        growth={stats.usersGrowth}
-                        icon={<UserGroupIcon className="w-6 h-6 text-green-600" />}
-                        color="bg-green-100"
-                    />
-                    <StatCard
-                        title="Tổng sản phẩm"
-                        value={formatNumber(stats.totalProducts)}
-                        growth={stats.productsGrowth}
-                        icon={<CubeIcon className="w-6 h-6 text-purple-600" />}
-                        color="bg-purple-100"
-                    />
-                    <StatCard
-                        title="Doanh thu"
-                        value={formatCurrency(stats.totalRevenue)}
-                        growth={stats.revenueGrowth}
-                        icon={<ChartBarIcon className="w-6 h-6 text-orange-600" />}
-                        color="bg-orange-100"
-                    />
-                </div>
-
-                {/* Quick Actions */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Thao tác nhanh</h3>
-                        <div className="space-y-3">
-                            <Link
-                                to="/admin/products/create"
-                                className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                            >
-                                <CubeIcon className="w-5 h-5 text-blue-600 mr-3" />
-                                <span className="font-medium">Thêm sản phẩm mới</span>
-                            </Link>
-                            <Link
-                                to="/admin/orders"
-                                className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                            >
-                                <ShoppingBagIcon className="w-5 h-5 text-green-600 mr-3" />
-                                <span className="font-medium">Quản lý đơn hàng</span>
-                            </Link>
-                            <Link
-                                to="/admin/users"
-                                className="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                            >
-                                <UserGroupIcon className="w-5 h-5 text-purple-600 mr-3" />
-                                <span className="font-medium">Quản lý người dùng</span>
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Hoạt động gần đây</h3>
-                        <div className="space-y-3">
-                            <div className="flex items-center p-3 rounded-lg bg-gray-50">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-900">Đơn hàng mới #1234</p>
-                                    <p className="text-xs text-gray-500">2 phút trước</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center p-3 rounded-lg bg-gray-50">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-900">Người dùng mới đăng ký</p>
-                                    <p className="text-xs text-gray-500">5 phút trước</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center p-3 rounded-lg bg-gray-50">
-                                <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-gray-900">Sản phẩm sắp hết hàng</p>
-                                    <p className="text-xs text-gray-500">10 phút trước</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Charts Section */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Biểu đồ doanh thu</h3>
-                    <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                        <div className="text-center">
-                            <ChartBarIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                            <p className="text-gray-500">Biểu đồ sẽ được hiển thị ở đây</p>
-                            <p className="text-sm text-gray-400">Tích hợp với thư viện chart.js hoặc recharts</p>
-                        </div>
-                    </div>
+        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <div className="flex items-center justify-between space-y-2">
+                <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+                <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm">
+                        Xuất báo cáo
+                    </Button>
+                    <Button size="sm">
+                        <Link to="/admin/products/create" className="flex items-center">
+                            Tạo sản phẩm
+                        </Link>
+                    </Button>
                 </div>
             </div>
+            <Tabs defaultValue="overview" className="space-y-4">
+                <TabsList>
+                    <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+                    <TabsTrigger value="analytics">Phân tích</TabsTrigger>
+                    <TabsTrigger value="reports">Báo cáo</TabsTrigger>
+                </TabsList>
+                <TabsContent value="overview" className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Tổng doanh thu
+                                </CardTitle>
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    <span className={`inline-flex items-center ${stats.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {stats.revenueGrowth >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
+                                        +{Math.abs(stats.revenueGrowth)}%
+                                    </span>
+                                    {' '}so với tháng trước
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    Đơn hàng
+                                </CardTitle>
+                                <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{formatNumber(stats.totalOrders)}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    <span className={`inline-flex items-center ${stats.ordersGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {stats.ordersGrowth >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
+                                        +{Math.abs(stats.ordersGrowth)}%
+                                    </span>
+                                    {' '}so với tháng trước
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Người dùng</CardTitle>
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{formatNumber(stats.totalUsers)}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    <span className={`inline-flex items-center ${stats.usersGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {stats.usersGrowth >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
+                                        +{Math.abs(stats.usersGrowth)}%
+                                    </span>
+                                    {' '}so với tháng trước
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Sản phẩm</CardTitle>
+                                <Package className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{formatNumber(stats.totalProducts)}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    <span className={`inline-flex items-center ${stats.productsGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {stats.productsGrowth >= 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
+                                        {stats.productsGrowth >= 0 ? '+' : ''}{stats.productsGrowth}%
+                                    </span>
+                                    {' '}so với tháng trước
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                        <Card className="col-span-4">
+                            <CardHeader>
+                                <CardTitle>Biểu đồ doanh thu</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pl-2">
+                                <div className="h-[200px] flex items-center justify-center bg-muted/50 rounded-lg">
+                                    <div className="text-center">
+                                        <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                                        <p className="text-muted-foreground">Biểu đồ sẽ được hiển thị ở đây</p>
+                                        <p className="text-sm text-muted-foreground">Tích hợp với Chart.js hoặc Recharts</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="col-span-3">
+                            <CardHeader>
+                                <CardTitle>Hoạt động gần đây</CardTitle>
+                                <CardDescription>
+                                    Các hoạt động mới nhất trong hệ thống
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-8">
+                                    {recentActivities.map((activity) => (
+                                        <div key={activity.id} className="flex items-center">
+                                            <Avatar className="h-9 w-9">
+                                                <AvatarImage src="/avatars/01.png" alt="Avatar" />
+                                                <AvatarFallback>
+                                                    {activity.type === 'order' ? 'O' :
+                                                     activity.type === 'user' ? 'U' : 'P'}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="ml-4 space-y-1">
+                                                <p className="text-sm font-medium leading-none">
+                                                    {activity.title}
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {activity.description}
+                                                </p>
+                                            </div>
+                                            <div className="ml-auto font-medium">
+                                                <Badge variant={
+                                                    activity.status === 'success' ? 'default' :
+                                                    activity.status === 'warning' ? 'secondary' :
+                                                    'outline'
+                                                }>
+                                                    {activity.time}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-base font-medium">
+                                    Thao tác nhanh
+                                </CardTitle>
+                                <Activity className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <Button variant="outline" className="w-full justify-start" asChild>
+                                    <Link to="/admin/products/create">
+                                        <Package className="mr-2 h-4 w-4" />
+                                        Thêm sản phẩm mới
+                                    </Link>
+                                </Button>
+                                <Button variant="outline" className="w-full justify-start" asChild>
+                                    <Link to="/admin/orders">
+                                        <ShoppingBag className="mr-2 h-4 w-4" />
+                                        Quản lý đơn hàng
+                                    </Link>
+                                </Button>
+                                <Button variant="outline" className="w-full justify-start" asChild>
+                                    <Link to="/admin/users">
+                                        <Users className="mr-2 h-4 w-4" />
+                                        Quản lý người dùng
+                                    </Link>
+                                </Button>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-base font-medium">
+                                    Sản phẩm bán chạy
+                                </CardTitle>
+                                <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm">iPhone 15 Pro</span>
+                                        <span className="text-sm font-medium">234 đã bán</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm">MacBook Air M2</span>
+                                        <span className="text-sm font-medium">156 đã bán</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm">AirPods Pro</span>
+                                        <span className="text-sm font-medium">123 đã bán</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-base font-medium">
+                                    Thông báo hệ thống
+                                </CardTitle>
+                                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    <div className="flex items-start space-x-2">
+                                        <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                                        <div>
+                                            <p className="text-sm font-medium">Cập nhật bảo mật</p>
+                                            <p className="text-xs text-muted-foreground">Vui lòng cập nhật mật khẩu</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start space-x-2">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                                        <div>
+                                            <p className="text-sm font-medium">Backup tự động</p>
+                                            <p className="text-xs text-muted-foreground">Backup hôm nay đã hoàn thành</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+                <TabsContent value="analytics" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Phân tích chi tiết</CardTitle>
+                            <CardDescription>
+                                Dữ liệu phân tích chi tiết về hiệu suất kinh doanh
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[400px] flex items-center justify-center bg-muted/50 rounded-lg">
+                                <div className="text-center">
+                                    <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold mb-2">Tính năng đang phát triển</h3>
+                                    <p className="text-muted-foreground">Phân tích chi tiết sẽ được triển khai trong phiên bản tiếp theo</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="reports" className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Báo cáo</CardTitle>
+                            <CardDescription>
+                                Tạo và quản lý các báo cáo kinh doanh
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[400px] flex items-center justify-center bg-muted/50 rounded-lg">
+                                <div className="text-center">
+                                    <CreditCard className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold mb-2">Tính năng đang phát triển</h3>
+                                    <p className="text-muted-foreground">Hệ thống báo cáo sẽ được triển khai trong phiên bản tiếp theo</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 };
