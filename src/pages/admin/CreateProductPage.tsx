@@ -13,7 +13,9 @@ import {
     Upload,
     Trash2,
     Save,
-    Eye
+    Eye,
+    AlertCircle,
+    ImageIcon
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 import {type Category, fetchAdminCategories} from '@/services/categoryService.ts';
 import {type Feature, fetchAdminFeatures} from '@/services/featureService.ts';
 import {type Color, fetchAdminColors} from '@/services/colorService.ts';
@@ -651,960 +654,1092 @@ const CreateProductPage: React.FC = () => {
     };
 
     return (
-        <div className="p-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                    <button
-                        onClick={() => navigate('/admin/products')}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <ArrowLeft className="w-5 h-5"/>
-                    </button>
-                    <h1 className="text-2xl font-bold text-gray-900">Thêm sản phẩm mới</h1>
-                </div>
-            </div>
+        <div className="min-h-screen bg-gray-50/50">
+            <div className="container mx-auto px-4 py-8 max-w-5xl">
+                {/* Header */}
+                <Card className="mb-8">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => navigate('/admin/products')}
+                                    className="h-8 w-8 p-0"
+                                >
+                                    <ArrowLeft className="w-4 h-4"/>
+                                </Button>
+                                <div>
+                                    <CardTitle className="text-2xl">Thêm sản phẩm mới</CardTitle>
+                                    <CardDescription>
+                                        Tạo sản phẩm mới cho cửa hàng với đầy đủ thông tin chi tiết
+                                    </CardDescription>
+                                </div>
+                            </div>
+                            <Badge variant="outline" className="text-sm">
+                                Bước {currentStep + 1} / {steps.length}
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                </Card>
 
-            <form onSubmit={handleSubmit} className="max-w-4xl">
-                <div className="grid gap-8">
-                    {/* Stepper */}
-                    <div className="mb-8">
-                        <div className="flex items-center gap-8">
+                {/* Progress Stepper */}
+                <Card className="mb-8">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between relative">
                             {steps.map((step, index) => (
-                                <div key={index} className="flex items-center gap">
-                                    <div className="flex items-center">
-                                        <div
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === index ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                                            {currentStep === index ? <Check className="w-5 h-5"/> : step.icon}
-                                        </div>
-                                        {index < steps.length - 1 && (
-                                            <div
-                                                className={`h-0.5 flex-1 ${currentStep > index ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+                                <div key={index} className="flex flex-col items-center relative z-10">
+                                    <div className={cn(
+                                        "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+                                        currentStep === index
+                                            ? "bg-primary text-primary-foreground border-primary"
+                                            : currentStep > index
+                                                ? "bg-green-500 text-white border-green-500"
+                                                : "bg-background border-muted-foreground/20 text-muted-foreground",
+                                        stepErrors[index]?.length > 0 && "border-red-500 bg-red-50"
+                                    )}>
+                                        {currentStep > index ? (
+                                            <Check className="w-5 h-5" />
+                                        ) : stepErrors[index]?.length > 0 ? (
+                                            <AlertCircle className="w-5 h-5 text-red-500" />
+                                        ) : (
+                                            step.icon
                                         )}
                                     </div>
-                                    <div className="ml-3">
-                                        <p className={`text-sm font-medium ${currentStep === index ? 'text-blue-600' : 'text-gray-700'}`}>
+                                    <div className="mt-2 text-center">
+                                        <p className={cn(
+                                            "text-sm font-medium transition-colors",
+                                            currentStep === index ? "text-primary" : "text-muted-foreground"
+                                        )}>
                                             {step.title}
                                         </p>
+                                        {stepErrors[index]?.length > 0 && (
+                                            <p className="text-xs text-red-500 mt-1">
+                                                {stepErrors[index].length} lỗi
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             ))}
+
+                            {/* Progress line */}
+                            <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted -z-0">
+                                <div
+                                    className="h-full bg-primary transition-all duration-500 ease-out"
+                                    style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    </CardContent>
+                </Card>
 
+                <form onSubmit={handleSubmit}>
                     {/* Step Content */}
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                        {/* Basic Information */}
-                        {currentStep === 0 && (
-                            <div className="space-y-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Thông tin cơ bản</h2>
-
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Tên sản phẩm *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={formData.name}
-                                            onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
-                                            className={"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"}
-                                            placeholder="iPhone 15 Pro"
-                                        />
-                                        {stepErrors[0]?.filter(error => error.field === 'name').map((error, idx) => (
-                                            <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
-                                        ))}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Danh mục *
-                                        </label>
-                                        <div className="flex gap-2">
-                                            <select
-                                                value={formData.category?.id !== undefined ? formData.category.id : ''}
-                                                onChange={handleCategoryChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                disabled={categories?.length === 0}
-                                            >
-                                                {categories?.length === 0 ? (
-                                                    <option value="">Đang tải danh mục...</option>
-                                                ) : (
-                                                    <>
-                                                        {categories?.map((category) => (
-                                                            <option key={category.id}
-                                                                    value={category.id !== null ? category.id : ''}>
-                                                                {category.name}
-                                                            </option>
-                                                        ))}
-                                                        <option value="-1">Thêm danh mục mới</option>
-                                                    </>
-                                                )}
-                                            </select>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowCreateCategoryModal(true)}
-                                                className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                            >
-                                                <Plus className="w-5 h-5"/>
-                                            </button>
-                                        </div>
-                                        {formData.category.id !== null && (
-                                            <div className="mt-2 flex items-center">
-                                                {formData.category.image && (
-                                                    <img
-                                                        src={formData.category.image}
-                                                        alt={formData.category.name}
-                                                        className="w-10 h-10 object-cover rounded mr-2"
-                                                    />
-                                                )}
-                                                <span className="text-sm text-gray-600">
-                                                    Danh mục đã chọn: <span
-                                                    className="font-semibold">{formData.category.name}</span>
-                                                </span>
-                                            </div>
-                                        )}
-                                        {stepErrors[0]?.filter(error => error.field === 'category').map((error, idx) => (
-                                            <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
-                                        ))}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Mô tả
-                                        </label>
-                                        <textarea
-                                            rows={4}
-                                            value={formData.description}
-                                            onChange={(e) => setFormData(prev => ({
-                                                ...prev,
-                                                description: e.target.value
-                                            }))}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="Mô tả chi tiết về sản phẩm..."
-                                        />
-                                        {stepErrors[0]?.filter(error => error.field === 'description').map((error, idx) => (
-                                            <p key={idx} className="text-red-600 text-xs mt-1">{error.message}</p>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Features */}
-                        {currentStep === 1 && (
-                            <div className="space-y-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Tính năng</h2>
-
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex gap-2">
-                                            <select
-                                                onChange={(e) => {
-                                                    const featureId = parseInt(e.target.value);
-                                                    if (featureId === -1) {
-                                                        // User wants to add a new feature
-                                                        setShowCreateFeatureModal(true);
-                                                        return;
-                                                    }
-                                                    if (featureId === -2) {
-                                                        // User selected default option, do nothing
-                                                        return;
-                                                    }
-
-                                                    // Find the selected feature from predefined features
-                                                    const selectedFeature = predefinedFeatures.find(f => f.id === featureId);
-                                                    if (selectedFeature) {
-                                                        // Check if this feature is already added
-                                                        const isFeatureAlreadyAdded = formData.features.some(f => f.id === featureId);
-                                                        if (!isFeatureAlreadyAdded) {
-                                                            // Add the selected feature to formData
-                                                            setFormData(prev => ({
-                                                                ...prev,
-                                                                features: [...prev.features, selectedFeature]
-                                                            }));
-                                                            // Add a placeholder for the file since we're using an existing feature
-                                                            setFeatureFiles(prev => [...prev, new File([], '')]);
-                                                        }
-                                                    }
-                                                    // Reset selection to default option
-                                                    e.target.value = "-2";
-                                                }}
-                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            >
-                                                <option value="-2">-- Chọn tính năng có sẵn --</option>
-                                                {predefinedFeatures?.map((feature) => (
-                                                    <option key={feature.id}
-                                                            value={feature.id !== null ? feature.id : ''}>
-                                                        {feature.name}
-                                                    </option>
-                                                ))}
-                                                <option value="-1">Thêm tính năng mới</option>
-                                            </select>
-                                            <button
-                                                type="button"
-                                                onClick={addFeature}
-                                                className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                            >
-                                                <Plus className="w-4 h-4 mr-1"/>
-                                                Thêm tính năng mới
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {formData.features?.map((feature, index) => (
-                                            <div key={index} className="p-4 border border-gray-200 rounded-lg">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <h3 className="font-medium text-gray-900">Tính năng
-                                                        #{index + 1}</h3>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeFeature(index)}
-                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                    >
-                                                        <X className="w-4 h-4"/>
-                                                    </button>
-                                                </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Tên tính năng"
-                                                        value={feature.name}
-                                                        onChange={(e) => updateFeature(index, 'name', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                        disabled={feature.id !== null && feature.id !== undefined}
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Mô tả"
-                                                        value={feature.description}
-                                                        onChange={(e) => updateFeature(index, 'description', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                        disabled={feature.id !== null && feature.id !== undefined}
-                                                    />
-                                                </div>
-                                                {/* Feature field errors */}
-                                                {stepErrors[1]?.filter(error => error.field === `feature_name_${index}`).map((error, idx) => (
-                                                    <p key={idx}
-                                                       className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                ))}
-                                                {stepErrors[1]?.filter(error => error.field === `feature_description_${index}`).map((error, idx) => (
-                                                    <p key={idx}
-                                                       className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                ))}
-                                                {/* File upload for feature image */}
-                                                <div className="mt-4">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Ảnh tính năng *
-                                                    </label>
-                                                    <input
-                                                        type="file"
-                                                        onChange={(e) => e.target.files && handleFeatureFileChange(index, e.target.files[0])}
-                                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                                    />
-                                                    {/* Error message for feature image */}
-                                                    {stepErrors[1]?.filter(error => error.field === `feature_image_${index}`).map((error, idx) => (
-                                                        <p key={idx}
-                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {formData.features.length === 0 && (
-                                            <p className="text-gray-500 text-sm">Chưa có tính năng nào.</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Stocks */}
-                        {currentStep === 2 && (
-                            <div className="space-y-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Kho hàng</h2>
-
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex gap-2">
-                                            <select
-                                                onChange={(e) => {
-                                                    const colorId = parseInt(e.target.value);
-                                                    if (colorId === -1) {
-                                                        // User wants to add a new color
-                                                        setShowCreateColorModal(true);
-                                                        return;
-                                                    }
-                                                    if (colorId === -2) {
-                                                        // User selected default option, do nothing
-                                                        return;
-                                                    }
-
-                                                    // Find the selected color
-                                                    const selectedColor = predefinedColors.find(c => c.id === colorId);
-                                                    if (selectedColor) {
-                                                        // Check if any stock already has this color
-                                                        const isColorAlreadyUsed = formData.stocks.some(
-                                                            stock => stock.color.name === selectedColor.name
-                                                        );
-
-                                                        if (!isColorAlreadyUsed) {
-                                                            // Add a new stock with the selected color
-                                                            setFormData(prev => ({
-                                                                ...prev,
-                                                                stocks: [
-                                                                    ...prev.stocks,
-                                                                    {
-                                                                        color: {
-                                                                            id: selectedColor.id,
-                                                                            name: selectedColor.name,
-                                                                            hexCode: selectedColor.hexCode
-                                                                        },
-                                                                        quantity: 0,
-                                                                        price: 0,
-                                                                        productPhotos: [],
-                                                                        instanceProperties: []
-                                                                    }
-                                                                ]
-                                                            }));
-                                                            setStockPhotoFiles(prev => [...prev, []]);
-                                                        }
-                                                    }
-                                                    // Reset selection to default option
-                                                    e.target.value = "-2";
-                                                }}
-                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            >
-                                                <option value="-2">-- Chọn màu có sẵn --</option>
-                                                {predefinedColors?.map((color) => (
-                                                    <option key={color.id} value={color.id !== null ? color.id : ''}>
-                                                        {color.name}
-                                                    </option>
-                                                ))}
-                                                <option value="-1">Thêm màu mới</option>
-                                            </select>
-                                            <button
-                                                type="button"
-                                                onClick={addStock}
-                                                className="flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                            >
-                                                <Plus className="w-4 h-4 mr-1"/>
-                                                Thêm màu mới
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {formData.stocks?.map((stock, stockIndex) => (
-                                            <div key={stockIndex} className="p-4 border border-gray-200 rounded-lg">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <h3 className="font-medium text-gray-900">Màu sắc
-                                                        #{stockIndex + 1}</h3>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeStock(stockIndex)}
-                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                    >
-                                                        <X className="w-4 h-4"/>
-                                                    </button>
-                                                </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    <div className="flex items-center">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Tên màu"
-                                                            value={stock.color.name}
-                                                            onChange={(e) => updateStock(stockIndex, 'color', {
-                                                                ...stock.color,
-                                                                name: e.target.value
-                                                            })}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                            disabled={stock.color.id !== null && stock.color.id !== undefined}
-                                                        />
-                                                        {stock.color.hexCode && (
-                                                            <div
-                                                                className="w-6 h-6 ml-2 rounded-full border border-gray-300"
-                                                                style={{backgroundColor: stock.color.hexCode}}
-                                                            ></div>
-                                                        )}
-                                                    </div>
-                                                    {stepErrors[2]?.filter(error => error.field === `stock_color_name_${stockIndex}`).map((error, idx) => (
-                                                        <p key={idx}
-                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                    ))}
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Mã hex"
-                                                        value={stock.color.hexCode}
-                                                        onChange={(e) => updateStock(stockIndex, 'color', {
-                                                            ...stock.color,
-                                                            hexCode: e.target.value
-                                                        })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                        disabled={stock.color.id !== null && stock.color.id !== undefined}
-                                                    />
-                                                    {stepErrors[2]?.filter(error => error.field === `stock_color_hex_${stockIndex}`).map((error, idx) => (
-                                                        <p key={idx}
-                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                    ))}
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Số lượng"
-                                                        value={stock.quantity}
-                                                        onChange={(e) => updateStock(stockIndex, 'quantity', parseInt(e.target.value))}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                    />
-                                                    {stepErrors[2]?.filter(error => error.field === `stock_quantity_${stockIndex}`).map((error, idx) => (
-                                                        <p key={idx}
-                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                    ))}
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Giá"
-                                                        value={stock.price}
-                                                        onChange={(e) => updateStock(stockIndex, 'price', parseInt(e.target.value))}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                    />
-                                                    {stepErrors[2]?.filter(error => error.field === `stock_price_${stockIndex}`).map((error, idx) => (
-                                                        <p key={idx}
-                                                           className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                    ))}
-                                                </div>
-                                                <div className="mt-3">
-                                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Ảnh sản
-                                                        phẩm</h4>
-                                                    {stock.productPhotos?.map((photo, photoIndex) => (
-                                                        <div key={photoIndex} className="flex items-center gap-2 mb-2">
-                                                            <input type="file"
-                                                                   onChange={(e) => e.target.files && handleStockPhotoChange(stockIndex, photoIndex, e.target.files[0])}
-                                                                   className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                                                            <input type="text" placeholder="Alt text" value={photo.alt}
-                                                                   onChange={(e) => {
-                                                                       const newPhotos = [...stock.productPhotos];
-                                                                       newPhotos[photoIndex].alt = e.target.value;
-                                                                       updateStock(stockIndex, 'productPhotos', newPhotos);
-                                                                   }}
-                                                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"/>
-                                                            <button type="button"
-                                                                    onClick={() => removeStockPhoto(stockIndex, photoIndex)}
-                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                                                                <X className="w-4 h-4"/></button>
-                                                            {stepErrors[2]?.filter(error => error.field === `stock_photo_${stockIndex}_${photoIndex}`).map((error, idx) => (
-                                                                <p key={idx}
-                                                                   className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                            ))}
-                                                            {stepErrors[2]?.filter(error => error.field === `stock_photo_alt_${stockIndex}_${photoIndex}`).map((error, idx) => (
-                                                                <p key={idx}
-                                                                   className="text-red-600 text-xs mt-1">{error.message}</p>
-                                                            ))}
-                                                        </div>
-                                                    ))}
-                                                    <button type="button" onClick={() => addStockPhoto(stockIndex)}
-                                                            className="text-sm text-blue-600 hover:underline">Thêm ảnh
-                                                    </button>
-                                                </div>
-                                                <div className="mt-3">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <h4 className="text-sm font-medium text-gray-700">Thuộc
-                                                            tính</h4>
-                                                        <select
-                                                            onChange={(e) => {
-                                                                const instanceId = parseInt(e.target.value);
-                                                                if (instanceId === -1) {
-                                                                    // User wants to add a new instance
-                                                                    setShowCreateInstanceModal(true);
-                                                                    return;
-                                                                }
-                                                                if (instanceId === -2) {
-                                                                    // User selected default option, do nothing
-                                                                    return;
-                                                                }
-
-                                                                // Find the selected instance
-                                                                const selectedInstance = predefinedInstances.find(i => i.id === instanceId);
-                                                                if (selectedInstance) {
-                                                                    // Check if this instance is already added to this stock
-                                                                    const isInstanceAlreadyAdded = stock.instanceProperties.some(
-                                                                        prop => prop.name === selectedInstance.name
-                                                                    );
-
-                                                                    if (!isInstanceAlreadyAdded) {
-                                                                        // Add the instance to this stock's properties
-                                                                        const newStocks = [...formData.stocks];
-                                                                        newStocks[stockIndex].instanceProperties.push({
-                                                                            id: selectedInstance.id,
-                                                                            name: selectedInstance.name
-                                                                        });
-                                                                        setFormData(prev => ({
-                                                                            ...prev,
-                                                                            stocks: newStocks
-                                                                        }));
-                                                                    }
-                                                                }
-                                                                // Reset selection
-                                                                e.target.value = "-2";
-                                                            }}
-                                                            className="text-sm px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                        >
-                                                            <option value="-2">-- Chọn thuộc tính --</option>
-                                                            {predefinedInstances?.map((instance) => (
-                                                                <option key={instance.id}
-                                                                        value={instance.id !== null ? instance.id : ''}>
-                                                                    {instance.name}
-                                                                </option>
-                                                            ))}
-                                                            <option value="-1">Thêm thuộc tính mới</option>
-                                                        </select>
-                                                    </div>
-                                                    {stock.instanceProperties?.map((prop, propIndex) => (
-                                                        <div key={propIndex} className="flex items-center gap-2 mb-2">
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Tên thuộc tính"
-                                                                value={prop.name}
-                                                                onChange={(e) => updateInstanceProperty(stockIndex, propIndex, e.target.value)}
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                                                disabled={prop.id !== null && prop.id !== undefined}
-                                                            />
-                                                            <button type="button"
-                                                                    onClick={() => removeInstanceProperty(stockIndex, propIndex)}
-                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                                                                <X className="w-4 h-4"/></button>
-                                                        </div>
-                                                    ))}
-                                                    <button type="button"
-                                                            onClick={() => addInstanceProperty(stockIndex)}
-                                                            className="text-sm text-blue-600 hover:underline">Thêm thuộc
-                                                        tính mới
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {formData.stocks.length === 0 && (
-                                            <p className="text-gray-500 text-sm">Chưa có màu sắc nào.</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Preview & Submit */}
-                        {currentStep === 3 && (
-                            <div className="space-y-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Xem trước & Hoàn tất</h2>
-
-                                <div className="space-y-4">
-                                    {/* Basic Info Preview */}
-                                    <div className="p-4 border border-gray-200 rounded-lg">
-                                        <h3 className="font-medium text-gray-900 mb-3">Thông tin cơ bản</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <span className="text-sm font-medium text-gray-700">Tên sản phẩm:</span>
-                                                <p className="mt-1 text-gray-900">{formData.name}</p>
-                                            </div>
-                                            <div>
-                                                <span className="text-sm font-medium text-gray-700">Danh mục:</span>
-                                                <p className="mt-1 text-gray-900">{formData.category.name}</p>
-                                            </div>
-                                            <div className="col-span-2">
-                                                <span className="text-sm font-medium text-gray-700">Mô tả:</span>
-                                                <p className="mt-1 text-gray-900">{formData.description}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Features Preview */}
-                                    <div className="p-4 border border-gray-200 rounded-lg">
-                                        <h3 className="font-medium text-gray-900 mb-3">Tính năng</h3>
+                    <Card className="mb-8">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                {steps[currentStep].icon}
+                                {steps[currentStep].title}
+                            </CardTitle>
+                            <CardDescription>
+                                {currentStep === 0 && "Nhập thông tin cơ bản về sản phẩm"}
+                                {currentStep === 1 && "Thêm các tính năng nổi bật của sản phẩm"}
+                                {currentStep === 2 && "Thiết lập các phiên bản màu sắc và kho hàng"}
+                                {currentStep === 3 && "Xem lại thông tin và hoàn tất việc tạo sản phẩm"}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {/* Basic Information */}
+                            {currentStep === 0 && (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            {formData.features.length === 0 ? (
-                                                <p className="text-gray-500 text-sm">Chưa có tính năng nào được
-                                                    thêm.</p>
-                                            ) : (
-                                                formData.features.map((feature, index) => (
-                                                    <div key={index} className="p-3 border border-gray-300 rounded-lg">
-                                                        <h4 className="font-medium text-gray-900">{feature.name}</h4>
-                                                        <p className="mt-1 text-gray-700">{feature.description}</p>
-                                                    </div>
-                                                ))
+                                            <Label htmlFor="name">Tên sản phẩm *</Label>
+                                            <Input
+                                                id="name"
+                                                placeholder="iPhone 15 Pro Max"
+                                                value={formData.name}
+                                                onChange={(e) => {
+                                                    setFormData(prev => ({...prev, name: e.target.value}));
+                                                    // Real-time validation
+                                                    const errors = stepErrors[0].filter(err => err.field !== 'name');
+                                                    if (!e.target.value.trim()) {
+                                                        errors.push({field: 'name', message: 'Tên sản phẩm không được để trống'});
+                                                    }
+                                                    setStepErrors(prev => ({...prev, 0: errors}));
+                                                }}
+                                                className={cn(
+                                                    stepErrors[0]?.some(err => err.field === 'name') && "border-red-500 focus-visible:ring-red-500"
+                                                )}
+                                            />
+                                            {stepErrors[0]?.filter(error => error.field === 'name').map((error, idx) => (
+                                                <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
+                                                    <AlertCircle className="w-4 h-4" />
+                                                    {error.message}
+                                                </p>
+                                            ))}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="category">Danh mục *</Label>
+                                            <div className="flex gap-2">
+                                                <Select
+                                                    value={formData.category?.id?.toString() || ""}
+                                                    onValueChange={(value) => {
+                                                        const selectedCategory = categories.find(cat => cat.id?.toString() === value);
+                                                        if (selectedCategory) {
+                                                            setFormData(prev => ({...prev, category: selectedCategory}));
+                                                            // Real-time validation
+                                                            const errors = stepErrors[0].filter(err => err.field !== 'category');
+                                                            setStepErrors(prev => ({...prev, 0: errors}));
+                                                        }
+                                                    }}
+                                                >
+                                                    <SelectTrigger className={cn(
+                                                        stepErrors[0]?.some(err => err.field === 'category') && "border-red-500"
+                                                    )}>
+                                                        <SelectValue placeholder="Chọn danh mục" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {categories?.map((category) => (
+                                                            <SelectItem key={category.id} value={category.id?.toString() || ""}>
+                                                                {category.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => setShowCreateCategoryModal(true)}
+                                                >
+                                                    <Plus className="w-4 h-4"/>
+                                                </Button>
+                                            </div>
+                                            {stepErrors[0]?.filter(error => error.field === 'category').map((error, idx) => (
+                                                <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
+                                                    <AlertCircle className="w-4 h-4" />
+                                                    {error.message}
+                                                </p>
+                                            ))}
+                                            {formData.category?.id && (
+                                                <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                                                    {formData.category.image && (
+                                                        <Avatar className="w-8 h-8">
+                                                            <AvatarImage src={formData.category.image} />
+                                                            <AvatarFallback>{formData.category.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                    )}
+                                                    <span className="text-sm">{formData.category.name}</span>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Stocks Preview */}
-                                    <div className="p-4 border border-gray-200 rounded-lg">
-                                        <h3 className="font-medium text-gray-900 mb-3">Kho hàng</h3>
-                                        <div className="space-y-2">
-                                            {formData.stocks.length === 0 ? (
-                                                <p className="text-gray-500 text-sm">Chưa có màu sắc nào được thêm.</p>
-                                            ) : (
-                                                formData.stocks.map((stock, stockIndex) => (
-                                                    <div key={stockIndex}
-                                                         className="p-3 border border-gray-300 rounded-lg">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="description">Mô tả sản phẩm *</Label>
+                                        <textarea
+                                            id="description"
+                                            placeholder="Mô tả chi tiết về sản phẩm..."
+                                            value={formData.description}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({...prev, description: e.target.value}));
+                                                // Real-time validation
+                                                const errors = stepErrors[0].filter(err => err.field !== 'description');
+                                                if (!e.target.value.trim()) {
+                                                    errors.push({field: 'description', message: 'Mô tả sản phẩm không được để trống'});
+                                                }
+                                                setStepErrors(prev => ({...prev, 0: errors}));
+                                            }}
+                                            rows={4}
+                                            className={cn(
+                                                "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                                                stepErrors[0]?.some(err => err.field === 'description') && "border-red-500 focus-visible:ring-red-500"
+                                            )}
+                                        />
+                                        {stepErrors[0]?.filter(error => error.field === 'description').map((error, idx) => (
+                                            <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
+                                                <AlertCircle className="w-4 h-4" />
+                                                {error.message}
+                                            </p>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Features Step */}
+                            {currentStep === 1 && (
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex gap-2">
+                                            <Select onValueChange={(value) => {
+                                                if (value === "create-new") {
+                                                    setShowCreateFeatureModal(true);
+                                                    return;
+                                                }
+                                                const featureId = parseInt(value);
+                                                const selectedFeature = predefinedFeatures.find(f => f.id === featureId);
+                                                if (selectedFeature && !formData.features.some(f => f.id === featureId)) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        features: [...prev.features, selectedFeature]
+                                                    }));
+                                                    setFeatureFiles(prev => [...prev, new File([], '')]);
+                                                }
+                                            }}>
+                                                <SelectTrigger className="w-[200px]">
+                                                    <SelectValue placeholder="Chọn tính năng có sẵn" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {predefinedFeatures?.map((feature) => (
+                                                        <SelectItem key={feature.id} value={feature.id?.toString() || ""}>
+                                                            {feature.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                    <Separator />
+                                                    <SelectItem value="create-new">
+                                                        <div className="flex items-center gap-2">
+                                                            <Plus className="w-4 h-4" />
+                                                            Tạo tính năng mới
+                                                        </div>
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={addFeature}
+                                            >
+                                                <Plus className="w-4 h-4 mr-2"/>
+                                                Thêm tính năng
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {formData.features.length === 0 ? (
+                                        <Card>
+                                            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                                                <Tag className="w-12 h-12 text-muted-foreground mb-4" />
+                                                <h3 className="text-lg font-medium mb-2">Chưa có tính năng nào</h3>
+                                                <p className="text-muted-foreground mb-4">
+                                                    Thêm các tính năng nổi bật của sản phẩm để thu hút khách hàng
+                                                </p>
+                                                <Button variant="outline" onClick={addFeature}>
+                                                    <Plus className="w-4 h-4 mr-2"/>
+                                                    Thêm tính năng đầu tiên
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {formData.features.map((feature, index) => (
+                                                <Card key={index}>
+                                                    <CardHeader>
                                                         <div className="flex items-center justify-between">
-                                                            <h4 className="font-medium text-gray-900">{stock.color.name}</h4>
-                                                            <button
+                                                            <CardTitle className="text-lg">Tính năng #{index + 1}</CardTitle>
+                                                            <Button
                                                                 type="button"
-                                                                onClick={() => removeStock(stockIndex)}
-                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => removeFeature(index)}
+                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                                             >
-                                                                <X className="w-4 h-4"/>
-                                                            </button>
+                                                                <Trash2 className="w-4 h-4"/>
+                                                            </Button>
                                                         </div>
-                                                        <div className="mt-2 grid grid-cols-2 gap-4">
-                                                            <div>
-                                                                <span className="text-sm font-medium text-gray-700">Số lượng:</span>
-                                                                <p className="mt-1 text-gray-900">{stock.quantity}</p>
+                                                    </CardHeader>
+                                                    <CardContent className="space-y-4">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label>Tên tính năng *</Label>
+                                                                <Input
+                                                                    placeholder="Camera ProRAW"
+                                                                    value={feature.name}
+                                                                    onChange={(e) => {
+                                                                        updateFeature(index, 'name', e.target.value);
+                                                                        // Real-time validation
+                                                                        const errors = stepErrors[1].filter(err => err.field !== `feature_name_${index}`);
+                                                                        if (!e.target.value.trim()) {
+                                                                            errors.push({field: `feature_name_${index}`, message: `Tên tính năng #${index + 1} không được để trống`});
+                                                                        }
+                                                                        setStepErrors(prev => ({...prev, 1: errors}));
+                                                                    }}
+                                                                    disabled={feature.id !== null}
+                                                                    className={cn(
+                                                                        stepErrors[1]?.some(err => err.field === `feature_name_${index}`) && "border-red-500"
+                                                                    )}
+                                                                />
+                                                                {stepErrors[1]?.filter(error => error.field === `feature_name_${index}`).map((error, idx) => (
+                                                                    <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
+                                                                        <AlertCircle className="w-4 h-4" />
+                                                                        {error.message}
+                                                                    </p>
+                                                                ))}
                                                             </div>
-                                                            <div>
-                                                                <span
-                                                                    className="text-sm font-medium text-gray-700">Giá:</span>
-                                                                <p className="mt-1 text-gray-900">{stock.price} đ</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="mt-3">
-                                                            <span className="text-sm font-medium text-gray-700">Ảnh sản phẩm:</span>
-                                                            <div className="mt-1 grid grid-cols-3 gap-2">
-                                                                {stock.productPhotos.map((photo, photoIndex) => (
-                                                                    <div key={photoIndex}
-                                                                         className="w-full h-20 bg-gray-100 rounded-lg overflow-hidden">
-                                                                        <img
-                                                                            src={photo.imageUrl}
-                                                                            alt={photo.alt}
-                                                                            className="w-full h-full object-cover"
-                                                                        />
-                                                                    </div>
+                                                            <div className="space-y-2">
+                                                                <Label>Mô tả *</Label>
+                                                                <Input
+                                                                    placeholder="Chụp ảnh chất lượng chuyên nghiệp"
+                                                                    value={feature.description}
+                                                                    onChange={(e) => {
+                                                                        updateFeature(index, 'description', e.target.value);
+                                                                        // Real-time validation
+                                                                        const errors = stepErrors[1].filter(err => err.field !== `feature_description_${index}`);
+                                                                        if (!e.target.value.trim()) {
+                                                                            errors.push({field: `feature_description_${index}`, message: `Mô tả tính năng #${index + 1} không được để trống`});
+                                                                        }
+                                                                        setStepErrors(prev => ({...prev, 1: errors}));
+                                                                    }}
+                                                                    disabled={feature.id !== null}
+                                                                    className={cn(
+                                                                        stepErrors[1]?.some(err => err.field === `feature_description_${index}`) && "border-red-500"
+                                                                    )}
+                                                                />
+                                                                {stepErrors[1]?.filter(error => error.field === `feature_description_${index}`).map((error, idx) => (
+                                                                    <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
+                                                                        <AlertCircle className="w-4 h-4" />
+                                                                        {error.message}
+                                                                    </p>
                                                                 ))}
                                                             </div>
                                                         </div>
-                                                        <div className="mt-3">
-                                                            <span className="text-sm font-medium text-gray-700">Thuộc tính:</span>
-                                                            <div className="mt-1">
-                                                                {stock.instanceProperties.length === 0 ? (
-                                                                    <p className="text-gray-500 text-sm">Chưa có thuộc
-                                                                        tính nào.</p>
-                                                                ) : (
-                                                                    <ul className="list-disc list-inside">
-                                                                        {stock.instanceProperties.map((prop, propIndex) => (
-                                                                            <li key={propIndex}
-                                                                                className="text-gray-900">{prop.name}</li>
-                                                                        ))}
-                                                                    </ul>
+                                                        <div className="space-y-2">
+                                                            <Label>Hình ảnh tính năng *</Label>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex-1">
+                                                                    <Input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => e.target.files?.[0] && handleFeatureFileChange(index, e.target.files[0])}
+                                                                        className="file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md"
+                                                                    />
+                                                                </div>
+                                                                {feature.image && (
+                                                                    <div className="w-20 h-20 border rounded-lg overflow-hidden bg-muted">
+                                                                        <img
+                                                                            src={feature.image.startsWith('placeholder_') ? '/placeholder-image.jpg' : feature.image}
+                                                                            alt="Preview"
+                                                                            className="w-full h-full object-cover"
+                                                                        />
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))
-                                            )}
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Stocks Step */}
+                            {currentStep === 2 && (
+                                <div className="space-y-6">
+                                    {/* Similar enhanced UI for stocks step */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex gap-2">
+                                            <Select onValueChange={(value) => {
+                                                if (value === "create-new") {
+                                                    setShowCreateColorModal(true);
+                                                    return;
+                                                }
+                                                const colorId = parseInt(value);
+                                                const selectedColor = predefinedColors.find(c => c.id === colorId);
+                                                if (selectedColor && !formData.stocks.some(s => s.color.name === selectedColor.name)) {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        stocks: [...prev.stocks, {
+                                                            color: selectedColor,
+                                                            quantity: 0,
+                                                            price: 0,
+                                                            productPhotos: [],
+                                                            instanceProperties: []
+                                                        }]
+                                                    }));
+                                                    setStockPhotoFiles(prev => [...prev, []]);
+                                                }
+                                            }}>
+                                                <SelectTrigger className="w-[200px]">
+                                                    <SelectValue placeholder="Chọn màu có sẵn" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {predefinedColors?.map((color) => (
+                                                        <SelectItem key={color.id} value={color.id?.toString() || ""}>
+                                                            <div className="flex items-center gap-2">
+                                                                <div
+                                                                    className="w-4 h-4 rounded-full border"
+                                                                    style={{ backgroundColor: color.hexCode }}
+                                                                />
+                                                                {color.name}
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                    <Separator />
+                                                    <SelectItem value="create-new">
+                                                        <div className="flex items-center gap-2">
+                                                            <Plus className="w-4 h-4" />
+                                                            Tạo màu mới
+                                                        </div>
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={addStock}
+                                            >
+                                                <Plus className="w-4 h-4 mr-2"/>
+                                                Thêm màu
+                                            </Button>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
 
-                    {/* Actions */}
-                    <div className="">
-                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                            <div className="space-y-3">
-                                <div className={"flex gap-3"}>
-                                    {currentStep > 0 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setCurrentStep(prev => prev - 1)}
-                                            className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 font-medium flex items-center justify-center gap-2"
-                                        >
-                                            <ChevronLeft className="w-5 h-5"/>
-                                            Quay lại
-                                        </button>
-                                    )}
-
-                                    {currentStep < steps.length - 1 ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (validateStep(currentStep)) {
-                                                    setCurrentStep(prev => prev + 1);
-                                                }
-                                            }}
-                                            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
-                                        >
-                                            Tiếp theo
-                                            <ChevronRight className="w-5 h-5"/>
-                                        </button>
+                                    {formData.stocks.length === 0 ? (
+                                        <Card>
+                                            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                                                <Palette className="w-12 h-12 text-muted-foreground mb-4" />
+                                                <h3 className="text-lg font-medium mb-2">Chưa có phiên bản màu nào</h3>
+                                                <p className="text-muted-foreground mb-4">
+                                                    Thêm các phiên bản màu sắc với giá và số lượng tương ứng
+                                                </p>
+                                                <Button variant="outline" onClick={addStock}>
+                                                    <Plus className="w-4 h-4 mr-2"/>
+                                                    Thêm màu đầu tiên
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
                                     ) : (
-                                        <>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowConfirmSubmission(true)}
-                                                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-medium"
-                                            >
-                                                {isLoading ? 'Đang tạo...' : 'Tạo sản phẩm'}
-                                            </button>
-
-                                            {/* Confirmation dialog for submission */}
-                                            {showConfirmSubmission && (
-                                                <div className="fixed inset-0 flex items-center justify-center z-50">
-                                                    <div className="absolute inset-0 bg-black opacity-30"></div>
-                                                    <div
-                                                        className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full z-10">
-                                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Xác
-                                                            nhận tạo sản phẩm</h3>
-                                                        <p className="text-gray-700 text-sm mb-4">
-                                                            Bạn có chắc chắn muốn tạo sản phẩm này không? Vui lòng kiểm
-                                                            tra lại tất cả thông tin trước khi xác nhận.
-                                                        </p>
-                                                        <div className="flex justify-end gap-2">
-                                                            <button
-                                                                onClick={() => setShowConfirmSubmission(false)}
-                                                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                                        <div className="space-y-4">
+                                            {formData.stocks.map((stock, stockIndex) => (
+                                                <Card key={stockIndex}>
+                                                    <CardHeader>
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div
+                                                                    className="w-6 h-6 rounded-full border-2 border-border"
+                                                                    style={{ backgroundColor: stock.color.hexCode || '#gray' }}
+                                                                />
+                                                                <CardTitle className="text-lg">
+                                                                    {stock.color.name || `Màu sắc #${stockIndex + 1}`}
+                                                                </CardTitle>
+                                                            </div>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => removeStock(stockIndex)}
+                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                                             >
-                                                                Hủy
-                                                            </button>
-                                                            <button
-                                                                onClick={handleSubmit}
-                                                                disabled={isLoading}
-                                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            >
-                                                                {isLoading ? 'Đang tạo...' : 'Xác nhận tạo sản phẩm'}
-                                                            </button>
+                                                                <Trash2 className="w-4 h-4"/>
+                                                            </Button>
                                                         </div>
+                                                    </CardHeader>
+                                                    <CardContent className="space-y-6">
+                                                        {/* Color and pricing info */}
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label>Tên màu *</Label>
+                                                                <Input
+                                                                    placeholder="Space Black"
+                                                                    value={stock.color.name}
+                                                                    onChange={(e) => {
+                                                                        updateStock(stockIndex, 'color', {...stock.color, name: e.target.value});
+                                                                        // Real-time validation
+                                                                        const errors = stepErrors[2].filter(err => err.field !== `stock_color_name_${stockIndex}`);
+                                                                        if (!e.target.value.trim()) {
+                                                                            errors.push({field: `stock_color_name_${stockIndex}`, message: `Tên màu #${stockIndex + 1} không được để trống`});
+                                                                        }
+                                                                        setStepErrors(prev => ({...prev, 2: errors}));
+                                                                    }}
+                                                                    disabled={stock.color.id !== null}
+                                                                    className={cn(
+                                                                        stepErrors[2]?.some(err => err.field === `stock_color_name_${stockIndex}`) && "border-red-500"
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label>Mã màu *</Label>
+                                                                <Input
+                                                                    placeholder="#000000"
+                                                                    value={stock.color.hexCode}
+                                                                    onChange={(e) => {
+                                                                        updateStock(stockIndex, 'color', {...stock.color, hexCode: e.target.value});
+                                                                        // Real-time validation
+                                                                        const errors = stepErrors[2].filter(err => err.field !== `stock_color_hex_${stockIndex}`);
+                                                                        if (!e.target.value.trim()) {
+                                                                            errors.push({field: `stock_color_hex_${stockIndex}`, message: `Mã hex màu #${stockIndex + 1} không được để trống`});
+                                                                        }
+                                                                        setStepErrors(prev => ({...prev, 2: errors}));
+                                                                    }}
+                                                                    disabled={stock.color.id !== null}
+                                                                    className={cn(
+                                                                        stepErrors[2]?.some(err => err.field === `stock_color_hex_${stockIndex}`) && "border-red-500"
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label>Số lượng *</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    placeholder="100"
+                                                                    value={stock.quantity}
+                                                                    onChange={(e) => {
+                                                                        updateStock(stockIndex, 'quantity', parseInt(e.target.value) || 0);
+                                                                        // Real-time validation
+                                                                        const errors = stepErrors[2].filter(err => err.field !== `stock_quantity_${stockIndex}`);
+                                                                        const value = parseInt(e.target.value) || 0;
+                                                                        if (value <= 0) {
+                                                                            errors.push({field: `stock_quantity_${stockIndex}`, message: `Số lượng cho màu #${stockIndex + 1} phải lớn hơn 0`});
+                                                                        }
+                                                                        setStepErrors(prev => ({...prev, 2: errors}));
+                                                                    }}
+                                                                    className={cn(
+                                                                        stepErrors[2]?.some(err => err.field === `stock_quantity_${stockIndex}`) && "border-red-500"
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label>Giá (VNĐ) *</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    placeholder="29000000"
+                                                                    value={stock.price}
+                                                                    onChange={(e) => {
+                                                                        updateStock(stockIndex, 'price', parseInt(e.target.value) || 0);
+                                                                        // Real-time validation
+                                                                        const errors = stepErrors[2].filter(err => err.field !== `stock_price_${stockIndex}`);
+                                                                        const value = parseInt(e.target.value) || 0;
+                                                                        if (value <= 0) {
+                                                                            errors.push({field: `stock_price_${stockIndex}`, message: `Giá cho màu #${stockIndex + 1} phải lớn hơn 0`});
+                                                                        }
+                                                                        setStepErrors(prev => ({...prev, 2: errors}));
+                                                                    }}
+                                                                    className={cn(
+                                                                        stepErrors[2]?.some(err => err.field === `stock_price_${stockIndex}`) && "border-red-500"
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Product Photos */}
+                                                        <div className="space-y-4">
+                                                            <div className="flex items-center justify-between">
+                                                                <Label>Hình ảnh sản phẩm *</Label>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => addStockPhoto(stockIndex)}
+                                                                >
+                                                                    <Plus className="w-4 h-4 mr-2"/>
+                                                                    Thêm ảnh
+                                                                </Button>
+                                                            </div>
+
+                                                            {stock.productPhotos.length === 0 ? (
+                                                                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                                                                    <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                                                                    <p className="text-muted-foreground mb-4">Chưa có hình ảnh nào</p>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        onClick={() => addStockPhoto(stockIndex)}
+                                                                    >
+                                                                        <Upload className="w-4 h-4 mr-2"/>
+                                                                        Tải ảnh lên
+                                                                    </Button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    {stock.productPhotos.map((photo, photoIndex) => (
+                                                                        <Card key={photoIndex}>
+                                                                            <CardContent className="p-4 space-y-3">
+                                                                                <div className="flex items-center justify-between">
+                                                                                    <span className="text-sm font-medium">Ảnh #{photoIndex + 1}</span>
+                                                                                    <Button
+                                                                                        type="button"
+                                                                                        variant="ghost"
+                                                                                        size="sm"
+                                                                                        onClick={() => removeStockPhoto(stockIndex, photoIndex)}
+                                                                                        className="text-red-500 hover:text-red-700"
+                                                                                    >
+                                                                                        <Trash2 className="w-4 h-4"/>
+                                                                                    </Button>
+                                                                                </div>
+                                                                                <Input
+                                                                                    type="file"
+                                                                                    accept="image/*"
+                                                                                    onChange={(e) => e.target.files?.[0] && handleStockPhotoChange(stockIndex, photoIndex, e.target.files[0])}
+                                                                                    className="file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md"
+                                                                                />
+                                                                                <Input
+                                                                                    placeholder="Mô tả ảnh (Alt text)"
+                                                                                    value={photo.alt}
+                                                                                    onChange={(e) => {
+                                                                                        const newPhotos = [...stock.productPhotos];
+                                                                                        newPhotos[photoIndex].alt = e.target.value;
+                                                                                        updateStock(stockIndex, 'productPhotos', newPhotos);
+                                                                                    }}
+                                                                                />
+                                                                            </CardContent>
+                                                                        </Card>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Instance Properties */}
+                                                        <div className="space-y-4">
+                                                            <div className="flex items-center justify-between">
+                                                                <Label>Thuộc tính sản phẩm</Label>
+                                                                <div className="flex gap-2">
+                                                                    <Select onValueChange={(value) => {
+                                                                        if (value === "create-new") {
+                                                                            setShowCreateInstanceModal(true);
+                                                                            return;
+                                                                        }
+                                                                        const instanceId = parseInt(value);
+                                                                        const selectedInstance = predefinedInstances.find(i => i.id === instanceId);
+                                                                        if (selectedInstance && !stock.instanceProperties.some(p => p.name === selectedInstance.name)) {
+                                                                            const newStocks = [...formData.stocks];
+                                                                            newStocks[stockIndex].instanceProperties.push({
+                                                                                id: selectedInstance.id,
+                                                                                name: selectedInstance.name
+                                                                            });
+                                                                            setFormData(prev => ({...prev, stocks: newStocks}));
+                                                                        }
+                                                                    }}>
+                                                                        <SelectTrigger className="w-[200px]">
+                                                                            <SelectValue placeholder="Chọn thuộc tính" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {predefinedInstances?.map((instance) => (
+                                                                                <SelectItem key={instance.id} value={instance.id?.toString() || ""}>
+                                                                                    {instance.name}
+                                                                                </SelectItem>
+                                                                            ))}
+                                                                            <Separator />
+                                                                            <SelectItem value="create-new">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <Plus className="w-4 h-4" />
+                                                                                    Tạo thuộc tính mới
+                                                                                </div>
+                                                                            </SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() => addInstanceProperty(stockIndex)}
+                                                                    >
+                                                                        <Plus className="w-4 h-4 mr-2"/>
+                                                                        Thêm thuộc tính
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {stock.instanceProperties.map((prop, propIndex) => (
+                                                                    <Badge key={propIndex} variant="secondary" className="flex items-center gap-2">
+                                                                        {prop.name}
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => removeInstanceProperty(stockIndex, propIndex)}
+                                                                            className="h-auto p-0 hover:bg-transparent"
+                                                                        >
+                                                                            <X className="w-3 h-3"/>
+                                                                        </Button>
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Preview Step */}
+                            {currentStep === 3 && (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Product Info Preview */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="flex items-center gap-2">
+                                                    <FileText className="w-5 h-5" />
+                                                    Thông tin sản phẩm
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                <div>
+                                                    <Label className="text-sm font-medium text-muted-foreground">Tên sản phẩm</Label>
+                                                    <p className="font-medium">{formData.name}</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-sm font-medium text-muted-foreground">Danh mục</Label>
+                                                    <p className="font-medium">{formData.category?.name}</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-sm font-medium text-muted-foreground">Mô tả</Label>
+                                                    <p className="text-sm">{formData.description}</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        {/* Features Preview */}
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle className="flex items-center gap-2">
+                                                    <Tag className="w-5 h-5" />
+                                                    Tính năng ({formData.features.length})
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                {formData.features.length === 0 ? (
+                                                    <p className="text-muted-foreground text-sm">Chưa có tính năng nào</p>
+                                                ) : (
+                                                    <div className="space-y-3">
+                                                        {formData.features.map((feature, index) => (
+                                                            <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+                                                                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                                                                    <Tag className="w-6 h-6 text-muted-foreground" />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <h4 className="font-medium">{feature.name}</h4>
+                                                                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
                                                     </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    {/* Stocks Preview */}
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Palette className="w-5 h-5" />
+                                                Phiên bản màu sắc ({formData.stocks.length})
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {formData.stocks.length === 0 ? (
+                                                <p className="text-muted-foreground text-sm">Chưa có phiên bản màu nào</p>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {formData.stocks.map((stock, index) => (
+                                                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                                                            <div className="flex items-center gap-4">
+                                                                <div
+                                                                    className="w-8 h-8 rounded-full border-2"
+                                                                    style={{ backgroundColor: stock.color.hexCode }}
+                                                                />
+                                                                <div>
+                                                                    <h4 className="font-medium">{stock.color.name}</h4>
+                                                                    <p className="text-sm text-muted-foreground">
+                                                                        {stock.quantity} sản phẩm • {stock.productPhotos.length} ảnh • {stock.instanceProperties.length} thuộc tính
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="font-medium">{stock.price.toLocaleString('vi-VN')} đ</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             )}
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Navigation */}
+                    <div className="flex justify-between items-center">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+                            disabled={currentStep === 0}
+                        >
+                            <ChevronLeft className="w-4 h-4 mr-2"/>
+                            Quay lại
+                        </Button>
+
+                        <div className="flex gap-2">
+                            {currentStep < steps.length - 1 ? (
+                                <Button
+                                    type="button"
+                                    onClick={() => {
+                                        if (validateStep(currentStep)) {
+                                            setCurrentStep(prev => prev + 1);
+                                        }
+                                    }}
+                                >
+                                    Tiếp theo
+                                    <ChevronRight className="w-4 h-4 ml-2"/>
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    onClick={() => setShowConfirmSubmission(true)}
+                                    disabled={isLoading}
+                                    className="bg-green-600 hover:bg-green-700"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                            Đang tạo sản phẩm...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-4 h-4 mr-2"/>
+                                            Tạo sản phẩm
                                         </>
                                     )}
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                </form>
+
+                {/* Confirmation Dialog */}
+                <AlertDialog open={showConfirmSubmission} onOpenChange={setShowConfirmSubmission}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Xác nhận tạo sản phẩm</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Bạn có chắc chắn muốn tạo sản phẩm "{formData.name}" không?
+                                Vui lòng kiểm tra lại tất cả thông tin trước khi xác nhận.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleSubmit}
+                                disabled={isLoading}
+                                className="bg-green-600 hover:bg-green-700"
+                            >
+                                {isLoading ? 'Đang tạo...' : 'Xác nhận tạo'}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Modal for creating new category */}
+                {showCreateCategoryModal && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+                        <div className="absolute inset-0 bg-black opacity-30"></div>
+                        <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full z-10">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Tạo danh mục mới</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Tên danh mục *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newCategory.name}
+                                        onChange={handleNewCategoryNameChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Điện thoại"
+                                    />
                                 </div>
 
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Ảnh danh mục *
+                                    </label>
+                                    <input
+                                        type="file"
+                                        onChange={handleNewCategoryFileChange}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Error message for new category creation */}
+                            {errors.some(error => error.field === 'newCategory') && (
+                                <div className="mt-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
+                                    {errors.find(error => error.field === 'newCategory')?.message}
+                                </div>
+                            )}
+
+                            <div className="mt-4 flex justify-end gap-2">
                                 <button
-                                    type="button"
-                                    onClick={() => navigate('/admin/products')}
-                                    className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 font-medium"
+                                    onClick={() => setShowCreateCategoryModal(false)}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                                 >
                                     Hủy
+                                </button>
+                                <button
+                                    onClick={handleCreateCategory}
+                                    disabled={categoryLoading}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {categoryLoading ? 'Đang tạo...' : 'Tạo danh mục'}
                                 </button>
                             </div>
                         </div>
                     </div>
-                    <div
-                        className={"w-full bg-red-50 border border-red-300 text-red-700 p-6 mb-5 rounded relative" + (errors?.length > 0 ? " block" : " hidden")}>
-                        <div className={"text-lg font-medium"}>Vui lòng sửa các lỗi sau:</div>
-                        <ul className={"list-outside list-decimal"}>
-                            {
-                                errors?.map((error, index) => (
-                                    <li key={index} className={"mt-2 ml-7"}>
-                                        <div className={"text-sm"}>{error.message}</div>
-                                    </li>
-                                ))
-                            }
-                        </ul>
-                    </div>
-                </div>
-            </form>
+                )}
 
-            {/* Modal for creating new category */}
-            {showCreateCategoryModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <div className="absolute inset-0 bg-black opacity-30"></div>
-                    <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full z-10">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Tạo danh mục mới</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tên danh mục *
-                                </label>
+                {/* Modal for creating new feature */}
+                {showCreateFeatureModal && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+                        <div className="absolute inset-0 bg-black opacity-30"></div>
+                        <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full z-10">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Tạo tính năng mới</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Tên tính năng *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={newFeature.name}
+                                        onChange={(e) => setNewFeature(prev => ({...prev, name: e.target.value}))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Tính năng nổi bật"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Mô tả *
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={newFeature.description}
+                                        onChange={(e) => setNewFeature(prev => ({...prev, description: e.target.value}))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="Mô tả chi tiết về tính năng..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Ảnh tính năng *
+                                    </label>
+                                    <input
+                                        type="file"
+                                        onChange={(e) => e.target.files && setNewFeature(prev => ({
+                                            ...prev,
+                                            file: e.target.files[0]
+                                        }))}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Error message for new feature creation */}
+                            {errors.some(error => error.field === 'newFeature') && (
+                                <div className="mt-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
+                                    {errors.find(error => error.field === 'newFeature')?.message}
+                                </div>
+                            )}
+
+                            <div className="mt-4 flex justify-end gap-2">
+                                <button onClick={() => setShowCreateFeatureModal(false)}
+                                        className="px-4 py-2 rounded-lg border">Hủy
+                                </button>
+                                <button
+                                    onClick={handleCreateFeature}
+                                    disabled={featureLoading}
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:bg-blue-300"
+                                >
+                                    {featureLoading ? 'Đang tạo...' : 'Tạo'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal for creating a new color */}
+                {showCreateColorModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                            <h3 className="text-lg font-semibold mb-4">Tạo màu mới</h3>
+                            <div className="space-y-4">
                                 <input
                                     type="text"
-                                    value={newCategory.name}
-                                    onChange={handleNewCategoryNameChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Điện thoại"
+                                    placeholder="Tên màu (e.g., Space Black)"
+                                    value={newColor.name}
+                                    onChange={(e) => setNewColor(prev => ({...prev, name: e.target.value}))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                 />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Ảnh danh mục *
-                                </label>
-                                <input
-                                    type="file"
-                                    onChange={handleNewCategoryFileChange}
-                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Error message for new category creation */}
-                        {errors.some(error => error.field === 'newCategory') && (
-                            <div className="mt-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
-                                {errors.find(error => error.field === 'newCategory')?.message}
-                            </div>
-                        )}
-
-                        <div className="mt-4 flex justify-end gap-2">
-                            <button
-                                onClick={() => setShowCreateCategoryModal(false)}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                onClick={handleCreateCategory}
-                                disabled={categoryLoading}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {categoryLoading ? 'Đang tạo...' : 'Tạo danh mục'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal for creating new feature */}
-            {showCreateFeatureModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <div className="absolute inset-0 bg-black opacity-30"></div>
-                    <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full z-10">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Tạo tính năng mới</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tên tính năng *
-                                </label>
                                 <input
                                     type="text"
-                                    value={newFeature.name}
-                                    onChange={(e) => setNewFeature(prev => ({...prev, name: e.target.value}))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Tính năng nổi bật"
+                                    placeholder="Mã hex (e.g., #000000)"
+                                    value={newColor.hexCode}
+                                    onChange={(e) => setNewColor(prev => ({...prev, hexCode: e.target.value}))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                 />
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Mô tả *
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    value={newFeature.description}
-                                    onChange={(e) => setNewFeature(prev => ({...prev, description: e.target.value}))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="Mô tả chi tiết về tính năng..."
-                                />
+                            <div className="flex justify-end gap-2 mt-4">
+                                <button onClick={() => setShowCreateColorModal(false)}
+                                        className="px-4 py-2 rounded-lg border">Hủy
+                                </button>
+                                <button
+                                    onClick={handleCreateColor}
+                                    disabled={colorLoading}
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:bg-blue-300"
+                                >
+                                    {colorLoading ? 'Đang tạo...' : 'Tạo'}
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                )}
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Ảnh tính năng *
-                                </label>
+                {/* Modal for creating a new instance */}
+                {showCreateInstanceModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                            <h3 className="text-lg font-semibold mb-4">Tạo thuộc tính mới</h3>
+                            <div className="space-y-4">
                                 <input
-                                    type="file"
-                                    onChange={(e) => e.target.files && setNewFeature(prev => ({
-                                        ...prev,
-                                        file: e.target.files[0]
-                                    }))}
-                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    type="text"
+                                    placeholder="Tên thuộc tính (e.g., 128GB)"
+                                    value={newInstance.name}
+                                    onChange={(e) => setNewInstance(prev => ({...prev, name: e.target.value}))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Mô tả (không bắt buộc)"
+                                    value={newInstance.description}
+                                    onChange={(e) => setNewInstance(prev => ({...prev, description: e.target.value}))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                 />
                             </div>
-                        </div>
-
-                        {/* Error message for new feature creation */}
-                        {errors.some(error => error.field === 'newFeature') && (
-                            <div className="mt-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
-                                {errors.find(error => error.field === 'newFeature')?.message}
+                            <div className="flex justify-end gap-2 mt-4">
+                                <button onClick={() => setShowCreateInstanceModal(false)}
+                                        className="px-4 py-2 rounded-lg border">Hủy
+                                </button>
+                                <button
+                                    onClick={handleCreateInstance}
+                                    disabled={instanceLoading}
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:bg-blue-300"
+                                >
+                                    {instanceLoading ? 'Đang tạo...' : 'Tạo'}
+                                </button>
                             </div>
-                        )}
-
-                        <div className="mt-4 flex justify-end gap-2">
-                            <button onClick={() => setShowCreateFeatureModal(false)}
-                                    className="px-4 py-2 rounded-lg border">Hủy
-                            </button>
-                            <button
-                                onClick={handleCreateFeature}
-                                disabled={featureLoading}
-                                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:bg-blue-300"
-                            >
-                                {featureLoading ? 'Đang tạo...' : 'Tạo'}
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Modal for creating a new color */}
-            {showCreateColorModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-                        <h3 className="text-lg font-semibold mb-4">Tạo màu mới</h3>
-                        <div className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Tên màu (e.g., Space Black)"
-                                value={newColor.name}
-                                onChange={(e) => setNewColor(prev => ({...prev, name: e.target.value}))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                            />
-                            <input
-                                type="text"
-                                placeholder="Mã hex (e.g., #000000)"
-                                value={newColor.hexCode}
-                                onChange={(e) => setNewColor(prev => ({...prev, hexCode: e.target.value}))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="flex justify-end gap-2 mt-4">
-                            <button onClick={() => setShowCreateColorModal(false)}
-                                    className="px-4 py-2 rounded-lg border">Hủy
-                            </button>
-                            <button
-                                onClick={handleCreateColor}
-                                disabled={colorLoading}
-                                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:bg-blue-300"
-                            >
-                                {colorLoading ? 'Đang tạo...' : 'Tạo'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Modal for creating a new instance */}
-            {showCreateInstanceModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-                        <h3 className="text-lg font-semibold mb-4">Tạo thuộc tính mới</h3>
-                        <div className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Tên thuộc tính (e.g., 128GB)"
-                                value={newInstance.name}
-                                onChange={(e) => setNewInstance(prev => ({...prev, name: e.target.value}))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                            />
-                            <input
-                                type="text"
-                                placeholder="Mô tả (không bắt buộc)"
-                                value={newInstance.description}
-                                onChange={(e) => setNewInstance(prev => ({...prev, description: e.target.value}))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="flex justify-end gap-2 mt-4">
-                            <button onClick={() => setShowCreateInstanceModal(false)}
-                                    className="px-4 py-2 rounded-lg border">Hủy
-                            </button>
-                            <button
-                                onClick={handleCreateInstance}
-                                disabled={instanceLoading}
-                                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:bg-blue-300"
-                            >
-                                {instanceLoading ? 'Đang tạo...' : 'Tạo'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };
