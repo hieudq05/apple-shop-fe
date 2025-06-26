@@ -462,73 +462,212 @@ const CreateProductPage: React.FC = () => {
 
     const validateStep = (step: number): boolean => {
         let errors: ErrorData[] = [];
+
         if (step === 0) {
+            // Validate basic information
             if (!formData.name.trim()) {
                 errors.push({field: 'name', message: 'Tên sản phẩm không được để trống'});
+            } else if (formData.name.trim().length < 3) {
+                errors.push({field: 'name', message: 'Tên sản phẩm phải có ít nhất 3 ký tự'});
             }
+
             if (!formData.category || !formData.category.id) {
                 errors.push({field: 'category', message: 'Danh mục không được để trống'});
             }
+
             if (!formData.description.trim()) {
                 errors.push({field: 'description', message: 'Mô tả sản phẩm không được để trống'});
+            } else if (formData.description.trim().length < 10) {
+                errors.push({field: 'description', message: 'Mô tả sản phẩm phải có ít nhất 10 ký tự'});
             }
+
         } else if (step === 1) {
+            // Validate features
+            if (formData.features.length === 0) {
+                errors.push({field: 'features', message: 'Sản phẩm phải có ít nhất 1 tính năng'});
+            }
+
             formData.features.forEach((feature, index) => {
                 if (!feature.name.trim()) {
                     errors.push({
                         field: `feature_name_${index}`,
                         message: `Tên tính năng #${index + 1} không được để trống`
                     });
+                } else if (feature.name.trim().length < 2) {
+                    errors.push({
+                        field: `feature_name_${index}`,
+                        message: `Tên tính năng #${index + 1} phải có ít nhất 2 ký tự`
+                    });
                 }
+
                 if (!feature.description.trim()) {
                     errors.push({
                         field: `feature_description_${index}`,
                         message: `Mô tả tính năng #${index + 1} không được để trống`
                     });
+                } else if (feature.description.trim().length < 5) {
+                    errors.push({
+                        field: `feature_description_${index}`,
+                        message: `Mô tả tính năng #${index + 1} phải có ít nhất 5 ký tự`
+                    });
+                }
+
+                // Validate feature image
+                if (!feature.image || feature.image.trim() === '') {
+                    errors.push({
+                        field: `feature_image_${index}`,
+                        message: `Tính năng #${index + 1} phải có ảnh minh họa`
+                    });
                 }
             });
+
         } else if (step === 2) {
+            // Validate stocks
+            if (formData.stocks.length === 0) {
+                errors.push({field: 'stocks', message: 'Sản phẩm phải có ít nhất 1 phiên bản màu sắc'});
+            }
+
             formData.stocks.forEach((stock, stockIndex) => {
+                // Validate color
                 if (!stock.color.name.trim()) {
                     errors.push({
                         field: `stock_color_name_${stockIndex}`,
                         message: `Tên màu #${stockIndex + 1} không được để trống`
                     });
                 }
+
                 if (!stock.color.hexCode.trim()) {
                     errors.push({
                         field: `stock_color_hex_${stockIndex}`,
                         message: `Mã hex màu #${stockIndex + 1} không được để trống`
                     });
+                } else if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(stock.color.hexCode)) {
+                    errors.push({
+                        field: `stock_color_hex_${stockIndex}`,
+                        message: `Mã hex màu #${stockIndex + 1} không hợp lệ (ví dụ: #FF0000)`
+                    });
                 }
+
+                // Validate quantity
                 if (!stock.quantity || stock.quantity <= 0) {
                     errors.push({
                         field: `stock_quantity_${stockIndex}`,
                         message: `Số lượng cho màu #${stockIndex + 1} phải lớn hơn 0`
                     });
+                } else if (!Number.isInteger(stock.quantity)) {
+                    errors.push({
+                        field: `stock_quantity_${stockIndex}`,
+                        message: `Số lượng cho màu #${stockIndex + 1} phải là số nguyên`
+                    });
                 }
+
+                // Validate price
                 if (!stock.price || stock.price <= 0) {
                     errors.push({
                         field: `stock_price_${stockIndex}`,
                         message: `Giá cho màu #${stockIndex + 1} phải lớn hơn 0`
                     });
+                } else if (stock.price < 1000) {
+                    errors.push({
+                        field: `stock_price_${stockIndex}`,
+                        message: `Giá cho màu #${stockIndex + 1} phải ít nhất 1,000 VND`
+                    });
                 }
-                stock.productPhotos.forEach((photo, photoIndex) => {
-                    if (!photo.imageUrl) {
-                        errors.push({
-                            field: `stock_photo_${stockIndex}_${photoIndex}`,
-                            message: `Ảnh #${photoIndex + 1} của màu #${stockIndex + 1} chưa được chọn`
+
+                // Validate product photos
+                if (!stock.productPhotos || stock.productPhotos.length === 0) {
+                    errors.push({
+                        field: `stock_photos_${stockIndex}`,
+                        message: `Màu #${stockIndex + 1} phải có ít nhất 1 ảnh sản phẩm`
+                    });
+                } else {
+                    stock.productPhotos.forEach((photo, photoIndex) => {
+                        if (!photo.imageUrl || photo.imageUrl.trim() === '') {
+                            errors.push({
+                                field: `stock_photo_${stockIndex}_${photoIndex}`,
+                                message: `Ảnh #${photoIndex + 1} của màu #${stockIndex + 1} chưa được chọn`
                         });
-                    }
-                    if (!photo.alt.trim()) {
-                        errors.push({
-                            field: `stock_photo_alt_${stockIndex}_${photoIndex}`,
-                            message: `Alt text cho ảnh #${photoIndex + 1} của màu #${stockIndex + 1} không được để trống`
+                        }
+
+                        if (!photo.alt.trim()) {
+                            errors.push({
+                                field: `stock_photo_alt_${stockIndex}_${photoIndex}`,
+                                message: `Alt text cho ảnh #${photoIndex + 1} của màu #${stockIndex + 1} không được để trống`
                         });
-                    }
-                });
+                        }
+                    });
+                }
+
+                // Validate instance properties
+                if (!stock.instanceProperties || stock.instanceProperties.length === 0) {
+                    errors.push({
+                        field: `stock_instances_${stockIndex}`,
+                        message: `Màu #${stockIndex + 1} phải có ít nhất 1 thuộc tính phiên bản`
+                    });
+                } else {
+                    stock.instanceProperties.forEach((instance, instanceIndex) => {
+                        if (!instance.name.trim()) {
+                            errors.push({
+                                field: `stock_instance_${stockIndex}_${instanceIndex}`,
+                                message: `Tên thuộc tính #${instanceIndex + 1} của màu #${stockIndex + 1} không được để trống`
+                        });
+                        }
+                    });
+                }
             });
+
+        } else if (step === 3) {
+            // Final validation - don't run recursive validation to avoid infinite loop
+            // Instead, manually check key requirements
+
+            // Check basic info
+            if (!formData.name.trim()) {
+                errors.push({field: 'name', message: 'Tên sản phẩm không được để trống'});
+            }
+            if (!formData.category?.id) {
+                errors.push({field: 'category', message: 'Chưa chọn danh mục sản phẩm'});
+            }
+            if (!formData.description.trim()) {
+                errors.push({field: 'description', message: 'Mô tả sản phẩm không được để trống'});
+            }
+
+            // Check features
+            if (formData.features.length === 0) {
+                errors.push({field: 'features', message: 'Sản phẩm phải có ít nhất 1 tính năng'});
+            }
+
+            // Check stocks
+            if (formData.stocks.length === 0) {
+                errors.push({field: 'stocks', message: 'Sản phẩm phải có ít nhất 1 phiên bản màu sắc'});
+            }
+
+            // Check total stock quantity
+            const totalStocks = formData.stocks.reduce((sum, stock) => sum + (stock.quantity || 0), 0);
+            if (totalStocks === 0) {
+                errors.push({
+                    field: 'totalStock',
+                    message: 'Tổng số lượng sản phẩm phải lớn hơn 0'
+                });
+            }
+
+            // Check if any stock has missing required data
+            let hasStockErrors = false;
+            formData.stocks.forEach((stock, stockIndex) => {
+                if (!stock.color.name.trim() || !stock.color.hexCode.trim() ||
+                    stock.quantity <= 0 || stock.price <= 0 ||
+                    stock.productPhotos.length === 0 || stock.instanceProperties.length === 0) {
+                    hasStockErrors = true;
+                }
+            });
+
+            if (hasStockErrors) {
+                errors.push({
+                    field: 'stocksIncomplete',
+                    message: 'Một số phiên bản màu sắc chưa hoàn tất thông tin'
+                });
+            }
         }
+
         setStepErrors(prev => ({...prev, [step]: errors}));
         return errors.length === 0;
     };
@@ -620,37 +759,168 @@ const CreateProductPage: React.FC = () => {
     };
 
     const handleCreateColor = () => {
-        if (!newColor.name.trim() || !newColor.hexCode.trim()) {
-            alert("Vui lòng nhập tên màu và mã hex.");
+        // Validation cho màu mới
+        const colorErrors: ErrorData[] = [];
+
+        if (!newColor.name.trim()) {
+            colorErrors.push({field: 'newColor', message: 'Vui lòng nhập tên màu'});
+        }
+
+        if (!newColor.hexCode.trim()) {
+            colorErrors.push({field: 'newColor', message: 'Vui lòng nhập mã hex'});
+        } else if (!/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(newColor.hexCode)) {
+            colorErrors.push({field: 'newColor', message: 'Mã hex không hợp lệ (ví dụ: #FF0000)'});
+        }
+
+        // Kiểm tra trùng lặp
+        if (predefinedColors.some(color => color.name.toLowerCase() === newColor.name.toLowerCase())) {
+            colorErrors.push({field: 'newColor', message: 'Tên màu đã tồn tại'});
+        }
+
+        if (colorErrors.length > 0) {
+            setErrors(colorErrors);
             return;
         }
 
-        const createdColor: Color = {
-            id: null,
-            name: newColor.name,
-            hexCode: newColor.hexCode,
-        };
+        setColorLoading(true);
 
-        setPredefinedColors(prev => [...prev, createdColor]);
-        setShowCreateColorModal(false);
-        setNewColor({name: '', hexCode: ''});
+        try {
+            const createdColor: Color = {
+                id: Date.now(), // Temporary ID
+                name: newColor.name,
+                hexCode: newColor.hexCode,
+            };
+
+            setPredefinedColors(prev => [...prev, createdColor]);
+            setShowCreateColorModal(false);
+            setNewColor({name: '', hexCode: ''});
+            setErrors([]); // Clear errors on success
+        } catch (error) {
+            setErrors([{field: 'newColor', message: 'Có lỗi xảy ra khi tạo màu mới'}]);
+        } finally {
+            setColorLoading(false);
+        }
     };
 
     const handleCreateInstance = () => {
+        // Validation cho thuộc tính mới
+        const instanceErrors: ErrorData[] = [];
+
         if (!newInstance.name.trim()) {
-            alert("Vui lòng nhập tên phiên bản.");
+            instanceErrors.push({field: 'newInstance', message: 'Vui lòng nhập tên thuộc tính'});
+        }
+
+        // Kiểm tra trùng lặp
+        if (predefinedInstances.some(instance => instance.name.toLowerCase() === newInstance.name.toLowerCase())) {
+            instanceErrors.push({field: 'newInstance', message: 'Tên thuộc tính đã tồn tại'});
+        }
+
+        if (instanceErrors.length > 0) {
+            setErrors(instanceErrors);
             return;
         }
 
-        const createdInstance: Instance = {
-            id: null,
-            name: newInstance.name,
-            description: newInstance.description,
+        setInstanceLoading(true);
+
+        try {
+            const createdInstance: Instance = {
+                id: Date.now(), // Temporary ID
+                name: newInstance.name,
+                description: newInstance.description,
+            };
+
+            setPredefinedInstances(prev => [...prev, createdInstance]);
+            setShowCreateInstanceModal(false);
+            setNewInstance({name: '', description: ''});
+            setErrors([]); // Clear errors on success
+        } catch (error) {
+            setErrors([{field: 'newInstance', message: 'Có lỗi xảy ra khi tạo thuộc tính mới'}]);
+        } finally {
+            setInstanceLoading(false);
+        }
+    };
+
+    // Function to get user-friendly field labels for error display
+    const getErrorFieldLabel = (field: string): string => {
+        const fieldLabels: { [key: string]: string } = {
+            // Basic info fields
+            'name': 'Tên sản phẩm',
+            'category': 'Danh mục sản phẩm',
+            'description': 'Mô tả sản phẩm',
+
+            // General fields
+            'features': 'Danh sách tính năng',
+            'stocks': 'Danh sách phiên bản màu sắc',
+            'totalStock': 'Tổng số lượng sản phẩm',
+            'finalValidation': 'Kiểm tra tổng thể',
         };
 
-        setPredefinedInstances(prev => [...prev, createdInstance]);
-        setShowCreateInstanceModal(false);
-        setNewInstance({name: '', description: ''});
+        // Handle feature fields
+        if (field.startsWith('feature_name_')) {
+            const index = field.split('_')[2];
+            return `Tên tính năng #${parseInt(index) + 1}`;
+        }
+        if (field.startsWith('feature_description_')) {
+            const index = field.split('_')[2];
+            return `Mô tả tính năng #${parseInt(index) + 1}`;
+        }
+        if (field.startsWith('feature_image_')) {
+            const index = field.split('_')[2];
+            return `Ảnh tính năng #${parseInt(index) + 1}`;
+        }
+
+        // Handle stock color fields
+        if (field.startsWith('stock_color_name_')) {
+            const index = field.split('_')[3];
+            return `Tên màu #${parseInt(index) + 1}`;
+        }
+        if (field.startsWith('stock_color_hex_')) {
+            const index = field.split('_')[3];
+            return `Mã hex màu #${parseInt(index) + 1}`;
+        }
+
+        // Handle stock quantity and price fields
+        if (field.startsWith('stock_quantity_')) {
+            const index = field.split('_')[2];
+            return `Số lượng màu #${parseInt(index) + 1}`;
+        }
+        if (field.startsWith('stock_price_')) {
+            const index = field.split('_')[2];
+            return `Giá màu #${parseInt(index) + 1}`;
+        }
+
+        // Handle stock photos fields
+        if (field.startsWith('stock_photos_')) {
+            const index = field.split('_')[2];
+            return `Ảnh sản phẩm màu #${parseInt(index) + 1}`;
+        }
+        if (field.startsWith('stock_photo_') && field.includes('_alt_')) {
+            const parts = field.split('_');
+            const stockIndex = parts[2];
+            const photoIndex = parts[3];
+            return `Alt text ảnh #${parseInt(photoIndex) + 1} màu #${parseInt(stockIndex) + 1}`;
+        }
+        if (field.startsWith('stock_photo_')) {
+            const parts = field.split('_');
+            const stockIndex = parts[2];
+            const photoIndex = parts[3];
+            return `Ảnh #${parseInt(photoIndex) + 1} màu #${parseInt(stockIndex) + 1}`;
+        }
+
+        // Handle stock instances fields
+        if (field.startsWith('stock_instances_')) {
+            const index = field.split('_')[2];
+            return `Thuộc tính phiên bản màu #${parseInt(index) + 1}`;
+        }
+        if (field.startsWith('stock_instance_')) {
+            const parts = field.split('_');
+            const stockIndex = parts[2];
+            const instanceIndex = parts[3];
+            return `Thuộc tính #${parseInt(instanceIndex) + 1} màu #${parseInt(stockIndex) + 1}`;
+        }
+
+        // Return the field name from the map or the original field name if not found
+        return fieldLabels[field] || field;
     };
 
     return (
@@ -694,7 +964,7 @@ const CreateProductPage: React.FC = () => {
                                         currentStep === index
                                             ? "bg-primary text-primary-foreground border-primary"
                                             : currentStep > index
-                                                ? "bg-green-500 text-white border-green-500"
+                                                ? "bg-blue-500 text-white border-blue-500"
                                                 : "bg-background border-muted-foreground/20 text-muted-foreground",
                                         stepErrors[index]?.length > 0 && "border-red-500 bg-red-50"
                                     )}>
@@ -734,6 +1004,38 @@ const CreateProductPage: React.FC = () => {
                 </Card>
 
                 <form onSubmit={handleSubmit}>
+                    {/* Error Display Section */}
+                    {stepErrors[currentStep]?.length > 0 && (
+                        <Card className="mb-6 border-red-200 bg-red-50">
+                            <CardHeader>
+                                <CardTitle className="text-red-800 flex items-center gap-2">
+                                    <AlertCircle className="w-5 h-5" />
+                                    Cần sửa {stepErrors[currentStep].length} lỗi trong bước này
+                                </CardTitle>
+                                <CardDescription className="text-red-600">
+                                    Vui lòng sửa các lỗi dưới đây trước khi tiếp tục
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3">
+                                    {stepErrors[currentStep].map((error, index) => (
+                                        <div key={index} className="flex items-start gap-3 p-3 bg-white border border-red-200 rounded-lg">
+                                            <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium text-red-800">
+                                                    {getErrorFieldLabel(error.field)}
+                                                </p>
+                                                <p className="text-sm text-red-600 mt-1">
+                                                    {error.message}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Step Content */}
                     <Card className="mb-8">
                         <CardHeader>
@@ -1495,7 +1797,7 @@ const CreateProductPage: React.FC = () => {
                                     type="button"
                                     onClick={() => setShowConfirmSubmission(true)}
                                     disabled={isLoading}
-                                    className="bg-green-600 hover:bg-green-700"
+                                    className="bg-blue-500 hover:bg-blue-600"
                                 >
                                     {isLoading ? (
                                         <>
@@ -1529,7 +1831,7 @@ const CreateProductPage: React.FC = () => {
                             <AlertDialogAction
                                 onClick={handleSubmit}
                                 disabled={isLoading}
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-blue-500 hover:bg-blue-600"
                             >
                                 {isLoading ? 'Đang tạo...' : 'Xác nhận tạo'}
                             </AlertDialogAction>
