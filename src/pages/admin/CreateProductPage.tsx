@@ -13,7 +13,6 @@ import {
     Upload,
     Trash2,
     Save,
-    Eye,
     AlertCircle,
     ImageIcon
 } from 'lucide-react';
@@ -22,11 +21,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import {type Category, fetchAdminCategories} from '@/services/categoryService.ts';
@@ -102,7 +99,6 @@ const CreateProductPage: React.FC = () => {
         name: '',
         file: null
     });
-    const [categoryLoading, setCategoryLoading] = useState(false);
 
     // Feature state
     const [predefinedFeatures, setPredefinedFeatures] = useState<Feature[]>([]);
@@ -112,7 +108,6 @@ const CreateProductPage: React.FC = () => {
         description: '',
         file: null
     });
-    const [featureLoading, setFeatureLoading] = useState(false);
 
     // Color state
     const [predefinedColors, setPredefinedColors] = useState<Color[]>([]);
@@ -121,7 +116,6 @@ const CreateProductPage: React.FC = () => {
         name: '',
         hexCode: ''
     });
-    const [colorLoading, setColorLoading] = useState(false);
 
     // Instance state
     const [predefinedInstances, setPredefinedInstances] = useState<Instance[]>([]);
@@ -130,6 +124,9 @@ const CreateProductPage: React.FC = () => {
         name: '',
         description: ''
     });
+
+    // Loading states for creating new entities
+    const [colorLoading, setColorLoading] = useState(false);
     const [instanceLoading, setInstanceLoading] = useState(false);
 
     const [formData, setFormData] = useState<ProductForm>({
@@ -368,43 +365,73 @@ const CreateProductPage: React.FC = () => {
 
         setIsLoading(true);
 
-        const data = new FormData();
-        data.append('product', JSON.stringify({...formData, createdBy: 'hieuu8a@gmail.com'}));
+        // Create the product data object with proper structure
+        const productData = {
+            name: formData.name,
+            description: formData.description,
+            createdBy: 'hieuu8a@gmail.com',
+            category: {
+                id: formData.category.id,
+                name: formData.category.name,
+                image: formData.category.image
+            },
+            features: formData.features.map(feature => ({
+                id: feature.id,
+                name: feature.name,
+                description: feature.description,
+                image: feature.image
+            })),
+            stocks: formData.stocks.map(stock => ({
+                color: {
+                    id: stock.color.id,
+                    name: stock.color.name,
+                    hexCode: stock.color.hexCode,
+                },
+                quantity: stock.quantity,
+                price: stock.price,
+                productPhotos: stock.productPhotos.map(photo => ({
+                    imageUrl: photo.imageUrl,
+                    alt: photo.alt,
+                })),
+                instanceProperties: stock.instanceProperties.map(prop => ({
+                    id: prop.id,
+                    name: prop.name,
+                })),
+            })),
+        };
 
+        // Collect all image files with their placeholder keys
+        const imageFiles: { [key: string]: File } = {};
+
+        // Add feature images
         formData.features.forEach((feature, index) => {
-            if (feature.image.startsWith('placeholder_')) {
-                data.append(feature.image, featureFiles[index]);
+            if (feature.image.startsWith('placeholder_') && featureFiles[index] && featureFiles[index].size > 0) {
+                imageFiles[feature.image] = featureFiles[index];
             }
         });
 
+        // Add product photos
         formData.stocks.forEach((stock, stockIndex) => {
             stock.productPhotos.forEach((photo, photoIndex) => {
-                if (photo.imageUrl.startsWith('placeholder_')) {
-                    data.append(photo.imageUrl, stockPhotoFiles[stockIndex][photoIndex]);
+                if (photo.imageUrl.startsWith('placeholder_') &&
+                    stockPhotoFiles[stockIndex] && stockPhotoFiles[stockIndex][photoIndex]) {
+                    imageFiles[photo.imageUrl] = stockPhotoFiles[stockIndex][photoIndex];
                 }
             });
         });
 
         try {
-            const response = await adminProductService.createProduct(data);
-            //     = await fetch('http://localhost:8080/api/v1/admin/products', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Authorization': 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJmaXJzdE5hbWUiOiJEdW9uZyBRdW9jIiwibGFzdE5hbWUiOiJIaWV1Iiwicm9sZXMiOlt7ImF1dGhvcml0eSI6IlJPTEVfQURNSU4ifV0sImltYWdlVXJsIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS0xQeTZyYWgyRWRhX3J2a3lZSDdLc1VfY1J1YjlSdkFiYnM4ZDdJdTlFNFkyVnc2ST1zNTc2LWMtbm8iLCJzdWIiOiJoaWV1dThhQGdtYWlsLmNvbSIsImlhdCI6MTc1MDYxMTQzMCwiZXhwIjoxNzUwNjk3ODMwfQ.uwilgUCH45a29Qnm3Kn5b-DytpO7jxqUrnyPwCCLcKjVbVS4k6wxf7WyFSI5B1Fg'
-            //     },
-            //     body: data,
-            // });
+            const response = await adminProductService.createProduct(productData, imageFiles);
 
             if (response.success) {
                 alert(response.message);
                 navigate('/admin/products');
             } else {
-                const errorData = await response.message;
-                setErrors(errorData);
+                setErrors([{field: 'general', message: response.message}]);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating product:', error);
-            setErrors(error.errors);
+            setErrors([{field: 'general', message: 'Có lỗi xảy ra khi tạo sản phẩm'}]);
         } finally {
             setIsLoading(false);
         }
@@ -1887,10 +1914,10 @@ const CreateProductPage: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleCreateCategory}
-                                    disabled={categoryLoading}
+                                    disabled={isLoading}
                                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {categoryLoading ? 'Đang tạo...' : 'Tạo danh mục'}
+                                    {isLoading ? 'Đang tạo...' : 'Tạo danh mục'}
                                 </button>
                             </div>
                         </div>
@@ -1958,10 +1985,10 @@ const CreateProductPage: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleCreateFeature}
-                                    disabled={featureLoading}
+                                    disabled={isLoading}
                                     className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:bg-blue-300"
                                 >
-                                    {featureLoading ? 'Đang tạo...' : 'Tạo'}
+                                    {isLoading ? 'Đang tạo...' : 'Tạo'}
                                 </button>
                             </div>
                         </div>

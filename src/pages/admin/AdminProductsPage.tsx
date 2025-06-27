@@ -76,7 +76,7 @@ interface ExtendedProduct extends Omit<AdminProduct, 'stocks' | 'features'> {
     }>;
 }
 
-import type {MetadataResponse} from "../../types/api.ts";
+import type {MetadataResponse} from "@/types/api.ts";
 
 const AdminProductsPage: React.FC = () => {
     const queryClient = useQueryClient();
@@ -112,39 +112,79 @@ const AdminProductsPage: React.FC = () => {
         };
     }, [searchTerm]);
 
-    const {data: productsData, isLoading, isError: isErrorProducts} = useQuery({
-        queryKey: ['adminProducts', metadata.currentPage, debouncedSearchTerm, selectedCategory],
-        queryFn: async () => {
-            const params: AdminProductsParams = {
-                page: metadata.currentPage,
-                size: metadata.pageSize,
-                search: debouncedSearchTerm || undefined,
-                categoryId: selectedCategory && selectedCategory !== 'all' ? parseInt(selectedCategory) : undefined,
-            };
-            const response = await adminProductService.getAdminProducts(params);
-            if (response.success && response.data) {
-                return {
-                    products: response.data as unknown as ExtendedProduct[],
-                    meta: response.meta || {
-                        currentPage: 0,
-                        pageSize: response.data.length,
-                        totalElements: response.data.length,
-                        totalPage: 1,
-                    },
-                };
+    // Test API call directly
+    useEffect(() => {
+        const testApiCall = async () => {
+            try {
+                console.log('Testing direct API call...');
+                const result = await adminProductService.getAdminProducts({
+                    page: 0,
+                    size: 10
+                });
+                console.log('Direct API call result:', result);
+            } catch (error) {
+                console.error('Direct API call error:', error);
             }
-            throw new Error(response.message || 'Failed to fetch products');
-        },
-        placeholderData: (previousData) => previousData,
+        };
+
+        testApiCall();
+    }, []);
+
+    // Temporary solution using useState instead of useQuery
+    const [productsState, setProductsState] = useState({
+        data: null,
+        loading: true,
+        error: null
     });
 
-    const products = productsData?.products || [];
-    const currentMetadata = productsData?.meta || {
-        currentPage: 0,
-        pageSize: 10,
-        totalElements: 0,
-        totalPage: 0,
-    };
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setProductsState(prev => ({ ...prev, loading: true, error: null }));
+                console.log('Fetching with useState...');
+
+                const params = {
+                    page: metadata.currentPage,
+                    size: metadata.pageSize,
+                    search: debouncedSearchTerm || undefined,
+                    categoryId: selectedCategory && selectedCategory !== 'all' ? parseInt(selectedCategory) : undefined,
+                };
+
+                const response = await adminProductService.getAdminProducts(params);
+                console.log('useState response:', response);
+
+                if (response.success && response.data) {
+                    const mappedProducts = response.data;
+
+                    const result = {
+                        products: mappedProducts,
+                        meta: response.meta || {
+                            currentPage: 0,
+                            pageSize: mappedProducts.length,
+                            totalElements: mappedProducts.length,
+                            totalPage: 1,
+                        },
+                    };
+
+                    console.log('useState result:', result);
+                    setProductsState({ data: result, loading: false, error: null });
+                    setMetadata(response.meta || {});
+                } else {
+                    throw new Error(response.message || 'Failed to fetch products');
+                }
+            } catch (error) {
+                console.error('useState error:', error);
+                setProductsState(prev => ({ ...prev, loading: false, error }));
+            }
+        };
+
+        fetchProducts();
+    }, [metadata.currentPage, debouncedSearchTerm, selectedCategory]);
+
+    // Use useState data instead of useQuery
+    const productsData = productsState.data;
+    const isLoading = productsState.loading;
+    const isErrorProducts = !!productsState.error;
 
     const openDeleteDialog = (productId: number, productName: string) => {
         setDeleteDialog({
@@ -286,7 +326,7 @@ const AdminProductsPage: React.FC = () => {
             )}
 
             {/* Products Table */}
-            {!isLoading && !isErrorProducts && (
+            {!isLoading && !isErrorProducts && productsData?.products.length > 0 && (
                 <Card className={"py-0"}>
                     <Table>
                         <TableHeader>
@@ -300,7 +340,7 @@ const AdminProductsPage: React.FC = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {products.map((product) => (
+                            {productsData.products.map((product) => (
                                 <TableRow key={product.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
@@ -361,7 +401,7 @@ const AdminProductsPage: React.FC = () => {
                                             {formatDate(product.createdAt)}
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            bởi {product.createdBy}
+                                            bởi {product.createdBy || 'Unknown'}
                                         </p>
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -405,14 +445,14 @@ const AdminProductsPage: React.FC = () => {
                         <div className="flex-1 text-sm text-muted-foreground">
                             Hiển thị{' '}
                             <span className="font-medium">
-                                {currentMetadata.totalElements === 0 ? 0 : currentMetadata.currentPage * currentMetadata.pageSize + 1}
+                                {metadata.totalElements === 0 ? 0 : metadata.currentPage * metadata.pageSize + 1}
                             </span>{' '}
                             -{' '}
                             <span className="font-medium">
-                                {Math.min((currentMetadata.currentPage + 1) * currentMetadata.pageSize, currentMetadata.totalElements)}
+                                {Math.min((metadata.currentPage + 1) * metadata.pageSize, metadata.totalElements)}
                             </span>{' '}
                             trong{' '}
-                            <span className="font-medium">{currentMetadata.totalElements}</span> kết quả
+                            <span className="font-medium">{metadata.totalElements}</span> kết quả
                         </div>
                         <div className="flex items-center space-x-2">
                             <Button
@@ -423,15 +463,15 @@ const AdminProductsPage: React.FC = () => {
                                     ...prev,
                                     currentPage: Math.max(0, prev.currentPage - 1)
                                 }))}
-                                disabled={currentMetadata.currentPage === 0}
+                                disabled={metadata.currentPage === 0}
                             >
                                 <ChevronLeft className="w-4 h-4"/>
                                 Trước
                             </Button>
                             <div className="flex items-center space-x-1">
-                                {[...Array(currentMetadata.totalPage)].map((_, i) => (
+                                {[...Array(metadata.totalPage)].map((_, i) => (
                                     <Button
-                                        className={"cursor-pointer " + (currentMetadata.currentPage === i ? "underline" : "")}
+                                        className={"cursor-pointer " + (metadata.currentPage === i ? "underline" : "")}
                                         key={i}
                                         variant={"link"}
                                         size="sm"
@@ -447,15 +487,41 @@ const AdminProductsPage: React.FC = () => {
                                 size="sm"
                                 onClick={() => setMetadata(prev => ({
                                     ...prev,
-                                    currentPage: Math.min(prev.currentPage + 1, currentMetadata.totalPage - 1)
+                                    currentPage: Math.min(prev.currentPage + 1, metadata.totalPage - 1)
                                 }))}
-                                disabled={currentMetadata.currentPage === currentMetadata.totalPage - 1}
+                                disabled={metadata.currentPage === metadata.totalPage - 1}
                             >
                                 Sau
                                 <ChevronRight className="w-4 h-4"/>
                             </Button>
                         </div>
                     </div>
+                </Card>
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !isErrorProducts && productsData?.products.length === 0 && (
+                <Card>
+                    <CardContent className="p-12 text-center">
+                        <div className="mx-auto w-24 h-24 mb-4 flex items-center justify-center bg-muted rounded-full">
+                            <Search className="w-12 h-12 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-lg font-semibold mb-2">Không tìm thấy sản phẩm nào</h3>
+                        <p className="text-muted-foreground mb-4">
+                            {searchTerm || selectedCategory && selectedCategory !== 'all'
+                                ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm'
+                                : 'Chưa có sản phẩm nào trong hệ thống'
+                            }
+                        </p>
+                        {(!searchTerm && (!selectedCategory || selectedCategory === 'all')) && (
+                            <Button asChild>
+                                <Link to="/admin/products/create">
+                                    <Plus className="w-4 h-4 mr-2"/>
+                                    Thêm sản phẩm đầu tiên
+                                </Link>
+                            </Button>
+                        )}
+                    </CardContent>
                 </Card>
             )}
 
