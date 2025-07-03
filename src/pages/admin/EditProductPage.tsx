@@ -90,11 +90,15 @@ const EditProductPage: React.FC = () => {
         loadData();
     }, [id]);
 
+    const params = {
+        size: 1000,
+    }
+
     const fetchSupportingData = async () => {
         try {
             // Load categories
-            const categoriesData = await fetchAdminCategories();
-            setCategories(categoriesData);
+            const categoriesData = await fetchAdminCategories(params);
+            setCategories(categoriesData.data);
 
             // Load colors
             const colorsData = await fetchAdminColors();
@@ -342,7 +346,11 @@ const EditProductPage: React.FC = () => {
                     if (!existingColor) {
                         throw new Error(`Existing color with id ${stock.colorId} not found.`);
                     }
-                    colorPayload = {id: existingColor.id || null, name: existingColor.name, hexCode: existingColor.hexCode};
+                    colorPayload = {
+                        id: existingColor.id || null,
+                        name: existingColor.name,
+                        hexCode: existingColor.hexCode
+                    };
                 }
 
                 const mappedInstances = stock.instances.map(instance => {

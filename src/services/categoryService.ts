@@ -1,5 +1,5 @@
 import {privateAPI, publicAPI} from '../utils/axios';
-import type {ApiResponse} from '../types/api';
+import type {ApiResponse, MetadataResponse} from '../types/api';
 
 export interface Category {
     id: number | null;
@@ -15,7 +15,7 @@ export const fetchCategories = async (): Promise<Category[]> => {
     try {
         // Sử dụng publicAPI vì đây là thông tin không yêu cầu quyền admin
         const response = await publicAPI.get<ApiResponse<Category[]>>('/categories');
-        return response.data.data;
+        return response.data.data || [];
     } catch (error) {
         console.error('Error fetching categories:', error);
         throw error;
@@ -23,18 +23,17 @@ export const fetchCategories = async (): Promise<Category[]> => {
 };
 
 /**
- * Fetch categories for admin from the API
- * @returns Promise with all categories for admin
+ * Fetch categories for admin from the API with pagination
+ * @param page Page number (0-based)
+ * @param size Number of items per page
+ * @returns Promise with paginated categories and metadata
  */
-export const fetchAdminCategories = async (): Promise<Category[]> => {
+export const fetchAdminCategories = async (params): Promise<{}> => {
     try {
         // Sử dụng privateAPI vì đây là thông tin yêu cầu quyền admin
-        const response = await privateAPI.get<ApiResponse<Category[]>>('/categories', {
-            params: {
-                size: 99
-            }
+        return await privateAPI.get<ApiResponse<Category[]>>('/categories', {
+            params
         });
-        return response.data;
     } catch (error) {
         console.error('Error fetching admin categories:', error);
         throw error;
@@ -60,6 +59,10 @@ export const createCategory = async (category: { name: string, id: null }, image
                 'Content-Type': 'multipart/form-data'
             }
         });
+
+        if (!response.data.data) {
+            throw new Error('No category data returned from server');
+        }
         return response.data.data;
     } catch (error) {
         console.error('Error creating category:', error);
@@ -94,6 +97,10 @@ export const updateCategory = async (category: Category, imageFile?: File): Prom
                 'Content-Type': 'multipart/form-data'
             }
         });
+
+        if (!response.data.data) {
+            throw new Error('No category data returned from server');
+        }
         return response.data.data;
     } catch (error) {
         console.error('Error updating category:', error);
@@ -109,6 +116,9 @@ export const updateCategory = async (category: Category, imageFile?: File): Prom
 export const getCategoryById = async (id: number): Promise<Category> => {
     try {
         const response = await publicAPI.get<ApiResponse<Category>>(`/categories/${id}`);
+        if (!response.data.data) {
+            throw new Error('Category not found');
+        }
         return response.data.data;
     } catch (error) {
         console.error(`Error fetching category with id ${id}:`, error);
@@ -119,7 +129,7 @@ export const getCategoryById = async (id: number): Promise<Category> => {
 /**
  * Delete a category by its ID
  * @param id Category ID to delete
- * @returns Promise with success status
+ * @returns Promise with void
  */
 export const deleteCategory = async (id: number): Promise<void> => {
     try {

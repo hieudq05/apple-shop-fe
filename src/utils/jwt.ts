@@ -67,7 +67,7 @@ export const decodeJWT = (token: string): JWTPayload | null => {
 export const isTokenExpired = (token: string): boolean => {
     const payload = decodeJWT(token);
     if (!payload) return true;
-    
+
     const currentTime = Math.floor(Date.now() / 1000);
     return payload.exp < currentTime;
 };
@@ -95,7 +95,7 @@ export const getUserFromToken = (token: string): any | null => {
 export const hasRole = (token: string, role: string): boolean => {
     const payload = decodeJWT(token);
     if (!payload || !payload.roles) return false;
-    
+
     return payload.roles.some(r => r.authority === role);
 };
 

@@ -170,7 +170,7 @@ const OtpVerificationPage: React.FC = () => {
                                     maxLength={6}
                                     onFocus={() => document.getElementById("otp-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("otp-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition text-center tracking-widest font-mono"}
+                                    className={"w-full text-lg text-start px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition text-center tracking-widest font-mono"}
                                 />
                                 <button 
                                     type={"submit"} 

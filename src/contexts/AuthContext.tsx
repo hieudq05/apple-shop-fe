@@ -1,6 +1,6 @@
-import React, {createContext, type ReactNode, useContext, useState, useEffect} from 'react';
-import { getAccessToken, setUserData, getUserData, clearAllStorage } from '../utils/storage';
-import { getUserFromToken, isTokenExpired } from '../utils/jwt';
+import React, {createContext, type ReactNode, useContext, useEffect, useState} from 'react';
+import {clearAllStorage, getAccessToken, setUserData} from '../utils/storage';
+import {getUserFromToken, isTokenExpired} from '../utils/jwt';
 
 interface User {
     email: string;
@@ -26,7 +26,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);

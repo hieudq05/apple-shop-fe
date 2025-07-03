@@ -16,16 +16,25 @@ import {
     AlertCircle,
     ImageIcon
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { cn } from "@/lib/utils";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Badge} from "@/components/ui/badge";
+import {Separator} from "@/components/ui/separator";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from "@/components/ui/alert-dialog";
+import {cn} from "@/lib/utils";
 import {type Category, fetchAdminCategories} from '@/services/categoryService.ts';
 import {type Feature, fetchAdminFeatures} from '@/services/featureService.ts';
 import {type Color, fetchAdminColors} from '@/services/colorService.ts';
@@ -438,32 +447,51 @@ const CreateProductPage: React.FC = () => {
     };
 
     // Fetch categories on component mount
-    useEffect(() => {
-        const loadCategories = async () => {
-            try {
-                const categoriesData = await fetchAdminCategories();
-                setCategories(categoriesData);
-
-                // Nếu có categories, đặt category đầu tiên làm mặc định
-                if (categoriesData && categoriesData.length > 0) {
-                    setFormData(prev => ({
-                        ...prev,
-                        category: categoriesData[0]
-                    }));
-                }
-            } catch (error) {
-                console.error('Error fetching categories:', error);
-                setErrors([{field: 'categories', message: 'Không thể tải danh mục sản phẩm'}]);
-            }
-        };
-
-        loadCategories();
-    }, []);
+    // useEffect(() => {
+    //     const params = {
+    //         size: 1000,
+    //     }
+    //
+    //     const loadCategories = async () => {
+    //         try {
+    //             const categoriesData = await fetchAdminCategories(
+    //                     params
+    //                 )
+    //             ;
+    //             setCategories(categoriesData);
+    //
+    //             // Nếu có categories, đặt category đầu tiên làm mặc định
+    //             if (categoriesData && categoriesData.length > 0) {
+    //                 setFormData(prev => ({
+    //                     ...prev,
+    //                     category: categoriesData[0]
+    //                 }));
+    //             }
+    //         } catch (error) {
+    //             console.error('Error fetching categories:', error);
+    //             setErrors([{field: 'categories', message: 'Không thể tải danh mục sản phẩm'}]);
+    //         }
+    //     };
+    //
+    //     loadCategories();
+    // }, []);
 
     // Fetch features, colors, and instances on component mount
     useEffect(() => {
         const loadData = async () => {
             try {
+                //Load categories
+                const categoriesData = await fetchAdminCategories();
+                setCategories(categoriesData.data);
+
+                // Nếu có categories, đặt category đầu tiên làm mặc định
+                if (categoriesData.data && categoriesData.data.length > 0) {
+                    setFormData(prev => ({
+                        ...prev,
+                        category: categoriesData.data[0]
+                    }));
+                }
+
                 // Load features
                 const featuresData = await fetchAdminFeatures();
                 setPredefinedFeatures(featuresData);
@@ -613,14 +641,14 @@ const CreateProductPage: React.FC = () => {
                             errors.push({
                                 field: `stock_photo_${stockIndex}_${photoIndex}`,
                                 message: `Ảnh #${photoIndex + 1} của màu #${stockIndex + 1} chưa được chọn`
-                        });
+                            });
                         }
 
                         if (!photo.alt.trim()) {
                             errors.push({
                                 field: `stock_photo_alt_${stockIndex}_${photoIndex}`,
                                 message: `Alt text cho ảnh #${photoIndex + 1} của màu #${stockIndex + 1} không được để trống`
-                        });
+                            });
                         }
                     });
                 }
@@ -637,7 +665,7 @@ const CreateProductPage: React.FC = () => {
                             errors.push({
                                 field: `stock_instance_${stockIndex}_${instanceIndex}`,
                                 message: `Tên thuộc tính #${instanceIndex + 1} của màu #${stockIndex + 1} không được để trống`
-                        });
+                            });
                         }
                     });
                 }
@@ -996,9 +1024,9 @@ const CreateProductPage: React.FC = () => {
                                         stepErrors[index]?.length > 0 && "border-red-500 bg-red-50"
                                     )}>
                                         {currentStep > index ? (
-                                            <Check className="w-5 h-5" />
+                                            <Check className="w-5 h-5"/>
                                         ) : stepErrors[index]?.length > 0 ? (
-                                            <AlertCircle className="w-5 h-5 text-red-500" />
+                                            <AlertCircle className="w-5 h-5 text-red-500"/>
                                         ) : (
                                             step.icon
                                         )}
@@ -1023,7 +1051,7 @@ const CreateProductPage: React.FC = () => {
                             <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted -z-0">
                                 <div
                                     className="h-full bg-primary transition-all duration-500 ease-out"
-                                    style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                                    style={{width: `${(currentStep / (steps.length - 1)) * 100}%`}}
                                 />
                             </div>
                         </div>
@@ -1036,7 +1064,7 @@ const CreateProductPage: React.FC = () => {
                         <Card className="mb-6 border-red-200 bg-red-50">
                             <CardHeader>
                                 <CardTitle className="text-red-800 flex items-center gap-2">
-                                    <AlertCircle className="w-5 h-5" />
+                                    <AlertCircle className="w-5 h-5"/>
                                     Cần sửa {stepErrors[currentStep].length} lỗi trong bước này
                                 </CardTitle>
                                 <CardDescription className="text-red-600">
@@ -1046,8 +1074,9 @@ const CreateProductPage: React.FC = () => {
                             <CardContent>
                                 <div className="space-y-3">
                                     {stepErrors[currentStep].map((error, index) => (
-                                        <div key={index} className="flex items-start gap-3 p-3 bg-white border border-red-200 rounded-lg">
-                                            <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                        <div key={index}
+                                             className="flex items-start gap-3 p-3 bg-white border border-red-200 rounded-lg">
+                                            <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"/>
                                             <div className="flex-1">
                                                 <p className="text-sm font-medium text-red-800">
                                                     {getErrorFieldLabel(error.field)}
@@ -1093,7 +1122,10 @@ const CreateProductPage: React.FC = () => {
                                                     // Real-time validation
                                                     const errors = stepErrors[0].filter(err => err.field !== 'name');
                                                     if (!e.target.value.trim()) {
-                                                        errors.push({field: 'name', message: 'Tên sản phẩm không được để trống'});
+                                                        errors.push({
+                                                            field: 'name',
+                                                            message: 'Tên sản phẩm không được để trống'
+                                                        });
                                                     }
                                                     setStepErrors(prev => ({...prev, 0: errors}));
                                                 }}
@@ -1103,7 +1135,7 @@ const CreateProductPage: React.FC = () => {
                                             />
                                             {stepErrors[0]?.filter(error => error.field === 'name').map((error, idx) => (
                                                 <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
-                                                    <AlertCircle className="w-4 h-4" />
+                                                    <AlertCircle className="w-4 h-4"/>
                                                     {error.message}
                                                 </p>
                                             ))}
@@ -1117,7 +1149,10 @@ const CreateProductPage: React.FC = () => {
                                                     onValueChange={(value) => {
                                                         const selectedCategory = categories.find(cat => cat.id?.toString() === value);
                                                         if (selectedCategory) {
-                                                            setFormData(prev => ({...prev, category: selectedCategory}));
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                category: selectedCategory
+                                                            }));
                                                             // Real-time validation
                                                             const errors = stepErrors[0].filter(err => err.field !== 'category');
                                                             setStepErrors(prev => ({...prev, 0: errors}));
@@ -1127,11 +1162,12 @@ const CreateProductPage: React.FC = () => {
                                                     <SelectTrigger className={cn(
                                                         stepErrors[0]?.some(err => err.field === 'category') && "border-red-500"
                                                     )}>
-                                                        <SelectValue placeholder="Chọn danh mục" />
+                                                        <SelectValue placeholder="Chọn danh mục"/>
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {categories?.map((category) => (
-                                                            <SelectItem key={category.id} value={category.id?.toString() || ""}>
+                                                            <SelectItem key={category.id}
+                                                                        value={category.id?.toString() || ""}>
                                                                 {category.name}
                                                             </SelectItem>
                                                         ))}
@@ -1148,7 +1184,7 @@ const CreateProductPage: React.FC = () => {
                                             </div>
                                             {stepErrors[0]?.filter(error => error.field === 'category').map((error, idx) => (
                                                 <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
-                                                    <AlertCircle className="w-4 h-4" />
+                                                    <AlertCircle className="w-4 h-4"/>
                                                     {error.message}
                                                 </p>
                                             ))}
@@ -1156,7 +1192,7 @@ const CreateProductPage: React.FC = () => {
                                                 <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                                                     {formData.category.image && (
                                                         <Avatar className="w-8 h-8">
-                                                            <AvatarImage src={formData.category.image} />
+                                                            <AvatarImage src={formData.category.image}/>
                                                             <AvatarFallback>{formData.category.name.charAt(0)}</AvatarFallback>
                                                         </Avatar>
                                                     )}
@@ -1177,7 +1213,10 @@ const CreateProductPage: React.FC = () => {
                                                 // Real-time validation
                                                 const errors = stepErrors[0].filter(err => err.field !== 'description');
                                                 if (!e.target.value.trim()) {
-                                                    errors.push({field: 'description', message: 'Mô tả sản phẩm không được để trống'});
+                                                    errors.push({
+                                                        field: 'description',
+                                                        message: 'Mô tả sản phẩm không được để trống'
+                                                    });
                                                 }
                                                 setStepErrors(prev => ({...prev, 0: errors}));
                                             }}
@@ -1189,7 +1228,7 @@ const CreateProductPage: React.FC = () => {
                                         />
                                         {stepErrors[0]?.filter(error => error.field === 'description').map((error, idx) => (
                                             <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
-                                                <AlertCircle className="w-4 h-4" />
+                                                <AlertCircle className="w-4 h-4"/>
                                                 {error.message}
                                             </p>
                                         ))}
@@ -1218,18 +1257,19 @@ const CreateProductPage: React.FC = () => {
                                                 }
                                             }}>
                                                 <SelectTrigger className="w-[200px]">
-                                                    <SelectValue placeholder="Chọn tính năng có sẵn" />
+                                                    <SelectValue placeholder="Chọn tính năng có sẵn"/>
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {predefinedFeatures?.map((feature) => (
-                                                        <SelectItem key={feature.id} value={feature.id?.toString() || ""}>
+                                                        <SelectItem key={feature.id}
+                                                                    value={feature.id?.toString() || ""}>
                                                             {feature.name}
                                                         </SelectItem>
                                                     ))}
-                                                    <Separator />
+                                                    <Separator/>
                                                     <SelectItem value="create-new">
                                                         <div className="flex items-center gap-2">
-                                                            <Plus className="w-4 h-4" />
+                                                            <Plus className="w-4 h-4"/>
                                                             Tạo tính năng mới
                                                         </div>
                                                     </SelectItem>
@@ -1248,8 +1288,9 @@ const CreateProductPage: React.FC = () => {
 
                                     {formData.features.length === 0 ? (
                                         <Card>
-                                            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                                                <Tag className="w-12 h-12 text-muted-foreground mb-4" />
+                                            <CardContent
+                                                className="flex flex-col items-center justify-center py-16 text-center">
+                                                <Tag className="w-12 h-12 text-muted-foreground mb-4"/>
                                                 <h3 className="text-lg font-medium mb-2">Chưa có tính năng nào</h3>
                                                 <p className="text-muted-foreground mb-4">
                                                     Thêm các tính năng nổi bật của sản phẩm để thu hút khách hàng
@@ -1266,7 +1307,8 @@ const CreateProductPage: React.FC = () => {
                                                 <Card key={index}>
                                                     <CardHeader>
                                                         <div className="flex items-center justify-between">
-                                                            <CardTitle className="text-lg">Tính năng #{index + 1}</CardTitle>
+                                                            <CardTitle className="text-lg">Tính năng
+                                                                #{index + 1}</CardTitle>
                                                             <Button
                                                                 type="button"
                                                                 variant="ghost"
@@ -1290,7 +1332,10 @@ const CreateProductPage: React.FC = () => {
                                                                         // Real-time validation
                                                                         const errors = stepErrors[1].filter(err => err.field !== `feature_name_${index}`);
                                                                         if (!e.target.value.trim()) {
-                                                                            errors.push({field: `feature_name_${index}`, message: `Tên tính năng #${index + 1} không được để trống`});
+                                                                            errors.push({
+                                                                                field: `feature_name_${index}`,
+                                                                                message: `Tên tính năng #${index + 1} không được để trống`
+                                                                            });
                                                                         }
                                                                         setStepErrors(prev => ({...prev, 1: errors}));
                                                                     }}
@@ -1300,8 +1345,9 @@ const CreateProductPage: React.FC = () => {
                                                                     )}
                                                                 />
                                                                 {stepErrors[1]?.filter(error => error.field === `feature_name_${index}`).map((error, idx) => (
-                                                                    <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
-                                                                        <AlertCircle className="w-4 h-4" />
+                                                                    <p key={idx}
+                                                                       className="text-sm text-red-500 flex items-center gap-1">
+                                                                        <AlertCircle className="w-4 h-4"/>
                                                                         {error.message}
                                                                     </p>
                                                                 ))}
@@ -1316,7 +1362,10 @@ const CreateProductPage: React.FC = () => {
                                                                         // Real-time validation
                                                                         const errors = stepErrors[1].filter(err => err.field !== `feature_description_${index}`);
                                                                         if (!e.target.value.trim()) {
-                                                                            errors.push({field: `feature_description_${index}`, message: `Mô tả tính năng #${index + 1} không được để trống`});
+                                                                            errors.push({
+                                                                                field: `feature_description_${index}`,
+                                                                                message: `Mô tả tính năng #${index + 1} không được để trống`
+                                                                            });
                                                                         }
                                                                         setStepErrors(prev => ({...prev, 1: errors}));
                                                                     }}
@@ -1326,8 +1375,9 @@ const CreateProductPage: React.FC = () => {
                                                                     )}
                                                                 />
                                                                 {stepErrors[1]?.filter(error => error.field === `feature_description_${index}`).map((error, idx) => (
-                                                                    <p key={idx} className="text-sm text-red-500 flex items-center gap-1">
-                                                                        <AlertCircle className="w-4 h-4" />
+                                                                    <p key={idx}
+                                                                       className="text-sm text-red-500 flex items-center gap-1">
+                                                                        <AlertCircle className="w-4 h-4"/>
                                                                         {error.message}
                                                                     </p>
                                                                 ))}
@@ -1345,7 +1395,8 @@ const CreateProductPage: React.FC = () => {
                                                                     />
                                                                 </div>
                                                                 {feature.image && (
-                                                                    <div className="w-20 h-20 border rounded-lg overflow-hidden bg-muted">
+                                                                    <div
+                                                                        className="w-20 h-20 border rounded-lg overflow-hidden bg-muted">
                                                                         <img
                                                                             src={feature.image.startsWith('placeholder_') ? '/placeholder-image.jpg' : feature.image}
                                                                             alt="Preview"
@@ -1391,7 +1442,7 @@ const CreateProductPage: React.FC = () => {
                                                 }
                                             }}>
                                                 <SelectTrigger className="w-[200px]">
-                                                    <SelectValue placeholder="Chọn màu có sẵn" />
+                                                    <SelectValue placeholder="Chọn màu có sẵn"/>
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {predefinedColors?.map((color) => (
@@ -1399,16 +1450,16 @@ const CreateProductPage: React.FC = () => {
                                                             <div className="flex items-center gap-2">
                                                                 <div
                                                                     className="w-4 h-4 rounded-full border"
-                                                                    style={{ backgroundColor: color.hexCode }}
+                                                                    style={{backgroundColor: color.hexCode}}
                                                                 />
                                                                 {color.name}
                                                             </div>
                                                         </SelectItem>
                                                     ))}
-                                                    <Separator />
+                                                    <Separator/>
                                                     <SelectItem value="create-new">
                                                         <div className="flex items-center gap-2">
-                                                            <Plus className="w-4 h-4" />
+                                                            <Plus className="w-4 h-4"/>
                                                             Tạo màu mới
                                                         </div>
                                                     </SelectItem>
@@ -1427,8 +1478,9 @@ const CreateProductPage: React.FC = () => {
 
                                     {formData.stocks.length === 0 ? (
                                         <Card>
-                                            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                                                <Palette className="w-12 h-12 text-muted-foreground mb-4" />
+                                            <CardContent
+                                                className="flex flex-col items-center justify-center py-16 text-center">
+                                                <Palette className="w-12 h-12 text-muted-foreground mb-4"/>
                                                 <h3 className="text-lg font-medium mb-2">Chưa có phiên bản màu nào</h3>
                                                 <p className="text-muted-foreground mb-4">
                                                     Thêm các phiên bản màu sắc với giá và số lượng tương ứng
@@ -1448,7 +1500,7 @@ const CreateProductPage: React.FC = () => {
                                                             <div className="flex items-center gap-3">
                                                                 <div
                                                                     className="w-6 h-6 rounded-full border-2 border-border"
-                                                                    style={{ backgroundColor: stock.color.hexCode || '#gray' }}
+                                                                    style={{backgroundColor: stock.color.hexCode || '#gray'}}
                                                                 />
                                                                 <CardTitle className="text-lg">
                                                                     {stock.color.name || `Màu sắc #${stockIndex + 1}`}
@@ -1467,18 +1519,25 @@ const CreateProductPage: React.FC = () => {
                                                     </CardHeader>
                                                     <CardContent className="space-y-6">
                                                         {/* Color and pricing info */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                        <div
+                                                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                                             <div className="space-y-2">
                                                                 <Label>Tên màu *</Label>
                                                                 <Input
                                                                     placeholder="Space Black"
                                                                     value={stock.color.name}
                                                                     onChange={(e) => {
-                                                                        updateStock(stockIndex, 'color', {...stock.color, name: e.target.value});
+                                                                        updateStock(stockIndex, 'color', {
+                                                                            ...stock.color,
+                                                                            name: e.target.value
+                                                                        });
                                                                         // Real-time validation
                                                                         const errors = stepErrors[2].filter(err => err.field !== `stock_color_name_${stockIndex}`);
                                                                         if (!e.target.value.trim()) {
-                                                                            errors.push({field: `stock_color_name_${stockIndex}`, message: `Tên màu #${stockIndex + 1} không được để trống`});
+                                                                            errors.push({
+                                                                                field: `stock_color_name_${stockIndex}`,
+                                                                                message: `Tên màu #${stockIndex + 1} không được để trống`
+                                                                            });
                                                                         }
                                                                         setStepErrors(prev => ({...prev, 2: errors}));
                                                                     }}
@@ -1494,11 +1553,17 @@ const CreateProductPage: React.FC = () => {
                                                                     placeholder="#000000"
                                                                     value={stock.color.hexCode}
                                                                     onChange={(e) => {
-                                                                        updateStock(stockIndex, 'color', {...stock.color, hexCode: e.target.value});
+                                                                        updateStock(stockIndex, 'color', {
+                                                                            ...stock.color,
+                                                                            hexCode: e.target.value
+                                                                        });
                                                                         // Real-time validation
                                                                         const errors = stepErrors[2].filter(err => err.field !== `stock_color_hex_${stockIndex}`);
                                                                         if (!e.target.value.trim()) {
-                                                                            errors.push({field: `stock_color_hex_${stockIndex}`, message: `Mã hex màu #${stockIndex + 1} không được để trống`});
+                                                                            errors.push({
+                                                                                field: `stock_color_hex_${stockIndex}`,
+                                                                                message: `Mã hex màu #${stockIndex + 1} không được để trống`
+                                                                            });
                                                                         }
                                                                         setStepErrors(prev => ({...prev, 2: errors}));
                                                                     }}
@@ -1520,7 +1585,10 @@ const CreateProductPage: React.FC = () => {
                                                                         const errors = stepErrors[2].filter(err => err.field !== `stock_quantity_${stockIndex}`);
                                                                         const value = parseInt(e.target.value) || 0;
                                                                         if (value <= 0) {
-                                                                            errors.push({field: `stock_quantity_${stockIndex}`, message: `Số lượng cho màu #${stockIndex + 1} phải lớn hơn 0`});
+                                                                            errors.push({
+                                                                                field: `stock_quantity_${stockIndex}`,
+                                                                                message: `Số lượng cho màu #${stockIndex + 1} phải lớn hơn 0`
+                                                                            });
                                                                         }
                                                                         setStepErrors(prev => ({...prev, 2: errors}));
                                                                     }}
@@ -1541,7 +1609,10 @@ const CreateProductPage: React.FC = () => {
                                                                         const errors = stepErrors[2].filter(err => err.field !== `stock_price_${stockIndex}`);
                                                                         const value = parseInt(e.target.value) || 0;
                                                                         if (value <= 0) {
-                                                                            errors.push({field: `stock_price_${stockIndex}`, message: `Giá cho màu #${stockIndex + 1} phải lớn hơn 0`});
+                                                                            errors.push({
+                                                                                field: `stock_price_${stockIndex}`,
+                                                                                message: `Giá cho màu #${stockIndex + 1} phải lớn hơn 0`
+                                                                            });
                                                                         }
                                                                         setStepErrors(prev => ({...prev, 2: errors}));
                                                                     }}
@@ -1568,9 +1639,12 @@ const CreateProductPage: React.FC = () => {
                                                             </div>
 
                                                             {stock.productPhotos.length === 0 ? (
-                                                                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-                                                                    <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                                                                    <p className="text-muted-foreground mb-4">Chưa có hình ảnh nào</p>
+                                                                <div
+                                                                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
+                                                                    <ImageIcon
+                                                                        className="w-12 h-12 text-muted-foreground mx-auto mb-4"/>
+                                                                    <p className="text-muted-foreground mb-4">Chưa có
+                                                                        hình ảnh nào</p>
                                                                     <Button
                                                                         type="button"
                                                                         variant="outline"
@@ -1585,8 +1659,10 @@ const CreateProductPage: React.FC = () => {
                                                                     {stock.productPhotos.map((photo, photoIndex) => (
                                                                         <Card key={photoIndex}>
                                                                             <CardContent className="p-4 space-y-3">
-                                                                                <div className="flex items-center justify-between">
-                                                                                    <span className="text-sm font-medium">Ảnh #{photoIndex + 1}</span>
+                                                                                <div
+                                                                                    className="flex items-center justify-between">
+                                                                                    <span
+                                                                                        className="text-sm font-medium">Ảnh #{photoIndex + 1}</span>
                                                                                     <Button
                                                                                         type="button"
                                                                                         variant="ghost"
@@ -1637,22 +1713,27 @@ const CreateProductPage: React.FC = () => {
                                                                                 id: selectedInstance.id,
                                                                                 name: selectedInstance.name
                                                                             });
-                                                                            setFormData(prev => ({...prev, stocks: newStocks}));
+                                                                            setFormData(prev => ({
+                                                                                ...prev,
+                                                                                stocks: newStocks
+                                                                            }));
                                                                         }
                                                                     }}>
                                                                         <SelectTrigger className="w-[200px]">
-                                                                            <SelectValue placeholder="Chọn thuộc tính" />
+                                                                            <SelectValue placeholder="Chọn thuộc tính"/>
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {predefinedInstances?.map((instance) => (
-                                                                                <SelectItem key={instance.id} value={instance.id?.toString() || ""}>
+                                                                                <SelectItem key={instance.id}
+                                                                                            value={instance.id?.toString() || ""}>
                                                                                     {instance.name}
                                                                                 </SelectItem>
                                                                             ))}
-                                                                            <Separator />
+                                                                            <Separator/>
                                                                             <SelectItem value="create-new">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <Plus className="w-4 h-4" />
+                                                                                <div
+                                                                                    className="flex items-center gap-2">
+                                                                                    <Plus className="w-4 h-4"/>
                                                                                     Tạo thuộc tính mới
                                                                                 </div>
                                                                             </SelectItem>
@@ -1672,7 +1753,8 @@ const CreateProductPage: React.FC = () => {
 
                                                             <div className="flex flex-wrap gap-2">
                                                                 {stock.instanceProperties.map((prop, propIndex) => (
-                                                                    <Badge key={propIndex} variant="secondary" className="flex items-center gap-2">
+                                                                    <Badge key={propIndex} variant="secondary"
+                                                                           className="flex items-center gap-2">
                                                                         {prop.name}
                                                                         <Button
                                                                             type="button"
@@ -1703,21 +1785,24 @@ const CreateProductPage: React.FC = () => {
                                         <Card>
                                             <CardHeader>
                                                 <CardTitle className="flex items-center gap-2">
-                                                    <FileText className="w-5 h-5" />
+                                                    <FileText className="w-5 h-5"/>
                                                     Thông tin sản phẩm
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="space-y-4">
                                                 <div>
-                                                    <Label className="text-sm font-medium text-muted-foreground">Tên sản phẩm</Label>
+                                                    <Label className="text-sm font-medium text-muted-foreground">Tên sản
+                                                        phẩm</Label>
                                                     <p className="font-medium">{formData.name}</p>
                                                 </div>
                                                 <div>
-                                                    <Label className="text-sm font-medium text-muted-foreground">Danh mục</Label>
+                                                    <Label className="text-sm font-medium text-muted-foreground">Danh
+                                                        mục</Label>
                                                     <p className="font-medium">{formData.category?.name}</p>
                                                 </div>
                                                 <div>
-                                                    <Label className="text-sm font-medium text-muted-foreground">Mô tả</Label>
+                                                    <Label className="text-sm font-medium text-muted-foreground">Mô
+                                                        tả</Label>
                                                     <p className="text-sm">{formData.description}</p>
                                                 </div>
                                             </CardContent>
@@ -1727,19 +1812,22 @@ const CreateProductPage: React.FC = () => {
                                         <Card>
                                             <CardHeader>
                                                 <CardTitle className="flex items-center gap-2">
-                                                    <Tag className="w-5 h-5" />
+                                                    <Tag className="w-5 h-5"/>
                                                     Tính năng ({formData.features.length})
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent>
                                                 {formData.features.length === 0 ? (
-                                                    <p className="text-muted-foreground text-sm">Chưa có tính năng nào</p>
+                                                    <p className="text-muted-foreground text-sm">Chưa có tính năng
+                                                        nào</p>
                                                 ) : (
                                                     <div className="space-y-3">
                                                         {formData.features.map((feature, index) => (
-                                                            <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
-                                                                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                                                                    <Tag className="w-6 h-6 text-muted-foreground" />
+                                                            <div key={index}
+                                                                 className="flex items-start gap-3 p-3 border rounded-lg">
+                                                                <div
+                                                                    className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                                                                    <Tag className="w-6 h-6 text-muted-foreground"/>
                                                                 </div>
                                                                 <div className="flex-1">
                                                                     <h4 className="font-medium">{feature.name}</h4>
@@ -1757,26 +1845,30 @@ const CreateProductPage: React.FC = () => {
                                     <Card>
                                         <CardHeader>
                                             <CardTitle className="flex items-center gap-2">
-                                                <Palette className="w-5 h-5" />
+                                                <Palette className="w-5 h-5"/>
                                                 Phiên bản màu sắc ({formData.stocks.length})
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
                                             {formData.stocks.length === 0 ? (
-                                                <p className="text-muted-foreground text-sm">Chưa có phiên bản màu nào</p>
+                                                <p className="text-muted-foreground text-sm">Chưa có phiên bản màu
+                                                    nào</p>
                                             ) : (
                                                 <div className="space-y-4">
                                                     {formData.stocks.map((stock, index) => (
-                                                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                                                        <div key={index}
+                                                             className="flex items-center justify-between p-4 border rounded-lg">
                                                             <div className="flex items-center gap-4">
                                                                 <div
                                                                     className="w-8 h-8 rounded-full border-2"
-                                                                    style={{ backgroundColor: stock.color.hexCode }}
+                                                                    style={{backgroundColor: stock.color.hexCode}}
                                                                 />
                                                                 <div>
                                                                     <h4 className="font-medium">{stock.color.name}</h4>
                                                                     <p className="text-sm text-muted-foreground">
-                                                                        {stock.quantity} sản phẩm • {stock.productPhotos.length} ảnh • {stock.instanceProperties.length} thuộc tính
+                                                                        {stock.quantity} sản phẩm
+                                                                        • {stock.productPhotos.length} ảnh
+                                                                        • {stock.instanceProperties.length} thuộc tính
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -1828,7 +1920,8 @@ const CreateProductPage: React.FC = () => {
                                 >
                                     {isLoading ? (
                                         <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                            <div
+                                                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"/>
                                             Đang tạo sản phẩm...
                                         </>
                                     ) : (
@@ -1900,7 +1993,8 @@ const CreateProductPage: React.FC = () => {
 
                             {/* Error message for new category creation */}
                             {errors.some(error => error.field === 'newCategory') && (
-                                <div className="mt-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
+                                <div
+                                    className="mt-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
                                     {errors.find(error => error.field === 'newCategory')?.message}
                                 </div>
                             )}
@@ -1951,7 +2045,10 @@ const CreateProductPage: React.FC = () => {
                                     <textarea
                                         rows={3}
                                         value={newFeature.description}
-                                        onChange={(e) => setNewFeature(prev => ({...prev, description: e.target.value}))}
+                                        onChange={(e) => setNewFeature(prev => ({
+                                            ...prev,
+                                            description: e.target.value
+                                        }))}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         placeholder="Mô tả chi tiết về tính năng..."
                                     />
@@ -1974,7 +2071,8 @@ const CreateProductPage: React.FC = () => {
 
                             {/* Error message for new feature creation */}
                             {errors.some(error => error.field === 'newFeature') && (
-                                <div className="mt-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
+                                <div
+                                    className="mt-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
                                     {errors.find(error => error.field === 'newFeature')?.message}
                                 </div>
                             )}

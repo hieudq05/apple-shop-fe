@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { ArrowUpRightIcon, ChevronRightIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import React, {useState} from 'react';
+import {ArrowUpRightIcon, ChevronRightIcon, ExclamationCircleIcon} from "@heroicons/react/24/outline";
 import axios from "axios";
-import { GoogleLogin } from "@react-oauth/google";
-import { useNavigate } from "react-router-dom";
-import type { RegisterRequest, ApiResponse, OtpResponse } from '../types/api';
+import {GoogleLogin} from "@react-oauth/google";
+import {useNavigate} from "react-router-dom";
+import type {RegisterRequest, ApiResponse, OtpResponse} from '../types/api';
 
 const RegisterPage: React.FC = () => {
     const navigate = useNavigate();
-    
+
     const [formData, setFormData] = useState<RegisterRequest>({
         firstName: '',
         lastName: '',
@@ -54,17 +54,17 @@ const RegisterPage: React.FC = () => {
     const handleSubmitRegister = async () => {
         try {
             const response = await axios.post<ApiResponse<OtpResponse>>(
-                "http://localhost:8080/api/v1/auth/register", 
+                "http://localhost:8080/api/v1/auth/register",
                 formData
             );
-            
+
             if (response.data.success) {
                 // Navigate to OTP verification page with email
-                navigate('/verify-otp', { 
-                    state: { 
+                navigate('/verify-otp', {
+                    state: {
                         email: formData.email,
                         expiredIn: response.data.data?.expiredIn || 300
-                    } 
+                    }
                 });
             }
         } catch (error: any) {
@@ -116,7 +116,7 @@ const RegisterPage: React.FC = () => {
                             <hr className={"border-gray-300 w-full"}/>
                         </div>
                         {errors.length > 0 && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-2">
+                            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-5 flex gap-2">
                                 <ExclamationCircleIcon className="h-5 w-5 text-red-400"/>
                                 <div>
                                     {errors.map((error, index) => (
@@ -125,60 +125,62 @@ const RegisterPage: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                        <form onSubmit={handleRegister} className="space-y-0">
+                        <form onSubmit={handleRegister} className="space-y-8">
                             {/* First Name and Last Name */}
                             <div className="flex">
                                 <div className={"relative flex-1"} id={"firstName-container"}>
-                                    <label htmlFor={"firstName"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                    <label htmlFor={"firstName"}
+                                           className={"absolute left-4 top-2 text-xs text-gray-500"}>
                                         Họ
                                     </label>
-                                    <input 
-                                        type={"text"} 
-                                        id={"firstName"} 
-                                        name={"firstName"} 
+                                    <input
+                                        type={"text"}
+                                        id={"firstName"}
+                                        name={"firstName"}
                                         required
                                         placeholder={"Nguyễn"}
                                         value={formData.firstName}
                                         onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                                         onFocus={() => document.getElementById("firstName-container")?.classList.add("z-10")}
                                         onBlur={() => document.getElementById("firstName-container")?.classList.remove("z-10")}
-                                        className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-b-none rounded-ee-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                        className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-br-none rounded-tr-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                     />
                                 </div>
                                 <div className={"relative flex-1 top-0 left-[-1px] z-0"} id={"lastName-container"}>
-                                    <label htmlFor={"lastName"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                    <label htmlFor={"lastName"}
+                                           className={"absolute left-4 top-2 text-xs text-gray-500"}>
                                         Tên
                                     </label>
-                                    <input 
-                                        type={"text"} 
-                                        id={"lastName"} 
-                                        name={"lastName"} 
+                                    <input
+                                        type={"text"}
+                                        id={"lastName"}
+                                        name={"lastName"}
                                         required
                                         placeholder={"Văn A"}
                                         value={formData.lastName}
                                         onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                                         onFocus={() => document.getElementById("lastName-container")?.classList.add("z-10")}
                                         onBlur={() => document.getElementById("lastName-container")?.classList.remove("z-10")}
-                                        className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-b-none rounded-ss-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                        className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-bl-none rounded-ss-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                     />
                                 </div>
                             </div>
-                            
+
                             {/* Birth Date */}
                             <div className={"relative top-[-1px] z-0"} id={"birth-container"}>
                                 <label htmlFor={"birth"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
                                     Ngày sinh
                                 </label>
-                                <input 
-                                    type={"date"} 
-                                    id={"birth"} 
-                                    name={"birth"} 
+                                <input
+                                    type={"date"}
+                                    id={"birth"}
+                                    name={"birth"}
                                     required
                                     value={formData.birth}
                                     onChange={(e) => setFormData({...formData, birth: e.target.value})}
                                     onFocus={() => document.getElementById("birth-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("birth-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
 
@@ -187,17 +189,17 @@ const RegisterPage: React.FC = () => {
                                 <label htmlFor={"email"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
                                     Email
                                 </label>
-                                <input 
-                                    type={"email"} 
-                                    id={"email"} 
-                                    name={"email"} 
+                                <input
+                                    type={"email"}
+                                    id={"email"}
+                                    name={"email"}
                                     required
                                     placeholder={"nguyenvana@example.com"}
                                     value={formData.email}
                                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                                     onFocus={() => document.getElementById("email-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("email-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
 
@@ -206,17 +208,17 @@ const RegisterPage: React.FC = () => {
                                 <label htmlFor={"phone"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
                                     Số điện thoại
                                 </label>
-                                <input 
-                                    type={"tel"} 
-                                    id={"phone"} 
-                                    name={"phone"} 
+                                <input
+                                    type={"tel"}
+                                    id={"phone"}
+                                    name={"phone"}
                                     required
                                     placeholder={"0123456789"}
                                     value={formData.phone}
                                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                                     onFocus={() => document.getElementById("phone-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("phone-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
 
@@ -225,45 +227,47 @@ const RegisterPage: React.FC = () => {
                                 <label htmlFor={"password"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
                                     Mật khẩu
                                 </label>
-                                <input 
-                                    type={"password"} 
-                                    id={"password"} 
-                                    name={"password"} 
+                                <input
+                                    type={"password"}
+                                    id={"password"}
+                                    name={"password"}
                                     required
                                     placeholder={"Mật khẩu của bạn"}
                                     value={formData.password}
                                     onChange={(e) => setFormData({...formData, password: e.target.value})}
                                     onFocus={() => document.getElementById("password-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("password-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
 
                             {/* Confirm Password */}
                             <div className={"relative top-[-1px] z-0"} id={"confirmPassword-container"}>
-                                <label htmlFor={"confirmPassword"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                <label htmlFor={"confirmPassword"}
+                                       className={"absolute left-4 top-2 text-xs text-gray-500"}>
                                     Xác nhận mật khẩu
                                 </label>
-                                <input 
-                                    type={"password"} 
-                                    id={"confirmPassword"} 
-                                    name={"confirmPassword"} 
+                                <input
+                                    type={"password"}
+                                    id={"confirmPassword"}
+                                    name={"confirmPassword"}
                                     required
                                     placeholder={"Nhập lại mật khẩu"}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     onFocus={() => document.getElementById("confirmPassword-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("confirmPassword-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-ss-none rounded-se-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
-                                <button 
-                                    type={"submit"} 
-                                    disabled={isLoading}
-                                    className={"p-2 pl-2.5 rounded-full border border-gray-300 absolute right-4 top-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50"}
-                                >
-                                    <ChevronRightIcon className={"size-6"}/>
-                                </button>
                             </div>
+                            <button
+                                type={"submit"}
+                                disabled={isLoading}
+                                className={"py-4 w-full flex gap-2 justify-center items-center rounded-xl bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200 transition disabled:opacity-50"}
+                            >
+                                <span className={"text-white"}>Hoàn tất đăng ký</span>
+                                <ChevronRightIcon className={"size-5 text-white"}/>
+                            </button>
                         </form>
                         <div className={"flex flex-col space-y-2 items-center"}>
                             <div className={"flex items-center gap-1"}>
