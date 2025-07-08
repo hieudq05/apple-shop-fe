@@ -44,7 +44,7 @@ export function NavSecondary({
                     <span>{item.title}</span>
                   </a>
                 ) : (
-                  <Link to={item.url}>
+                  <Link to={item.url} className="h-10">
                     <item.icon />
                     <span>{item.title}</span>
                   </Link>

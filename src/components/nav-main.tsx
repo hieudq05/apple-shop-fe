@@ -33,7 +33,7 @@ export function NavMain({
             <SidebarMenuButton
               asChild
               tooltip="Tạo sản phẩm mới"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+              className="bg-blue-500 h-10 rounded-lg text-primary-foreground hover:bg-blue-600 hover:text-primary-foreground active:bg-blue-400 active:text-primary-foreground min-w-8 duration-200 ease-linear"
             >
               <Link to="/admin/products/create">
                 <Plus />
@@ -50,7 +50,7 @@ export function NavMain({
                 asChild
                 isActive={isCurrentPath(item.url)}
               >
-                <Link to={item.url}>
+                <Link to={item.url} className={"h-10 " + (isCurrentPath(item.url) ? "bg-blue-50 text-blue-600" : "text-muted-foreground")}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </Link>

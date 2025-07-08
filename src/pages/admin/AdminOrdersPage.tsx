@@ -1,51 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
-    Eye,
     Search,
     Filter,
-    CheckCircle,
-    Clock,
-    X,
-    Truck,
-    Package,
     ChevronLeft,
     ChevronRight,
     RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import orderService from '../../services/orderService';
+import { OrderDataTable, type Order } from '@/components/order-data-table';
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
 
-// Updated interface to match API response
-interface Order {
-    id: number;
-    orderNumber: string;
-    customerName: string;
-    customerEmail: string;
-    status: 'PENDING_PAYMENT' | 'PAID' | 'AWAITING_SHIPMENT' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-    totalAmount: number;
-    itemCount: number;
-    createdAt: string;
-    paymentType: string;
-    approveAt: string | null;
-    createdBy: {
-        id: number;
-        firstName: string;
-        lastName: string | null;
-        image: string | null;
-    };
-}
-
-// Helper function to transform API data to component interface
+// Transform API data to Order interface for the data table
 const transformApiOrderToOrder = (apiOrder: any): Order => {
-    // Log để debug
     console.log('Transforming order:', apiOrder);
     
     const customerName = apiOrder.createdBy 
@@ -54,12 +25,12 @@ const transformApiOrderToOrder = (apiOrder: any): Order => {
     
     return {
         id: apiOrder.id,
-        orderNumber: `#${apiOrder.id}`, // Generate order number from ID
+        orderNumber: `#${apiOrder.id}`,
         customerName: customerName,
         customerEmail: "N/A", // API doesn't provide email in this response
         status: apiOrder.status,
-        totalAmount: 0, // API doesn't provide totalAmount in summary, would need detail API
-        itemCount: 0, // API doesn't provide itemCount in summary, would need detail API
+        totalAmount: 0, // API doesn't provide totalAmount in summary
+        itemCount: 0, // API doesn't provide itemCount in summary
         createdAt: apiOrder.createdAt,
         paymentType: apiOrder.paymentType || 'N/A',
         approveAt: apiOrder.approveAt,
@@ -231,42 +202,6 @@ const AdminOrdersPage: React.FC = () => {
         }
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(amount);
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('vi-VN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const getStatusIcon = (status: Order['status']) => {
-        switch (status) {
-            case 'PENDING_PAYMENT':
-                return <Clock className="w-4 h-4" />;
-            case 'PAID':
-                return <CheckCircle className="w-4 h-4" />;
-            case 'AWAITING_SHIPMENT':
-                return <Package className="w-4 h-4" />;
-            case 'SHIPPED':
-                return <Truck className="w-4 h-4" />;
-            case 'DELIVERED':
-                return <CheckCircle className="w-4 h-4" />;
-            case 'CANCELLED':
-                return <X className="w-4 h-4" />;
-            default:
-                return <Clock className="w-4 h-4" />;
-        }
-    };
-
     const getStatusText = (status: Order['status']) => {
         switch (status) {
             case 'PENDING_PAYMENT':
@@ -370,8 +305,7 @@ const AdminOrdersPage: React.FC = () => {
                             />
                         </div>
                         <Select value={selectedStatus || undefined} onValueChange={(value) => setSelectedStatus(value || '')}>
-                            <SelectTrigger className="w-[180px]">
-                                <Filter className="w-4 h-4 mr-2"/>
+                            <SelectTrigger className="w-fit">
                                 <SelectValue placeholder="Tất cả trạng thái" />
                             </SelectTrigger>
                             <SelectContent>
@@ -385,182 +319,41 @@ const AdminOrdersPage: React.FC = () => {
                             </SelectContent>
                         </Select>
                     </div>
-                    
-                    {totalElements > 0 && (
-                        <div className="mt-4 text-sm text-muted-foreground">
-                            Tìm thấy {totalElements} đơn hàng
-                        </div>
-                    )}
-
                 </CardContent>
             </Card>
 
             {/* Orders Table */}
-            <Card>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Đơn hàng</TableHead>
-                            <TableHead>Khách hàng</TableHead>
-                            <TableHead>Trạng thái</TableHead>
-                            <TableHead>Thông tin</TableHead>
-                            <TableHead>Ngày tạo</TableHead>
-                            <TableHead className="text-right">Thao tác</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {orders.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-12">
-                                    <div className="text-muted-foreground">
-                                        {selectedStatus ? 
-                                            `Không có đơn hàng nào với trạng thái "${getStatusText(selectedStatus as Order['status'])}".` :
-                                            'Không có đơn hàng nào.'
-                                        }
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            orders.map((order) => (
-                                <TableRow key={order.id}>
-                                    <TableCell>
-                                        <div>
-                                            <div className="font-medium">{order.orderNumber}</div>
-                                            <p className="text-sm text-muted-foreground">
-                                                {order.paymentType}
-                                            </p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            {order.createdBy.image && (
-                                                <img 
-                                                    src={order.createdBy.image} 
-                                                    alt={order.customerName}
-                                                    className="w-8 h-8 rounded-full"
-                                                />
-                                            )}
-                                            <div>
-                                                <div className="font-medium">{order.customerName}</div>
-                                                <p className="text-sm text-muted-foreground">
-                                                    ID: {order.createdBy.id}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                'outline'
-                                            }
-                                            className={"flex items-center gap-1 w-fit" + 
-                                                (order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
-                                                order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                                                order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-800' :
-                                                order.status === 'AWAITING_SHIPMENT' ? 'bg-yellow-100 text-yellow-800' :
-                                                order.status === 'PAID' ? 'bg-purple-100 text-purple-800' :
-                                                'bg-gray-100 text-gray-800')
-                                            }
-                                        >
-                                            {getStatusIcon(order.status)}
-                                            {getStatusText(order.status)}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                        <div className="text-sm">
-                                            <div className="text-muted-foreground">
-                                                {order.approveAt ? `Duyệt: ${formatDate(order.approveAt)}` : 'Chưa duyệt'}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {formatDate(order.createdAt)}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <Button variant="ghost" size="sm" asChild>
-                                                <Link to={`/admin/orders/${order.id}`}>
-                                                    <Eye className="w-4 h-4" />
-                                                </Link>
-                                            </Button>
-
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="sm"
-                                                        disabled={updatingOrderId === order.id}
-                                                    >
-                                                        <Package className="w-4 h-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    {order.status === 'PENDING_PAYMENT' && (
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleUpdateOrderStatus(order.id, 'PAID')}
-                                                            disabled={updatingOrderId === order.id}
-                                                        >
-                                                            <CheckCircle className="w-4 h-4 mr-2" />
-                                                            {updatingOrderId === order.id ? 'Đang cập nhật...' : 'Xác nhận thanh toán'}
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    {order.status === 'PAID' && (
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleUpdateOrderStatus(order.id, 'AWAITING_SHIPMENT')}
-                                                            disabled={updatingOrderId === order.id}
-                                                        >
-                                                            <Package className="w-4 h-4 mr-2" />
-                                                            {updatingOrderId === order.id ? 'Đang cập nhật...' : 'Chuẩn bị vận chuyển'}
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    {order.status === 'AWAITING_SHIPMENT' && (
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleUpdateOrderStatus(order.id, 'SHIPPED')}
-                                                            disabled={updatingOrderId === order.id}
-                                                        >
-                                                            <Truck className="w-4 h-4 mr-2" />
-                                                            {updatingOrderId === order.id ? 'Đang cập nhật...' : 'Bắt đầu giao hàng'}
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    {order.status === 'SHIPPED' && (
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleUpdateOrderStatus(order.id, 'DELIVERED')}
-                                                            disabled={updatingOrderId === order.id}
-                                                        >
-                                                            <CheckCircle className="w-4 h-4 mr-2" />
-                                                            {updatingOrderId === order.id ? 'Đang cập nhật...' : 'Đánh dấu đã giao'}
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    {(order.status === 'PENDING_PAYMENT' || order.status === 'PAID') && (
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleUpdateOrderStatus(order.id, 'CANCELLED')}
-                                                            className="text-destructive"
-                                                            disabled={updatingOrderId === order.id}
-                                                        >
-                                                            <X className="w-4 h-4 mr-2" />
-                                                            {updatingOrderId === order.id ? 'Đang cập nhật...' : 'Hủy đơn hàng'}
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-
-                {/* Pagination */}
-                {orders.length > 0 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t">
+            {!isLoading && !refreshing && orders.length > 0 && (
+                <div className="space-y-6">
+                    <CardContent className="p-0">
+                        <OrderDataTable 
+                            data={orders}
+                            onView={(orderId) => window.open(`/admin/orders/${orderId}`, '_blank')}
+                            onUpdateStatus={handleUpdateOrderStatus}
+                            updatingOrderId={updatingOrderId}
+                        />
+                    </CardContent>
+                    
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between">
                         <div className="flex-1 text-sm text-muted-foreground">
                             Hiển thị{' '}
-                            <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> -{' '}
-                            <span className="font-medium">{Math.min(currentPage * 10, totalElements)}</span>{' '}
+                            <span className="font-medium">{(currentPage - 1) * 5 + 1}</span> -{' '}
+                            <span className="font-medium">{Math.min(currentPage * 5, totalElements)}</span>{' '}
                             trong <span className="font-medium">{totalElements}</span> kết quả
                         </div>
                         <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setCurrentPage(1);
+                                    fetchOrders();
+                                }}
+                                disabled={currentPage === 1}
+                            >
+                                <ChevronDoubleLeftIcon className="w-4 h-4" />
+                            </Button>
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -571,24 +364,23 @@ const AdminOrdersPage: React.FC = () => {
                                 disabled={currentPage === 1}
                             >
                                 <ChevronLeft className="w-4 h-4" />
-                                Trước
                             </Button>
                             <div className="flex items-center space-x-1">
                                 {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                                    const pageNum = i + 1;
-                                    return (
+                                    const pageNumber = currentPage > 3 ? currentPage - 2 + i : i + 1;
+                                    return pageNumber <= totalPages ? (
                                         <Button
-                                            key={pageNum}
-                                            className={(currentPage === pageNum ? 'underline' : '') + " hover:underline bg-white hover:bg-white shadow-none text-black"}
+                                            key={pageNumber}
+                                            className={`bg-transparent hover:bg-transparent text-black shadow-none ${currentPage === pageNumber ? "underline" : ""}`}
                                             size="sm"
                                             onClick={() => {
-                                                setCurrentPage(pageNum);
+                                                setCurrentPage(pageNumber);
                                                 fetchOrders();
                                             }}
                                         >
-                                            {pageNum}
+                                            {pageNumber}
                                         </Button>
-                                    );
+                                    ) : null;
                                 })}
                             </div>
                             <Button
@@ -600,13 +392,38 @@ const AdminOrdersPage: React.FC = () => {
                                 }}
                                 disabled={currentPage === totalPages}
                             >
-                                Sau
                                 <ChevronRight className="w-4 h-4" />
                             </Button>
+                            <Button
+                                variant={"outline"}
+                                size="sm"
+                                onClick={() => {
+                                    setCurrentPage(totalPages - 1);
+                                    fetchOrders();
+                                }}
+                                disabled={currentPage === totalPages || totalPages <= 1}
+                            >
+                                <ChevronDoubleRightIcon className="w-4 h-4" />
+                            </Button>
+                            
                         </div>
                     </div>
-                )}
-            </Card>
+                </div>
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !refreshing && orders.length === 0 && (
+                <Card>
+                    <CardContent className="p-12 text-center">
+                        <div className="text-muted-foreground">
+                            {selectedStatus ? 
+                                `Không có đơn hàng nào với trạng thái "${getStatusText(selectedStatus as Order['status'])}".` :
+                                'Không có đơn hàng nào.'
+                            }
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

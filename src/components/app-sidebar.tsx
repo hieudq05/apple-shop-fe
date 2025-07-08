@@ -49,7 +49,7 @@ const data = {
       title: "Người dùng",
       url: "/admin/users",
       icon: Users,
-      adminOnly: true,
+      hasAdmin: true,
     },
     {
       title: "Thống kê",
@@ -127,8 +127,10 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, isAdmin } = useAuth()
 
+  console.log(isAdmin, user)
+
   // Filter items based on user permissions
-  const filteredNavMain = data.navMain.filter(item => !item.adminOnly || isAdmin)
+  const filteredNavMain = data.navMain.filter(item => !item.hasAdmin || isAdmin)
   const filteredNavSecondary = data.navSecondary.filter(item => !item.adminOnly || isAdmin)
 
   return (

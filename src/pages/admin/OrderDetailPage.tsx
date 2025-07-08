@@ -394,8 +394,8 @@ const OrderDetailPage: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Order Items */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="lg:col-span-2 space-y-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div>
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">Sản phẩm đã đặt</h2>
                         
                         <div className="space-y-4">
@@ -404,22 +404,19 @@ const OrderDetailPage: React.FC = () => {
                                     <img
                                         src={item.image_url || 'https://via.placeholder.com/64'}
                                         alt={item.productName}
-                                        className="w-16 h-16 object-cover rounded-lg"
+                                        className="size-38 object-cover rounded-lg"
                                     />
-                                    <div className="flex-1">
+                                    <div className="flex-1 space-y-1">
                                         <h3 className="font-medium text-gray-900">{item.productName}</h3>
-                                        <div className="flex items-center space-x-2 mt-1">
-                                            <span className="text-sm text-gray-600">{item.colorName}</span>
-                                            {item.versionName && (
-                                                <span className="text-sm text-gray-600">- {item.versionName}</span>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-gray-600 mt-1">
-                                            {formatCurrency(item.price)} x {item.quantity}
-                                        </p>
-                                        {item.note && (
-                                            <p className="text-sm text-gray-500 italic mt-1">Ghi chú: {item.note}</p>
+                                        <div className="text-sm text-gray-600">{item.colorName}</div>
+                                        {item.versionName && (
+                                            <div className="text-sm text-gray-600">{item.versionName}</div>
                                         )}
+                                        <p className="text-sm text-gray-600">
+                                            {formatCurrency(item.price)} <br/>
+                                            x {item.quantity}
+                                        </p>
+                                        <p className="text-sm text-gray-500 italic">Ghi chú: {item.note == null ? "--" : item.note}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="font-semibold text-gray-900">
@@ -432,7 +429,7 @@ const OrderDetailPage: React.FC = () => {
                     </div>
 
                     {/* Customer Information */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div>
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">Thông tin khách hàng</h2>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

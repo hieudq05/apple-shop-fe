@@ -69,7 +69,7 @@ export function NavDocuments({
               tooltip={item.title}
               isActive={isCurrentPath(item.url)}
             >
-              <Link to={item.url}>
+              <Link to={item.url}  className={"h-10 " + (isCurrentPath(item.url) ? "bg-blue-50 text-blue-600" : "text-muted-foreground")}>
                 <item.icon />
                 <span>{item.title}</span>
               </Link>
