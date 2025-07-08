@@ -35,22 +35,6 @@ interface ProductForm {
 }
 
 // New type for the payload sent to the backend, more flexible than UpdateProductRequest
-interface ProductUpdatePayload {
-    id: number;
-    name: string;
-    description: string;
-    categoryId: number | null; // Can be null for new categories
-    category?: { id: number | null; name: string; }; // Optional, for new categories
-    features: Array<{ id: number | null; name: string; }>; // id can be null for new features
-    stocks: Array<{
-        color: { id: number | null; name: string; hexCode?: string; }; // id can be null for new colors
-        quantity: number;
-        price: number;
-        productPhotos: Array<{ imageUrl: string; alt: string; }>;
-        instanceProperties: Array<{ id: number | null; name: string; }>; // id can be null for new instances
-    }>;
-}
-
 const EditProductPage: React.FC = () => {
     const {id} = useParams<{ id: string }>();
     const {categoryId} = useParams<{ categoryId: string }>();
@@ -309,16 +293,13 @@ const EditProductPage: React.FC = () => {
 
         try {
             // Determine categoryId and optional category object for payload
-            let categoryIdPayload: number | null;
             let categoryObjectPayload: { id: number | null; name: string; } | undefined;
             const isNewCategory = formData.categoryId.startsWith('new-');
             if (isNewCategory) {
                 const newCategory = newCategoriesState.find(nc => nc.tempId === formData.categoryId);
                 if (!newCategory) throw new Error(`New category with tempId ${formData.categoryId} not found.`);
-                categoryIdPayload = null; // Backend will create it
                 categoryObjectPayload = {id: null, name: newCategory.name};
             } else {
-                categoryIdPayload = parseInt(formData.categoryId);
             }
 
             // Map features for the payload
