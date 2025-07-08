@@ -10,49 +10,66 @@ import {
     MapPinIcon,
     CreditCardIcon
 } from '@heroicons/react/24/outline';
+import orderService from '../../services/orderService';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
+// Interface based on real API data structure
 interface OrderDetail {
     id: number;
-    orderNumber: string;
-    status: 'PENDING' | 'CONFIRMED' | 'SHIPPING' | 'DELIVERED' | 'CANCELLED';
-    customer: {
+    status: 'PENDING_PAYMENT' | 'PAID' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+    paymentType: string;
+    createdAt: string;
+    approveAt?: string;
+    approveBy?: any;
+    
+    // Customer info - flat structure in order
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    
+    // Address info - flat structure in order
+    address: string;
+    ward: string;
+    district: string;
+    province: string;
+    country: string;
+    
+    // Customer object
+    createdBy: {
         id: number;
-        name: string;
         email: string;
-        phone: string;
+        firstName: string;
+        lastName: string;
+        image?: string;
     };
-    shippingAddress: {
-        fullName: string;
-        phone: string;
-        address: string;
-        ward: string;
-        district: string;
-        province: string;
-    };
-    paymentMethod: string;
-    note?: string;
-    items: Array<{
+    
+    // Order items - simplified structure
+    orderDetails: Array<{
         id: number;
         product: {
             id: number;
-            name: string;
-            image: string;
         };
-        color: {
-            name: string;
-            hex: string;
-        };
+        productName: string;
         quantity: number;
         price: number;
-        totalPrice: number;
+        note?: string;
+        colorName: string;
+        versionName: string;
+        image_url: string;
     }>;
-    subtotal: number;
-    shippingFee: number;
-    tax: number;
-    totalAmount: number;
-    createdAt: string;
-    updatedAt: string;
-    statusHistory: Array<{
+    
+    shippingTrackingCode?: string;
+    
+    // Computed fields for UI
+    totalAmount?: number;
+    shippingFee?: number;
+    discountAmount?: number;
+    finalAmount?: number;
+    
+    // Status history - we'll build this based on available timestamps
+    statusHistory?: Array<{
         status: string;
         timestamp: string;
         note?: string;
@@ -71,87 +88,99 @@ const OrderDetailPage: React.FC = () => {
     }, [id]);
 
     const fetchOrderDetail = async () => {
+        if (!id) return;
+        
         try {
             setIsLoading(true);
-            // Replace with actual API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Mock data
-            const mockOrder: OrderDetail = {
-                id: parseInt(id || '1'),
-                orderNumber: `ORD-2024-${id?.padStart(3, '0')}`,
-                status: 'CONFIRMED',
-                customer: {
-                    id: 1,
-                    name: 'Nguyễn Văn A',
-                    email: 'nguyenvana@email.com',
-                    phone: '0123456789'
-                },
-                shippingAddress: {
-                    fullName: 'Nguyễn Văn A',
-                    phone: '0123456789',
-                    address: '123 Đường ABC',
-                    ward: 'Phường 1',
-                    district: 'Quận 1',
-                    province: 'TP. Hồ Chí Minh'
-                },
-                paymentMethod: 'COD',
-                note: 'Giao hàng giờ hành chính',
-                items: [
-                    {
-                        id: 1,
-                        product: {
-                            id: 1,
-                            name: 'iPhone 15 Pro',
-                            image: 'https://cdn.hoanghamobile.com/i/productlist/dsp/Uploads/2023/09/13/iphone-15-pro-natural-titanium.png'
-                        },
-                        color: {
-                            name: 'Natural Titanium',
-                            hex: '#8E8E93'
-                        },
-                        quantity: 1,
-                        price: 28990000,
-                        totalPrice: 28990000
-                    },
-                    {
-                        id: 2,
-                        product: {
-                            id: 2,
-                            name: 'AirPods Pro',
-                            image: 'https://cdn.hoanghamobile.com/i/productlist/dsp/Uploads/2023/09/13/airpods-pro.png'
-                        },
-                        color: {
-                            name: 'White',
-                            hex: '#FFFFFF'
-                        },
-                        quantity: 1,
-                        price: 6990000,
-                        totalPrice: 6990000
-                    }
-                ],
-                subtotal: 35980000,
-                shippingFee: 0,
-                tax: 3598000,
-                totalAmount: 39578000,
-                createdAt: '2024-01-20T10:30:00Z',
-                updatedAt: '2024-01-20T14:45:00Z',
-                statusHistory: [
-                    {
+            const response = await orderService.getAdminOrderById(parseInt(id));
+            console.log('Order detail API response:', response);
+            
+            if (response) {
+                // Transform API data to match our interface
+                const orderData = response as any; // Use any to handle different API structure
+                console.log('Raw order data:', orderData);
+                
+                // Build status history from available timestamps
+                const statusHistory: Array<{ status: string; timestamp: string; note?: string }> = [];
+                
+                // Add creation timestamp
+                if (orderData.createdAt) {
+                    statusHistory.push({
                         status: 'PENDING',
-                        timestamp: '2024-01-20T10:30:00Z',
+                        timestamp: orderData.createdAt,
                         note: 'Đơn hàng được tạo'
-                    },
-                    {
+                    });
+                }
+                
+                // Add approval timestamp if exists
+                if (orderData.approveAt) {
+                    statusHistory.push({
                         status: 'CONFIRMED',
-                        timestamp: '2024-01-20T14:45:00Z',
+                        timestamp: orderData.approveAt,
                         note: 'Đơn hàng đã được xác nhận'
-                    }
-                ]
-            };
-            
-            setOrder(mockOrder);
+                    });
+                }
+                
+                // Add current status if different from above
+                if (orderData.status !== 'PENDING' && orderData.status !== 'CONFIRMED') {
+                    statusHistory.push({
+                        status: orderData.status,
+                        timestamp: orderData.updatedAt || orderData.createdAt,
+                        note: `Trạng thái được cập nhật thành ${getStatusText(orderData.status)}`
+                    });
+                }
+                
+                const transformedOrder: OrderDetail = {
+                    id: orderData.id,
+                    status: orderData.status,
+                    paymentType: orderData.paymentType || 'CASH',
+                    createdAt: orderData.createdAt,
+                    approveAt: orderData.approveAt,
+                    approveBy: orderData.approveBy,
+                    
+                    // Customer info from order fields
+                    firstName: orderData.firstName || '',
+                    lastName: orderData.lastName || '',
+                    email: orderData.email || '',
+                    phone: orderData.phone || '',
+                    
+                    // Address info from order fields
+                    address: orderData.address || '',
+                    ward: orderData.ward || '',
+                    district: orderData.district || '',
+                    province: orderData.province || '',
+                    country: orderData.country || 'Vietnam',
+                    
+                    // Customer object
+                    createdBy: orderData.createdBy || {
+                        id: 0,
+                        email: orderData.email || '',
+                        firstName: orderData.firstName || '',
+                        lastName: orderData.lastName || '',
+                        image: null
+                    },
+                    
+                    // Order items
+                    orderDetails: orderData.orderDetails || [],
+                    
+                    shippingTrackingCode: orderData.shippingTrackingCode,
+                    
+                    // Computed fields - calculate from order details
+                    totalAmount: orderData.orderDetails?.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0) || 0,
+                    shippingFee: 0, // Not provided by API
+                    discountAmount: 0, // Not provided by API
+                    finalAmount: orderData.orderDetails?.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0) || 0,
+                    
+                    statusHistory: statusHistory.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+                };
+                
+                console.log('Transformed order data:', transformedOrder);
+                setOrder(transformedOrder);
+            }
         } catch (error) {
             console.error('Error fetching order detail:', error);
+            setOrder(null);
         } finally {
             setIsLoading(false);
         }
@@ -162,16 +191,17 @@ const OrderDetailPage: React.FC = () => {
 
         setIsUpdating(true);
         try {
-            // Replace with actual API call
             console.log('Updating order status:', order.id, newStatus);
-            await new Promise(resolve => setTimeout(resolve, 1000));
             
+            // Call API to update status
+            await orderService.updateOrderStatus(order.id, newStatus);
+            
+            // Update local state
             setOrder(prev => prev ? {
                 ...prev,
                 status: newStatus,
-                updatedAt: new Date().toISOString(),
                 statusHistory: [
-                    ...prev.statusHistory,
+                    ...(prev.statusHistory || []),
                     {
                         status: newStatus,
                         timestamp: new Date().toISOString(),
@@ -181,6 +211,7 @@ const OrderDetailPage: React.FC = () => {
             } : null);
         } catch (error) {
             console.error('Error updating order status:', error);
+            // You might want to show an error message to user here
         } finally {
             setIsUpdating(false);
         }
@@ -205,28 +236,32 @@ const OrderDetailPage: React.FC = () => {
 
     const getStatusIcon = (status: OrderDetail['status']) => {
         switch (status) {
-            case 'PENDING':
-                return <ClockIcon className="w-5 h-5" />;
-            case 'CONFIRMED':
-                return <CheckCircleIcon className="w-5 h-5" />;
-            case 'SHIPPING':
-                return <TruckIcon className="w-5 h-5" />;
+            case 'PENDING_PAYMENT':
+                return <ClockIcon className="size-5" />;
+            case 'PAID':
+                return <CheckCircleIcon className="size-5" />;
+            case 'PROCESSING':
+                return <ClockIcon className="size-5" />;
+            case 'SHIPPED':
+                return <TruckIcon className="size-5" />;
             case 'DELIVERED':
-                return <CheckCircleIcon className="w-5 h-5" />;
+                return <CheckCircleIcon className="size-5" />;
             case 'CANCELLED':
-                return <XCircleIcon className="w-5 h-5" />;
+                return <XCircleIcon className="size-5" />;
             default:
-                return <ClockIcon className="w-5 h-5" />;
+                return <ClockIcon className="size-5" />;
         }
     };
 
     const getStatusColor = (status: OrderDetail['status']) => {
         switch (status) {
-            case 'PENDING':
+            case 'PENDING_PAYMENT':
                 return 'bg-yellow-100 text-yellow-800';
-            case 'CONFIRMED':
+            case 'PAID':
                 return 'bg-blue-100 text-blue-800';
-            case 'SHIPPING':
+            case 'PROCESSING':
+                return 'bg-indigo-100 text-indigo-800';
+            case 'SHIPPED':
                 return 'bg-purple-100 text-purple-800';
             case 'DELIVERED':
                 return 'bg-green-100 text-green-800';
@@ -239,11 +274,13 @@ const OrderDetailPage: React.FC = () => {
 
     const getStatusText = (status: OrderDetail['status']) => {
         switch (status) {
-            case 'PENDING':
-                return 'Chờ xử lý';
-            case 'CONFIRMED':
-                return 'Đã xác nhận';
-            case 'SHIPPING':
+            case 'PENDING_PAYMENT':
+                return 'Chờ thanh toán';
+            case 'PAID':
+                return 'Đã thanh toán';
+            case 'PROCESSING':
+                return 'Đang xử lý';
+            case 'SHIPPED':
                 return 'Đang giao';
             case 'DELIVERED':
                 return 'Đã giao';
@@ -254,13 +291,15 @@ const OrderDetailPage: React.FC = () => {
         }
     };
 
-    const getNextStatus = (currentStatus: OrderDetail['status']) => {
+    const getNextStatus = (currentStatus: OrderDetail['status']): OrderDetail['status'] | null => {
         switch (currentStatus) {
-            case 'PENDING':
-                return 'CONFIRMED';
-            case 'CONFIRMED':
-                return 'SHIPPING';
-            case 'SHIPPING':
+            case 'PENDING_PAYMENT':
+                return 'PAID';
+            case 'PAID':
+                return 'PROCESSING';
+            case 'PROCESSING':
+                return 'SHIPPED';
+            case 'SHIPPED':
                 return 'DELIVERED';
             default:
                 return null;
@@ -318,35 +357,37 @@ const OrderDetailPage: React.FC = () => {
                         <ArrowLeftIcon className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Đơn hàng {order.orderNumber}</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Đơn hàng #{order.id}</h1>
                         <p className="text-gray-600">Tạo lúc {formatDate(order.createdAt)}</p>
                     </div>
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+                    <Badge className={`${getStatusColor(order.status)}`}>
                         {getStatusIcon(order.status)}
-                        <span className="ml-2">{getStatusText(order.status)}</span>
-                    </span>
+                        <span>{getStatusText(order.status)}</span>
+                    </Badge>
                     
                     {getNextStatus(order.status) && (
-                        <button
+                        <Button
                             onClick={() => updateOrderStatus(getNextStatus(order.status)!)}
                             disabled={isUpdating}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            variant={"outline"}
+                            className='rounded-full'
                         >
                             {isUpdating ? 'Đang cập nhật...' : `Chuyển thành ${getNextStatusText(order.status)}`}
-                        </button>
+                        </Button>
                     )}
                     
                     {order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
-                        <button
+                        <Button
                             onClick={() => updateOrderStatus('CANCELLED')}
                             disabled={isUpdating}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className='rounded-full'
+                            variant="destructive"
                         >
                             Hủy đơn
-                        </button>
+                        </Button>
                     )}
                 </div>
             </div>
@@ -358,29 +399,31 @@ const OrderDetailPage: React.FC = () => {
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">Sản phẩm đã đặt</h2>
                         
                         <div className="space-y-4">
-                            {order.items.map((item) => (
+                            {order.orderDetails?.map((item) => (
                                 <div key={item.id} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
                                     <img
-                                        src={item.product.image}
-                                        alt={item.product.name}
+                                        src={item.image_url || 'https://via.placeholder.com/64'}
+                                        alt={item.productName}
                                         className="w-16 h-16 object-cover rounded-lg"
                                     />
                                     <div className="flex-1">
-                                        <h3 className="font-medium text-gray-900">{item.product.name}</h3>
+                                        <h3 className="font-medium text-gray-900">{item.productName}</h3>
                                         <div className="flex items-center space-x-2 mt-1">
-                                            <div 
-                                                className="w-4 h-4 rounded-full border border-gray-300"
-                                                style={{ backgroundColor: item.color.hex }}
-                                            ></div>
-                                            <span className="text-sm text-gray-600">{item.color.name}</span>
+                                            <span className="text-sm text-gray-600">{item.colorName}</span>
+                                            {item.versionName && (
+                                                <span className="text-sm text-gray-600">- {item.versionName}</span>
+                                            )}
                                         </div>
                                         <p className="text-sm text-gray-600 mt-1">
                                             {formatCurrency(item.price)} x {item.quantity}
                                         </p>
+                                        {item.note && (
+                                            <p className="text-sm text-gray-500 italic mt-1">Ghi chú: {item.note}</p>
+                                        )}
                                     </div>
                                     <div className="text-right">
                                         <p className="font-semibold text-gray-900">
-                                            {formatCurrency(item.totalPrice)}
+                                            {formatCurrency(item.price * item.quantity)}
                                         </p>
                                     </div>
                                 </div>
@@ -397,9 +440,11 @@ const OrderDetailPage: React.FC = () => {
                                 <div className="flex items-center space-x-3">
                                     <UserIcon className="w-5 h-5 text-gray-400" />
                                     <div>
-                                        <p className="font-medium text-gray-900">{order.customer.name}</p>
-                                        <p className="text-sm text-gray-600">{order.customer.email}</p>
-                                        <p className="text-sm text-gray-600">{order.customer.phone}</p>
+                                        <p className="font-medium text-gray-900">
+                                            {order.firstName} {order.lastName}
+                                        </p>
+                                        <p className="text-sm text-gray-600">{order.email}</p>
+                                        <p className="text-sm text-gray-600">{order.phone}</p>
                                     </div>
                                 </div>
                             </div>
@@ -409,10 +454,10 @@ const OrderDetailPage: React.FC = () => {
                                     <MapPinIcon className="w-5 h-5 text-gray-400 mt-0.5" />
                                     <div>
                                         <p className="font-medium text-gray-900">Địa chỉ giao hàng</p>
-                                        <p className="text-sm text-gray-600">{order.shippingAddress.fullName}</p>
-                                        <p className="text-sm text-gray-600">{order.shippingAddress.phone}</p>
+                                        <p className="text-sm text-gray-600">{order.firstName} {order.lastName}</p>
+                                        <p className="text-sm text-gray-600">{order.phone}</p>
                                         <p className="text-sm text-gray-600">
-                                            {order.shippingAddress.address}, {order.shippingAddress.ward}, {order.shippingAddress.district}, {order.shippingAddress.province}
+                                            {order.address}, {order.ward}, {order.district}, {order.province}
                                         </p>
                                     </div>
                                 </div>
@@ -424,14 +469,14 @@ const OrderDetailPage: React.FC = () => {
                                 <CreditCardIcon className="w-5 h-5 text-gray-400" />
                                 <div>
                                     <p className="font-medium text-gray-900">Phương thức thanh toán</p>
-                                    <p className="text-sm text-gray-600">{order.paymentMethod}</p>
+                                    <p className="text-sm text-gray-600">{order.paymentType || 'CASH'}</p>
                                 </div>
                             </div>
                             
-                            {order.note && (
+                            {order.shippingTrackingCode && (
                                 <div className="mt-4">
-                                    <p className="font-medium text-gray-900">Ghi chú</p>
-                                    <p className="text-sm text-gray-600 mt-1">{order.note}</p>
+                                    <p className="font-medium text-gray-900">Mã vận đơn</p>
+                                    <p className="text-sm text-gray-600 mt-1">{order.shippingTrackingCode}</p>
                                 </div>
                             )}
                         </div>
@@ -447,22 +492,24 @@ const OrderDetailPage: React.FC = () => {
                         <div className="space-y-3">
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Tạm tính</span>
-                                <span className="text-gray-900">{formatCurrency(order.subtotal)}</span>
+                                <span className="text-gray-900">{formatCurrency((order.totalAmount || 0) - (order.shippingFee || 0))}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Phí vận chuyển</span>
                                 <span className="text-gray-900">
-                                    {order.shippingFee === 0 ? 'Miễn phí' : formatCurrency(order.shippingFee)}
+                                    {(order.shippingFee || 0) === 0 ? 'Miễn phí' : formatCurrency(order.shippingFee || 0)}
                                 </span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Thuế VAT</span>
-                                <span className="text-gray-900">{formatCurrency(order.tax)}</span>
-                            </div>
+                            {(order.discountAmount || 0) > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Giảm giá</span>
+                                    <span className="text-green-600">-{formatCurrency(order.discountAmount || 0)}</span>
+                                </div>
+                            )}
                             <div className="border-t border-gray-200 pt-3">
                                 <div className="flex justify-between">
                                     <span className="font-semibold text-gray-900">Tổng cộng</span>
-                                    <span className="font-semibold text-gray-900 text-lg">{formatCurrency(order.totalAmount)}</span>
+                                    <span className="font-semibold text-gray-900 text-lg">{formatCurrency(order.finalAmount || order.totalAmount || 0)}</span>
                                 </div>
                             </div>
                         </div>
@@ -473,7 +520,7 @@ const OrderDetailPage: React.FC = () => {
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">Lịch sử trạng thái</h2>
                         
                         <div className="space-y-4">
-                            {order.statusHistory.map((history, index) => (
+                            {order.statusHistory?.map((history, index) => (
                                 <div key={index} className="flex items-start space-x-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getStatusColor(history.status as OrderDetail['status'])}`}>
                                         {getStatusIcon(history.status as OrderDetail['status'])}
@@ -490,7 +537,11 @@ const OrderDetailPage: React.FC = () => {
                                         )}
                                     </div>
                                 </div>
-                            ))}
+                            )) || (
+                                <div className="text-center text-gray-500">
+                                    Chưa có lịch sử trạng thái
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

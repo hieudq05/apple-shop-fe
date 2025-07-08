@@ -80,6 +80,7 @@ const CreateProductPage: React.FC = () => {
     const navigate = useNavigate();
     const [errors, setErrors] = useState<ErrorData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const createdBy = JSON.parse(localStorage.getItem('userData') || '{}').email;
 
     // Step management for wizard
     const [currentStep, setCurrentStep] = useState<number>(0);
@@ -378,7 +379,7 @@ const CreateProductPage: React.FC = () => {
         const productData = {
             name: formData.name,
             description: formData.description,
-            createdBy: 'hieuu8a@gmail.com',
+            createdBy: createdBy,
             category: {
                 id: formData.category.id,
                 name: formData.category.name,

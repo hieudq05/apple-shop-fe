@@ -18,7 +18,6 @@ export const privateAPI: AxiosInstance = axios.create({
     baseURL: `${API_BASE_URL}/admin`, // Use environment variable for base URL
     headers: {
         "Content-Type": "application/json",
-        "Authorization": getAccessToken()
     },
 });
 
@@ -41,15 +40,15 @@ privateAPI.interceptors.request.use(
 privateAPI.interceptors.response.use(
     (response: AxiosResponse) => {
         return response.data; // Return only data part
+    },
+    (error) => {
+        if (error.response?.status === 401) {
+            // Token expired or invalid, clear storage and redirect to login
+            removeTokens();
+            window.location.href = "/admin/login";
+        }
+        return Promise.reject(error);
     }
-    // (error) => {
-    //     if (error.response?.status === 401) {
-    //         // Token expired or invalid, clear storage and redirect to login
-    //         removeTokens();
-    //         window.location.href = "/admin/login";
-    //     }
-    //     return Promise.reject(error);
-    // }
 );
 
 // Add response interceptor to public API

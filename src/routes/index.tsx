@@ -16,6 +16,7 @@ import AdminLoginPage from "../pages/admin/AdminLoginPage";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminProductsPage from "../pages/admin/AdminProductsPage";
 import AdminOrdersPage from "../pages/admin/AdminOrdersPage";
+import TestApiPage from "../pages/admin/TestApiPage";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 import AdminAnalyticsPage from "../pages/admin/AdminAnalyticsPage";
 import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
@@ -33,6 +34,7 @@ import EditBlogPage from "../pages/admin/EditBlogPage";
 import BlogPage from "../pages/BlogPage";
 import BlogPostPage from "../pages/BlogPostPage";
 import JWTTestComponent from "../components/debug/JWTTestComponent";
+import OrderDetailTestComponent from "../components/debug/OrderDetailTestComponent";
 import NotFoundPage from "../pages/NotFoundPage";
 import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
@@ -113,6 +115,11 @@ export const routesConfig: RouteObject[] = [
         path: '/debug/jwt-test',
         element: <JWTTestComponent/>,
     },
+    // Debug route for Order Detail API testing
+    {
+        path: '/debug/order-detail-test',
+        element: <OrderDetailTestComponent/>,
+    },
     {
         path: '/admin',
         element: (
@@ -144,6 +151,10 @@ export const routesConfig: RouteObject[] = [
             {
                 path: 'orders',
                 element: <AdminOrdersPage/>,
+            },
+            {
+                path: 'test-api',
+                element: <TestApiPage/>,
             },
             {
                 path: 'orders/:id',

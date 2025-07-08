@@ -5,25 +5,14 @@ import {
     MagnifyingGlassIcon,
     FunnelIcon,
     UserIcon,
-    ShieldCheckIcon,
-    ShieldExclamationIcon,
     LockClosedIcon,
-    LockOpenIcon
+    LockOpenIcon,
+    InformationCircleIcon
 } from "@heroicons/react/24/outline";
-
-interface User {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    roles: Array<{ authority: string }>;
-    enabled: boolean;
-    createdAt: string;
-    lastLoginAt?: string;
-    orderCount: number;
-    totalSpent: number;
-}
+import userService, { type User, type UserParams } from '../../services/userService';
+import { useDebounce } from '../../hooks/useDebounce';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const AdminUsersPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -31,78 +20,50 @@ const AdminUsersPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(0); // API uses 0-based pagination
     const [totalPages, setTotalPages] = useState(1);
+    const [totalElements, setTotalElements] = useState(0);
+    const [pageSize] = useState(10);
+    const [error, setError] = useState<string | null>(null);
+    const [toggleLoading, setToggleLoading] = useState<number | null>(null);
+
+    // Debounce search term to avoid too many API calls
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+    useEffect(() => {
+        // Reset to first page when filters change
+        setCurrentPage(0);
+    }, [debouncedSearchTerm, selectedRole, selectedStatus]);
 
     useEffect(() => {
         fetchUsers();
-    }, [currentPage, searchTerm, selectedRole, selectedStatus]);
+    }, [currentPage, debouncedSearchTerm, selectedRole, selectedStatus]);
 
     const fetchUsers = async () => {
         try {
             setIsLoading(true);
-            // Replace with actual API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            setError(null);
             
-            // Mock data
-            const mockUsers: User[] = [
-                {
-                    id: 1,
-                    firstName: "Nguyễn",
-                    lastName: "Văn A",
-                    email: "nguyenvana@email.com",
-                    phone: "0123456789",
-                    roles: [{ authority: "ROLE_USER" }],
-                    enabled: true,
-                    createdAt: "2024-01-15T10:30:00Z",
-                    lastLoginAt: "2024-01-20T14:45:00Z",
-                    orderCount: 5,
-                    totalSpent: 45000000
-                },
-                {
-                    id: 2,
-                    firstName: "Trần",
-                    lastName: "Thị B",
-                    email: "tranthib@email.com",
-                    phone: "0987654321",
-                    roles: [{ authority: "ROLE_USER" }],
-                    enabled: true,
-                    createdAt: "2024-01-10T09:15:00Z",
-                    lastLoginAt: "2024-01-19T16:20:00Z",
-                    orderCount: 2,
-                    totalSpent: 15000000
-                },
-                {
-                    id: 3,
-                    firstName: "Admin",
-                    lastName: "System",
-                    email: "admin@appleshop.com",
-                    phone: "0369852147",
-                    roles: [{ authority: "ROLE_ADMIN" }],
-                    enabled: true,
-                    createdAt: "2024-01-01T00:00:00Z",
-                    lastLoginAt: "2024-01-20T09:00:00Z",
-                    orderCount: 0,
-                    totalSpent: 0
-                },
-                {
-                    id: 4,
-                    firstName: "Lê",
-                    lastName: "Văn C",
-                    email: "levanc@email.com",
-                    phone: "0147258369",
-                    roles: [{ authority: "ROLE_USER" }],
-                    enabled: false,
-                    createdAt: "2024-01-12T15:30:00Z",
-                    orderCount: 1,
-                    totalSpent: 8000000
-                }
-            ];
+            const params: UserParams = {
+                page: currentPage,
+                size: pageSize,
+            };
+
+            if (debouncedSearchTerm) params.search = debouncedSearchTerm;
+            if (selectedRole) params.role = selectedRole;
+            if (selectedStatus) params.status = selectedStatus;
+
+            const response = await userService.getUsers(params);
             
-            setUsers(mockUsers);
-            setTotalPages(3); // Mock pagination
+            if (response.success) {
+                setUsers(response.data);
+                setTotalPages(response.meta.totalPage);
+                setTotalElements(response.meta.totalElements);
+            }
         } catch (error) {
             console.error('Error fetching users:', error);
+            setError('Không thể tải danh sách người dùng. Vui lòng thử lại.');
+            setUsers([]);
         } finally {
             setIsLoading(false);
         }
@@ -110,28 +71,27 @@ const AdminUsersPage: React.FC = () => {
 
     const handleToggleUserStatus = async (userId: number, currentStatus: boolean) => {
         try {
-            // Replace with actual API call
-            console.log('Toggling user status:', userId, !currentStatus);
+            setToggleLoading(userId);
+            const response = await userService.toggleUserStatus(userId, !currentStatus);
             
-            // Update local state
-            setUsers(users.map(user => 
-                user.id === userId 
-                    ? { ...user, enabled: !currentStatus }
-                    : user
-            ));
+            if (response.success) {
+                // Update local state
+                setUsers(users.map(user => 
+                    user.id === userId 
+                        ? { ...user, enabled: !currentStatus }
+                        : user
+                ));
+            }
         } catch (error) {
             console.error('Error toggling user status:', error);
+            setError('Không thể thay đổi trạng thái người dùng. Vui lòng thử lại.');
+        } finally {
+            setToggleLoading(null);
         }
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(amount);
-    };
-
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return '--';
         return new Date(dateString).toLocaleDateString('vi-VN', {
             year: 'numeric',
             month: '2-digit',
@@ -139,23 +99,51 @@ const AdminUsersPage: React.FC = () => {
         });
     };
 
-    const getRoleIcon = (roles: User['roles']) => {
-        const isAdmin = roles.some(role => role.authority === 'ROLE_ADMIN');
-        return isAdmin ? (
-            <ShieldCheckIcon className="w-4 h-4 text-purple-600" />
-        ) : (
-            <UserIcon className="w-4 h-4 text-blue-600" />
-        );
+    // Since API doesn't return role info, we'll assume ROLE_USER for now
+    // You might need to add role info to the API response or fetch it separately
+    const getRoleIcon = (name: string) => {
+        switch (name) {
+            case 'ROLE_USER':
+                return <UserIcon className="w-4 h-4 mr-1" />;
+            case 'ROLE_ADMIN':
+                return <LockOpenIcon className="w-4 h-4 mr-1" />;
+            case 'ROLE_STAFF':
+                return <LockClosedIcon className="w-4 h-4 mr-1" />;
+            default:
+                return <UserIcon className="w-4 h-4 mr-1" />;
+        }
     };
 
-    const getRoleText = (roles: User['roles']) => {
-        const isAdmin = roles.some(role => role.authority === 'ROLE_ADMIN');
-        return isAdmin ? 'Quản trị viên' : 'Người dùng';
+    const getRoleText = (name: string) => {
+        switch (name) {
+            case 'ROLE_USER':
+                return 'Người dùng';
+            case 'ROLE_ADMIN':
+                return 'Quản trị viên';
+            case 'ROLE_STAFF':
+                return 'Nhân viên';
+            default:
+                return 'Người dùng';
+        }
     };
 
-    const getRoleColor = (roles: User['roles']) => {
-        const isAdmin = roles.some(role => role.authority === 'ROLE_ADMIN');
-        return isAdmin ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
+    const getRoleColor = (name: string) => {
+        switch (name) {
+            case 'ROLE_USER':
+                return 'bg-blue-100 text-blue-800';
+            case 'ROLE_ADMIN':
+                return 'bg-red-100 text-red-800';
+            case 'ROLE_STAFF':
+                return 'bg-green-100 text-green-800';
+            default:
+                return 'bg-blue-100 text-blue-800';
+        }
+    };
+
+    const getFullName = (user: User) => {
+        const firstName = user.firstName || '';
+        const lastName = user.lastName || '';
+        return `${firstName} ${lastName}`.trim() || '--';
     };
 
     if (isLoading) {
@@ -178,6 +166,13 @@ const AdminUsersPage: React.FC = () => {
             {/* Header */}
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900 mb-4">Quản lý người dùng</h1>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-red-800">{error}</p>
+                    </div>
+                )}
 
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -227,19 +222,13 @@ const AdminUsersPage: React.FC = () => {
                                     Người dùng
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Vai trò
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Trạng thái
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Đơn hàng
+                                    Số điện thoại
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Tổng chi tiêu
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Ngày tham gia
+                                    Ngày sinh
                                 </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Thao tác
@@ -251,27 +240,28 @@ const AdminUsersPage: React.FC = () => {
                                 <tr key={user.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                                <UserIcon className="w-5 h-5 text-gray-400" />
+                                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                                {user.image ? (
+                                                    <img 
+                                                        src={user.image} 
+                                                        alt={getFullName(user)}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <UserIcon className="w-5 h-5 text-gray-400" />
+                                                )}
                                             </div>
                                             <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {user.firstName} {user.lastName}
-                                                </div>
+                                                <Link
+                                                to={`/admin/users/${user.id}`}
+                                                className="text-sm font-medium text-gray-900 hover:underline">
+                                                    {getFullName(user)}
+                                                </Link>
                                                 <div className="text-sm text-gray-500">
                                                     {user.email}
                                                 </div>
-                                                <div className="text-xs text-gray-400">
-                                                    {user.phone}
-                                                </div>
                                             </div>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.roles)}`}>
-                                            {getRoleIcon(user.roles)}
-                                            <span className="ml-1">{getRoleText(user.roles)}</span>
-                                        </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -293,35 +283,42 @@ const AdminUsersPage: React.FC = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {user.orderCount} đơn hàng
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {formatCurrency(user.totalSpent)}
+                                        {user.phone || '--'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {formatDate(user.createdAt)}
+                                        {formatDate(user.birth)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex items-center justify-end space-x-2">
+                                            <Button
+                                                onClick={() => handleToggleUserStatus(user.id, user.enabled)}
+                                                disabled={toggleLoading === user.id}
+                                                variant={"secondary"}
+                                                className={`text-xs border h-7 disabled:opacity-50 bg-white disabled:cursor-not-allowed ${
+                                                    user.enabled
+                                                        ? 'text-red-600 hover:text-white hover:border-red-600 border-red-200 border-2 hover:bg-red-600'
+                                                        : 'text-green-600 border-green-600 hover:bg-green-50'
+                                                }`}
+                                            >
+                                                {toggleLoading === user.id ? (
+                                                    <span className="flex items-center">
+                                                        <svg className="animate-spin -ml-1 mr-1 h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        ...
+                                                    </span>
+                                                ) : (
+                                                    user.enabled ? 'Khóa' : 'Mở khóa'
+                                                )}
+                                            </Button>
                                             <Link
                                                 to={`/admin/users/${user.id}`}
-                                                className="text-blue-600 hover:text-blue-900 p-1"
+                                                className="p-1"
                                                 title="Xem chi tiết"
                                             >
-                                                <EyeIcon className="w-4 h-4" />
+                                                <InformationCircleIcon className="size-5" />
                                             </Link>
-                                            {user.roles.some(role => role.authority !== 'ROLE_ADMIN') && (
-                                                <button
-                                                    onClick={() => handleToggleUserStatus(user.id, user.enabled)}
-                                                    className={`text-xs px-2 py-1 border rounded hover:bg-opacity-10 ${
-                                                        user.enabled
-                                                            ? 'text-red-600 border-red-600 hover:bg-red-50'
-                                                            : 'text-green-600 border-green-600 hover:bg-green-50'
-                                                    }`}
-                                                >
-                                                    {user.enabled ? 'Khóa' : 'Mở khóa'}
-                                                </button>
-                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -334,60 +331,74 @@ const AdminUsersPage: React.FC = () => {
                 <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                     <div className="flex-1 flex justify-between sm:hidden">
                         <button
-                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                            disabled={currentPage === 0}
                             className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                         >
                             Trước
                         </button>
                         <button
-                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                            disabled={currentPage === totalPages - 1}
                             className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                         >
                             Sau
                         </button>
                     </div>
-                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm text-gray-700">
-                                Hiển thị <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> đến{' '}
-                                <span className="font-medium">{Math.min(currentPage * 10, users.length)}</span> trong{' '}
-                                <span className="font-medium">{users.length}</span> kết quả
-                            </p>
-                        </div>
-                        <div>
-                            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                <button
-                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                    disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Trước
-                                </button>
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <button
-                                        key={i + 1}
-                                        onClick={() => setCurrentPage(i + 1)}
-                                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                            currentPage === i + 1
-                                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                        }`}
+                        {/* Pagination */}
+                        {users.length > 0 && (
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex-1 text-sm text-muted-foreground">
+                                    Hiển thị <span className="font-medium">{currentPage * pageSize + 1}</span> đến{' '}
+                                <span className="font-medium">{Math.min((currentPage + 1) * pageSize, totalElements)}</span> trong{' '}
+                                <span className="font-medium">{totalElements}</span> kết quả
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setCurrentPage(Math.max(0, currentPage - 1));
+                                            fetchUsers();
+                                        }}
+                                        disabled={currentPage === 0}
                                     >
-                                        {i + 1}
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Sau
-                                </button>
-                            </nav>
-                        </div>
-                    </div>
+                                        <ChevronLeft className="w-4 h-4" />
+                                        Trước
+                                    </Button>
+                                    <div className="flex items-center space-x-1">
+                                        {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                                            const pageNum = i + 1;
+                                            return (
+                                                <Button
+                                                    key={pageNum}
+                                                    className={(currentPage === pageNum - 1 ? 'underline' : '') + " hover:underline bg-white hover:bg-white shadow-none text-black"}
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setCurrentPage(pageNum - 1)
+                                                        fetchUsers();
+                                                    }}
+                                                >
+                                                    {pageNum}
+                                                </Button>
+                                            );
+                                        })}
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setCurrentPage(Math.min(totalPages, currentPage + 1));
+                                            fetchUsers();
+                                        }}
+                                        disabled={currentPage === totalPages - 1}
+                                    >
+                                        Sau
+                                        <ChevronRight className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                 </div>
             </div>
         </div>

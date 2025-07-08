@@ -112,24 +112,6 @@ const AdminProductsPage: React.FC = () => {
         };
     }, [searchTerm]);
 
-    // Test API call directly
-    useEffect(() => {
-        const testApiCall = async () => {
-            try {
-                console.log('Testing direct API call...');
-                const result = await adminProductService.getAdminProducts({
-                    page: 0,
-                    size: 10
-                });
-                console.log('Direct API call result:', result);
-            } catch (error) {
-                console.error('Direct API call error:', error);
-            }
-        };
-
-        testApiCall();
-    }, []);
-
     // Temporary solution using useState instead of useQuery
     const [productsState, setProductsState] = useState({
         data: null,

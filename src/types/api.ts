@@ -20,6 +20,11 @@ export interface MetadataResponse {
     totalPage: number,
 }
 
+export interface PaginationParams {
+    page?: number;
+    size?: number;
+}
+
 export interface ValidationErrorDetail {
     field: string;
     message: string;

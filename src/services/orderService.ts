@@ -224,6 +224,59 @@ class OrderService {
       throw error;
     }
   }
+
+  // ============= ADMIN METHODS =============
+  
+  /**
+   * Get all orders for admin with pagination and filters
+   */
+  async getAdminOrders(params: OrdersParams = {}): Promise<any> {
+    try {
+      console.log('=== ORDER SERVICE DEBUG ===');
+      console.log('Calling admin orders API with params:', params);
+      console.log('privateAPI baseURL:', (privateAPI as any).defaults?.baseURL);
+      
+      const response = await privateAPI.get('/orders', {
+        params
+      });
+      
+      console.log('Service raw response:', response);
+      console.log('Service response type:', typeof response);
+      
+      return response; // Axios interceptor already handles response.data
+    } catch (error) {
+      console.error('Error fetching admin orders:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update order status (Admin only)
+   */
+  async updateOrderStatus(orderId: number, status: Order['status']): Promise<ApiResponse<Order>> {
+    try {
+      const response = await privateAPI.patch(`/orders/${orderId}/status`, {
+        status
+      });
+      return response.data || response; // Handle both cases
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get order details for admin
+   */
+  async getAdminOrderById(orderId: number): Promise<ApiResponse<Order>> {
+    try {
+      const response = await privateAPI.get(`/orders/${orderId}`);
+      return response.data || response; // Handle both cases
+    } catch (error) {
+      console.error('Error fetching admin order details:', error);
+      throw error;
+    }
+  }
 }
 
 const orderService = new OrderService();
