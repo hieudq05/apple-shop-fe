@@ -4,6 +4,7 @@ import {Menu, MenuButton, MenuItem, MenuItems, Transition} from "@headlessui/rea
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import {Link, useNavigate} from "react-router-dom";
+import { fetchCategories } from '@/services/categoryService';
 
 const navbarParams = [
     {
@@ -118,6 +119,21 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
     const navigate = useNavigate();
 
     const cartCount = getCartCount();
+    const [categories, setCategories] = useState([])
+
+    useEffect(() => {
+        const fetchNavbarCategories = async () => {
+            try {
+                const response = await fetchCategories();
+                console.log("Fetched categories:", response.data);
+                setCategories(response.data);
+            } catch (error) {
+                console.error("Error fetching categories:", error);
+            }
+        };
+
+        fetchNavbarCategories();
+    }, []);
 
     useEffect(() => {
         const checkScreenSize = () => {
@@ -194,8 +210,11 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                     </div>
 
                     <div className="hidden xl:flex items-center py-0 h-[44px] w-full px-36">
+                        <Link to="/" className="text-left h-[44px] flex-1 text-xs h-full flex items-center">
+                            Trang chủ
+                        </Link>
                         {
-                            navbarParams.map((link, index) => {
+                            categories.map((link, index) => {
                                     return (
                                         <Menu
                                             as="div"
@@ -228,11 +247,15 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                         <div className={"space-y-4"}>
                                                             <div className={"text-xs text-gray-500"}>Mua hàng</div>
                                                             <div className={"space-y-2 flex flex-col"}>
+                                                                <a href={`/products/${link.id}`} key={index}
+                                                                    className={"text-2xl font-semibold hover:underline"}>
+                                                                    Khám Phá Tất Cả {link.name}
+                                                                </a>
                                                                 {
-                                                                    link.childLinks.map((childLink, index) => (
-                                                                        <a href={childLink.href} key={index}
+                                                                    link.products.map((product, index) => (
+                                                                        <a href={`/product/${product.id}`} key={index}
                                                                            className={"text-2xl font-semibold hover:underline"}>
-                                                                            {childLink.name}
+                                                                            {product.name}
                                                                         </a>
                                                                     ))
                                                                 }

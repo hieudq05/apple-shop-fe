@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ProductCard, {type ProductCardProps} from "../components/ProductCard.tsx";
 import AccessoryCard from "../components/AccessoryCard.tsx";
+import productService from "@/services/productService.ts";
+import { getCategoryById } from "@/services/categoryService.ts";
 
 export interface Category {
     id: string;
@@ -170,33 +172,70 @@ const productPageProps: ProductsPageProps = {
 }
 
 const ProductsPage: React.FC = () => {
+    // Lấy id từ URL end path
+    const id = window.location.pathname.split('/').pop();
+    const [products, setProducts] = useState([]);
+    const [category, setCategory] = useState(null);
+
+    console.log("ProductsPage Props:", id);
+    useEffect(() => {
+
+        const fetchCategory = async () => {
+            try {
+                const response = await getCategoryById(id);
+                if (response.success) {
+                    setCategory(response.data);
+                    console.log("Category fetched:", response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching category:", error);
+            }
+        }
+
+        const fetchProducts = async () => {
+            try {
+                const response = await productService.getProductsByCategory(id);
+                if (response.success) {
+                    setProducts(response.data);
+                    console.log("Products fetched:", response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        }
+
+        fetchCategory();
+        fetchProducts();
+
+    }, [])
+
     return (
         <>
             <div>
                 <div className={"bg-gray-100 sticky top-[44px] z-10 bg-opacity-75 backdrop-blur-md"}>
                     <div
-                        className={"text-start container mx-auto py-5 font-semibold text-xl"}>{productPageProps.category.name}</div>
+                        className={"text-start container mx-auto py-5 font-semibold text-xl"}>{category?.name}</div>
                 </div>
                 <div className={"container h-[35rem] mx-auto rounded-3xl my-6"}
                      style={{
-                         backgroundImage: `url(https://www.apple.com/vn/iphone/home/images/overview/banner/privacy__cum61s425o6e_xlarge_2x.jpg)`,
+                         backgroundImage: `url(${category?.image})`,
                          backgroundSize: 'cover',
                          backgroundPosition: 'center',
                      }}></div>
                 <div className={"container mx-auto"}>
                     <div className={"text-start py-12 text-5xl font-semibold"}>
-                        Khám phá dòng sản phẩm {productPageProps.category.name} mới nhất.
+                        Khám phá dòng sản phẩm {category?.name} mới nhất.
                     </div>
-                    <div className={"grid grid-cols-1 gap-16 lg:grid-cols-3 md:grid-cols-2"}>
+                    <div className={"grid grid-cols-1 lg:gap-24 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-10"}>
                         {
-                            productPageProps.products.map((product) => (
+                            products.map((product) => (
                                 <ProductCard
                                     key={product.id}
                                     id={product.id}
                                     name={product.name}
-                                    title={product.title}
-                                    stock={product.stock}
-                                    category={productPageProps.category.name}
+                                    description={product.description}
+                                    stocks={product.stocks}
+                                    category={category?.name}
                                 />
                             ))
                         }

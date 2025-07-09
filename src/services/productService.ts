@@ -82,9 +82,9 @@ class ProductService {
   /**
    * Get product by ID
    */
-  async getProductById(productId: number): Promise<ApiResponse<Product>> {
+  async getProductById(productId: number, categoryId: number): Promise<ApiResponse<Product>> {
     try {
-      const response = await publicAPI.get<ApiResponse<Product>>(`/api/v1/products/${productId}`);
+      const response = await publicAPI.get<ApiResponse<Product>>(`/products/${categoryId}/${productId}`);
       return response;
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -97,7 +97,7 @@ class ProductService {
    */
   async getProductsByCategory(categoryId: number, params: ProductsParams = {}): Promise<ApiResponse<Product[]>> {
     try {
-      const response = await publicAPI.get<ApiResponse<Product[]>>(`/api/v1/products/category/${categoryId}`, {
+      const response = await publicAPI.get<ApiResponse<Product[]>>(`/products/${categoryId}`, {
         params
       });
       return response;

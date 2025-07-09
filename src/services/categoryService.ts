@@ -15,7 +15,7 @@ export const fetchCategories = async (): Promise<Category[]> => {
     try {
         // Sử dụng publicAPI vì đây là thông tin không yêu cầu quyền admin
         const response = await publicAPI.get<ApiResponse<Category[]>>('/categories');
-        return response.data.data || [];
+        return response;
     } catch (error) {
         console.error('Error fetching categories:', error);
         throw error;
@@ -116,10 +116,10 @@ export const updateCategory = async (category: Category, imageFile?: File): Prom
 export const getCategoryById = async (id: number): Promise<Category> => {
     try {
         const response = await publicAPI.get<ApiResponse<Category>>(`/categories/${id}`);
-        if (!response.data.data) {
+        if (!response.success) {
             throw new Error('Category not found');
         }
-        return response.data.data;
+        return response;
     } catch (error) {
         console.error(`Error fetching category with id ${id}:`, error);
         throw error;
