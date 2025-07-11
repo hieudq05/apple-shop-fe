@@ -13,6 +13,10 @@ export const publicAPI: AxiosInstance = axios.create({
     },
 });
 
+export const userRoleAPI: AxiosInstance = axios.create({
+    baseURL: API_BASE_URL,
+});
+
 // Create private API instance (authentication required)
 export const privateAPI: AxiosInstance = axios.create({
     baseURL: `${API_BASE_URL}/admin`, // Use environment variable for base URL
@@ -22,19 +26,14 @@ export const privateAPI: AxiosInstance = axios.create({
 });
 
 // Add request interceptor to private API for authentication
-privateAPI.interceptors.request.use(
-    (config) => {
-        const token = getAccessToken();
-        if (token) {
-            // Backend already includes 'Bearer' prefix, so use token directly
-            config.headers.Authorization = token;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+privateAPI.interceptors.request.use((config) => {
+    const token = getAccessToken();
+    if (token) {
+        // Backend already includes 'Bearer' prefix, so use token directly
+        config.headers.Authorization = token;
     }
-);
+    return config;
+});
 
 // Add response interceptor to handle token expiration
 privateAPI.interceptors.response.use(
@@ -47,18 +46,25 @@ privateAPI.interceptors.response.use(
             removeTokens();
             window.location.href = "/admin/login";
         }
-        return Promise.reject(error);
     }
 );
 
 // Add response interceptor to public API
-publicAPI.interceptors.response.use(
-    (response: AxiosResponse) => {
-        return response.data; // Return only data part
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
+publicAPI.interceptors.response.use((response: AxiosResponse) => {
+    return response.data; // Return only data part
+});
 
-export default { publicAPI, privateAPI };
+userRoleAPI.interceptors.request.use((config) => {
+    const token = getAccessToken();
+    if (token) {
+        // Backend already includes 'Bearer' prefix, so use token directly
+        config.headers.Authorization = token;
+    }
+    return config;
+});
+
+userRoleAPI.interceptors.response.use((response: AxiosResponse) => {
+    return response.data; // Return only data part
+});
+
+export default { publicAPI, privateAPI, userRoleAPI };

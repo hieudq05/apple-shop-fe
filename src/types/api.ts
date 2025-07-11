@@ -2,7 +2,8 @@
 
 export interface ApiResponse<T> {
     success: boolean;
-    message: string;
+    message?: string;
+    msg?: string; // Backend có thể dùng msg thay vì message
     data?: T;
     meta?: MetadataResponse;
 }
@@ -14,10 +15,10 @@ export interface ErrorResponse {
 }
 
 export interface MetadataResponse {
-    currentPage: number,
-    pageSize: number,
-    totalElements: number,
-    totalPage: number,
+    currentPage: number;
+    pageSize: number;
+    totalElements: number;
+    totalPage: number;
 }
 
 export interface PaginationParams {

@@ -1,17 +1,18 @@
-import type {RouteObject} from 'react-router-dom';
-import MainLayout from '../layouts/MainLayout';
-import AdminLayout from '../layouts/AdminLayout';
-import ProtectedRoute from '../components/ProtectedRoute';
-import HomePage from '../pages/HomePage';
-import LoginPage from '../pages/LoginPage';
-import RegisterPage from '../pages/RegisterPage';
-import OtpVerificationPage from '../pages/OtpVerificationPage';
+import type { RouteObject } from "react-router-dom";
+import MainLayout from "../layouts/MainLayout";
+import AdminLayout from "../layouts/AdminLayout";
+import ProtectedRoute from "../components/ProtectedRoute";
+import HomePage from "../pages/HomePage";
+import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
+import OtpVerificationPage from "../pages/OtpVerificationPage";
 import ProductsPage from "../pages/ProductsPage.tsx";
 import ProductPage from "../pages/ProductPage.tsx";
 import CartPage from "../pages/CartPage.tsx";
 import PaymentPage from "../pages/PaymentPage";
 import ProfilePage from "../pages/ProfilePage.tsx";
 import OrderHistoryPage from "../pages/OrderHistoryPage.tsx";
+import UserOrderDetailPage from "../pages/OrderDetailPage.tsx";
 import AdminLoginPage from "../pages/admin/AdminLoginPage";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminProductsPage from "../pages/admin/AdminProductsPage";
@@ -42,173 +43,187 @@ import SupportPage from "../pages/SupportPage";
 export const routesConfig: RouteObject[] = [
     // User routes with MainLayout (only for ROLE_USER)
     {
-        path: '/',
+        path: "/",
         element: (
             <ProtectedRoute requireUserOnly={true} requireAuth={false}>
-                <MainLayout/>
+                <MainLayout />
             </ProtectedRoute>
         ),
         children: [
-            {index: true, element: <HomePage/>},
+            { index: true, element: <HomePage /> },
             {
-                path: 'products/:categoryId',
-                element: <ProductsPage/>,
+                path: "products/:categoryId",
+                element: <ProductsPage />,
             },
             {
-                path: 'product/:productId',
-                element: <ProductPage/>,
+                path: "product/:categoryId/:productId",
+                element: <ProductPage />,
             },
             {
-                path: 'cart',
-                element: <CartPage/>,
+                path: "search",
+                element: <SearchPage />,
             },
             {
-                path: 'payment',
-                element: <PaymentPage/>,
+                path: "support",
+                element: <SupportPage />,
             },
             {
-                path: 'profile',
-                element: <ProfilePage/>
+                path: "blog",
+                element: <BlogPage />,
             },
             {
-                path: 'order-history',
-                element: <OrderHistoryPage/>
+                path: "blog/:slug",
+                element: <BlogPostPage />,
+            },
+        ],
+    },
+    {
+        path: "/",
+        element: (
+            <ProtectedRoute requireUserOnly={true}>
+                <MainLayout />
+            </ProtectedRoute>
+        ),
+        children: [
+            {
+                path: "cart",
+                element: <CartPage />,
             },
             {
-                path: 'search',
-                element: <SearchPage/>
+                path: "payment",
+                element: <PaymentPage />,
             },
             {
-                path: 'support',
-                element: <SupportPage/>
+                path: "profile",
+                element: <ProfilePage />,
             },
             {
-                path: 'blog',
-                element: <BlogPage/>
+                path: "order-history",
+                element: <OrderHistoryPage />,
             },
             {
-                path: 'blog/:slug',
-                element: <BlogPostPage/>
+                path: "order-detail/:orderId",
+                element: <UserOrderDetailPage />,
             },
         ],
     },
     // Auth routes without layout
     {
-        path: '/login',
-        element: <LoginPage/>,
+        path: "/login",
+        element: <LoginPage />,
     },
     {
-        path: '/register',
-        element: <RegisterPage/>,
+        path: "/register",
+        element: <RegisterPage />,
     },
     {
-        path: '/verify-otp',
-        element: <OtpVerificationPage/>,
+        path: "/verify-otp",
+        element: <OtpVerificationPage />,
     },
     // Admin routes
     {
-        path: '/admin/login',
-        element: <AdminLoginPage/>,
+        path: "/admin/login",
+        element: <AdminLoginPage />,
     },
     // Debug route for JWT testing (remove in production)
     {
-        path: '/debug/jwt-test',
-        element: <JWTTestComponent/>,
+        path: "/debug/jwt-test",
+        element: <JWTTestComponent />,
     },
     // Debug route for Order Detail API testing
     {
-        path: '/debug/order-detail-test',
-        element: <OrderDetailTestComponent/>,
+        path: "/debug/order-detail-test",
+        element: <OrderDetailTestComponent />,
     },
     {
-        path: '/admin',
+        path: "/admin",
         element: (
             <ProtectedRoute requireAdminOrStaff={true}>
-                <AdminLayout/>
+                <AdminLayout />
             </ProtectedRoute>
         ),
         children: [
             {
-                path: 'dashboard',
-                element: <AdminDashboard/>,
+                path: "dashboard",
+                element: <AdminDashboard />,
             },
             {
-                path: 'products',
-                element: <AdminProductsPage/>,
+                path: "products",
+                element: <AdminProductsPage />,
             },
             {
-                path: 'products/create',
-                element: <CreateProductPage/>,
+                path: "products/create",
+                element: <CreateProductPage />,
             },
             {
-                path: 'products/:categoryId/:id',
-                element: <ProductDetailPage/>,
+                path: "products/:categoryId/:id",
+                element: <ProductDetailPage />,
             },
             {
-                path: 'products/:categoryId/:id/edit',
-                element: <EditProductPage/>,
+                path: "products/:categoryId/:id/edit",
+                element: <EditProductPage />,
             },
             {
-                path: 'orders',
-                element: <AdminOrdersPage/>,
+                path: "orders",
+                element: <AdminOrdersPage />,
             },
             {
-                path: 'test-api',
-                element: <TestApiPage/>,
+                path: "test-api",
+                element: <TestApiPage />,
             },
             {
-                path: 'orders/:id',
-                element: <OrderDetailPage/>,
+                path: "orders/:id",
+                element: <OrderDetailPage />,
             },
             {
-                path: 'users',
+                path: "users",
                 element: (
                     <ProtectedRoute requireAdmin={true}>
-                        <AdminUsersPage/>
+                        <AdminUsersPage />
                     </ProtectedRoute>
                 ),
             },
             {
-                path: 'users/:id',
+                path: "users/:id",
                 element: (
                     <ProtectedRoute requireAdmin={true}>
-                        <UserDetailPage/>
+                        <UserDetailPage />
                     </ProtectedRoute>
                 ),
             },
             {
-                path: 'categories',
-                element: <CategoryManagementPage/>,
+                path: "categories",
+                element: <CategoryManagementPage />,
             },
             {
-                path: 'promotions',
-                element: <PromotionManagementPage/>,
+                path: "promotions",
+                element: <PromotionManagementPage />,
             },
             {
-                path: 'blog',
-                element: <BlogManagementPage/>,
+                path: "blog",
+                element: <BlogManagementPage />,
             },
             {
-                path: 'blog/create',
-                element: <CreateBlogPage/>,
+                path: "blog/create",
+                element: <CreateBlogPage />,
             },
             {
-                path: 'blog/:id',
-                element: <BlogDetailPage/>,
+                path: "blog/:id",
+                element: <BlogDetailPage />,
             },
             {
-                path: 'blog/:id/edit',
-                element: <EditBlogPage/>,
+                path: "blog/:id/edit",
+                element: <EditBlogPage />,
             },
             {
-                path: 'analytics',
-                element: <AdminAnalyticsPage/>,
+                path: "analytics",
+                element: <AdminAnalyticsPage />,
             },
             {
-                path: 'settings',
+                path: "settings",
                 element: (
                     <ProtectedRoute requireAdmin={true}>
-                        <AdminSettingsPage/>
+                        <AdminSettingsPage />
                     </ProtectedRoute>
                 ),
             },
@@ -216,7 +231,7 @@ export const routesConfig: RouteObject[] = [
     },
     // 404 catch-all route
     {
-        path: '*',
-        element: <NotFoundPage/>
-    }
+        path: "*",
+        element: <NotFoundPage />,
+    },
 ];

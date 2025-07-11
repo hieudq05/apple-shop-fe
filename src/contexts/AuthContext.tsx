@@ -1,6 +1,12 @@
-import React, {createContext, type ReactNode, useContext, useEffect, useState} from 'react';
-import {clearAllStorage, getAccessToken, setUserData} from '../utils/storage';
-import {getUserFromToken, isTokenExpired} from '../utils/jwt';
+import React, {
+    createContext,
+    type ReactNode,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+import { clearAllStorage, getAccessToken, setUserData } from "../utils/storage";
+import { getUserFromToken, isTokenExpired } from "../utils/jwt";
 
 interface User {
     email: string;
@@ -26,7 +32,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+    children,
+}) => {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -70,24 +78,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     };
 
     const isAuthenticated = !!token && !!user;
-    const isAdmin = user?.roles?.some(role => role.authority === 'ROLE_ADMIN') || false;
-    const isStaff = user?.roles?.some(role => role.authority === 'ROLE_STAFF') || false;
-    const isUser = user?.roles?.some(role => role.authority === 'ROLE_USER') || false;
+    const isAdmin =
+        user?.roles?.some((role) => role.authority === "ROLE_ADMIN") || false;
+    const isStaff =
+        user?.roles?.some((role) => role.authority === "ROLE_STAFF") || false;
+    const isUser =
+        user?.roles?.some((role) => role.authority === "ROLE_USER") || false;
     const canAccessAdminPanel = isAdmin || isStaff;
 
     return (
-        <AuthContext.Provider value={{
-            user,
-            token,
-            login,
-            logout,
-            isAuthenticated,
-            isAdmin,
-            isStaff,
-            isUser,
-            canAccessAdminPanel,
-            isAuthLoading
-        }}>
+        <AuthContext.Provider
+            value={{
+                user,
+                token,
+                login,
+                logout,
+                isAuthenticated,
+                isAdmin,
+                isStaff,
+                isUser,
+                canAccessAdminPanel,
+                isAuthLoading,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
@@ -96,7 +109,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({children}) => {
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error("useAuth must be used within an AuthProvider");
     }
     return context;
 };

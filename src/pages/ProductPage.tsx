@@ -1,98 +1,221 @@
-import React, {useState, useEffect} from "react";
-import {useCart} from '../contexts/CartContext';
-import {CheckCircleIcon} from "@heroicons/react/24/outline";
+import React, { useState, useEffect, useCallback } from "react";
+import { useCart } from "../contexts/CartContext";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import productService from "@/services/productService";
 
-interface ProductStock {
-    id: string;
+// Define a more flexible stock interface to handle API responses
+interface ApiStock {
+    id: number;
     color: {
-        id: string;
+        id: number;
         name: string;
-        hex: string;
+        hexCode: string;
     };
-    imageUrl: string;
+    imageUrl?: string;
     price: number;
-    storage: StorageOption[];
+    productPhotos?: {
+        id: number;
+        imageUrl: string;
+        alt: string;
+    }[];
+    quantity?: number;
+    instanceProperty?: InstanceProperty[];
+    instanceProperties?: InstanceProperty[]; // Alternate field name from API
 }
 
-interface StorageOption {
-    id: string;
+// Utility function to group stocks by color
+const groupStocksByColor = (stocks: ApiStock[]): ProductStock[] => {
+    const colorMap: { [colorId: number]: ProductStock } = {};
+
+    stocks.forEach((stock) => {
+        const colorId = stock.color.id;
+
+        // Handle API response which might use instanceProperties (plural) instead of instanceProperty (singular)
+        const properties =
+            stock.instanceProperty || stock.instanceProperties || [];
+
+        // If we haven't seen this color before, initialize it
+        if (!colorMap[colorId]) {
+            colorMap[colorId] = {
+                id: stock.id,
+                color: stock.color,
+                imageUrl: stock.imageUrl,
+                price: stock.price,
+                productPhotos: stock.productPhotos,
+                quantity: stock.quantity,
+                instanceProperty: [...properties],
+            };
+        } else {
+            // If we have seen this color, merge the instanceProperty arrays
+            const existingStock = colorMap[colorId];
+
+            // Add any instanceProperty items not already included
+            properties.forEach((property: InstanceProperty) => {
+                const propertyExists = existingStock.instanceProperty.some(
+                    (existingProperty) => existingProperty.id === property.id
+                );
+
+                if (!propertyExists) {
+                    existingStock.instanceProperty.push(property);
+                }
+            });
+        }
+    });
+
+    // Convert the map back to an array
+    return Object.values(colorMap);
+};
+
+interface ProductStock {
+    id: number;
+    color: {
+        id: number;
+        name: string;
+        hexCode: string;
+    };
+    imageUrl?: string;
+    price: number;
+    productPhotos?: {
+        id: number;
+        imageUrl: string;
+        alt: string;
+    }[];
+    instanceProperty: InstanceProperty[];
+    quantity?: number;
+}
+
+interface InstanceProperty {
+    id: number;
     name: string;
     price?: number; // Optional if not used
-    quantity: number;
 }
 
 export interface ProductProps {
-    id: string;
+    id: number;
     name: string;
-    title: string;
-    stock: ProductStock[];
+    description?: string;
+    stocks: ProductStock[];
 }
 
 const productData: ProductProps = {
-    id: "1",
+    id: 1,
     name: "iPhone 15 Pro",
-    title: "Một iPhone cực đỉnh.",
-    stock: [
+    description: "Một iPhone cực đỉnh.",
+    stocks: [
         {
-            id: "1",
-            color: {id: "1", name: "Silver", hex: "#C0C0C0"},
-            imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-deserttitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94Nm1neGR3bXRIczEyZHc4WTk0RkR4VEY3eHJKR1hDaEJCS2hmc2czazlldHlSTUMybCtXNXZpclhWeFpYZUcvRk80dEcwRGlZdHZNUlUyQVJ1QXFtSFFsOE8xQ2Rxc3QzeElocmgrcU1DbFJn&traceId=1",
+            id: 1,
+            color: { id: 1, name: "Silver", hexCode: "#C0C0C0" },
+            imageUrl:
+                "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-deserttitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94Nm1neGR3bXRIczEyZHc4WTk0RkR4VEY3eHJKR1hDaEJCS2hmc2czazlldHlSTUMybCtXNXZpclhWeFpYZUcvRk80dEcwRGlZdHZNUlUyQVJ1QXFtSFFsOE8xQ2Rxc3QzeElocmgrcU1DbFJn&traceId=1",
             price: 24990000,
-            storage: [
-                {id: "1", name: "128GB", price: 20000000, quantity: 10},
-                {id: "2", name: "256GB", price: 22000000, quantity: 10},
-                {id: "3", name: "512GB", price: 24000000, quantity: 10},
-                {id: "4", name: "1TB", price: 26000000, quantity: 10},
-            ]
+            instanceProperty: [
+                { id: 1, name: "128GB", price: 20000000 },
+                { id: 2, name: "256GB", price: 22000000 },
+                { id: 3, name: "512GB", price: 24000000 },
+                { id: 4, name: "1TB", price: 26000000 },
+            ],
+            quantity: 10,
         },
         {
-            id: "2",
-            color: {id: "2", name: "Space Black", hex: "#000000"},
-            imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-naturaltitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94NVJrY0tZVVQzOFFrQ2FwbFZZamEzeEpOZTBYalh5Vk90cEc1K2wwRzFGejRMeXJHUnUva2huMjl4akFHOXNwVjA0YXFmK3VWSWZuRE9oVEFyUFR0T2hWSm5HQVhUeDlTTVJFSzVnTlpqdUV3&traceId=1",
+            id: 2,
+            color: { id: 2, name: "Space Black", hexCode: "#000000" },
+            imageUrl:
+                "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-naturaltitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94NVJrY0tZVVQzOFFrQ2FwbFZZamEzeEpOZTBYalh5Vk90cEc1K2wwRzFGejRMeXJHUnUva2huMjl4akFHOXNwVjA0YXFmK3VWSWZuRE9oVEFyUFR0T2hWSm5HQVhUeDlTTVJFSzVnTlpqdUV3&traceId=1",
             price: 25990000,
-            storage: [
-                {id: "1", name: "128GB", price: 20000000, quantity: 10},
-                {id: "2", name: "256GB", price: 22000000, quantity: 10},
-                {id: "3", name: "512GB", price: 24000000, quantity: 10},
-                {id: "4", name: "1TB", price: 26000000, quantity: 10},
-            ]
+            instanceProperty: [
+                { id: 1, name: "128GB", price: 20000000 },
+                { id: 2, name: "256GB", price: 22000000 },
+                { id: 3, name: "512GB", price: 24000000 },
+                { id: 4, name: "1TB", price: 26000000 },
+            ],
+            quantity: 10,
         },
         {
-            id: "3",
-            color: {id: "3", name: "Gold", hex: "#FFD700"},
-            imageUrl: "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-whitetitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94NkppVHhtRktGckFBd2ZPSmpuTHdJcWlCQmV2WTA2cncybDF2YzFnKzI0S2prMCtUNWwzYWR0UVU3TWVsbEdUeXZka3Q2dVFYV2lxTm4wNXBJcGZoM1QzVmtFSHJkUURvdVZmQktGTnNPd1Z3&traceId=1",
+            id: 3,
+            color: { id: 3, name: "Gold", hexCode: "#FFD700" },
+            imageUrl:
+                "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-whitetitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94NkppVHhtRktGckFBd2ZPSmpuTHdJcWlCQmV2WTA2cncybDF2YzFnKzI0S2prMCtUNWwzYWR0UVU3TWVsbEdUeXZka3Q2dVFYV2lxTm4wNXBJcGZoM1QzVmtFSHJkUURvdVZmQktGTnNPd1Z3&traceId=1",
             price: 26990000,
-            storage: [
-                {id: "1", name: "128GB", price: 20000000, quantity: 10},
-                {id: "2", name: "256GB", price: 22000000, quantity: 10},
-                {id: "3", name: "512GB", price: 24000000, quantity: 10},
-            ]
+            instanceProperty: [
+                { id: 1, name: "128GB", price: 20000000 },
+                { id: 2, name: "256GB", price: 22000000 },
+                { id: 3, name: "512GB", price: 24000000 },
+            ],
+            quantity: 10,
         },
     ],
-}
+};
 
 const ProductPage: React.FC = () => {
+    // Get product ID from end path URL
+    const pathParts = window.location.pathname.split("/");
+    const id = pathParts[pathParts.length - 1];
+    const categoryId = pathParts[pathParts.length - 2];
+    const [product, setProduct] = useState<ProductProps | null>(null);
+
+    const fetchProduct = useCallback(async () => {
+        try {
+            const response = await productService.getProductById(
+                Number(id),
+                Number(categoryId)
+            );
+            if (response.success && response.data) {
+                // Group stocks by color and update the product data
+                const groupedData = {
+                    ...response.data,
+                    stocks: groupStocksByColor(response.data.stocks || []),
+                };
+                setProduct(groupedData);
+            }
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        }
+    }, [id, categoryId]);
+
+    useEffect(() => {
+        fetchProduct();
+    }, [fetchProduct]);
+
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const selectedStock = productData.stock[selectedIndex];
-    const [selectedStorageId, setSelectedStorageId] = useState(productData.stock[0].storage[0].id);
-    const {addToCart} = useCart();
+    const selectedStock = product?.stocks
+        ? product.stocks[selectedIndex]
+        : null;
+    const [selectedStorageId, setSelectedStorageId] = useState<number | null>(
+        productData.stocks?.[0]?.instanceProperty?.[0]?.id || null
+    );
+    const { addToCart } = useCart();
     const [addedToCart, setAddedToCart] = useState(false);
 
     const handleAddToCart = () => {
-        const selectedStorage = selectedStock.storage.find(storage => storage.id === selectedStorageId);
-        if (!selectedStorage) return;
+        if (!selectedStock || !selectedStorageId) return;
+
+        const selectedProperty = selectedStock.instanceProperty?.find(
+            (property) => property.id === selectedStorageId
+        );
+        if (!selectedProperty) return;
+
+        // Get image URL from either productPhotos or imageUrl
+        const imageUrl =
+            selectedStock.productPhotos &&
+            selectedStock.productPhotos.length > 0
+                ? selectedStock.productPhotos[0].imageUrl
+                : selectedStock.imageUrl || "";
 
         addToCart({
-            id: productData.id,
-            name: productData.name,
-            price: selectedStorage.price || selectedStock.price,
-            color: selectedStock.color,
+            id: String(selectedStock.id), // Convert to string as cart expects string ID
+            name: product?.name || "",
+            price: selectedProperty.price || selectedStock.price,
+            color: {
+                id: String(selectedStock.color.id),
+                name: selectedStock.color.name,
+                hex: selectedStock.color.hexCode, // Map hexCode to hex for cart compatibility
+            },
             storage: {
-                id: selectedStorage.id,
-                name: selectedStorage.name,
+                id: String(selectedProperty.id), // Convert to string as cart expects string ID
+                name: selectedProperty.name,
             },
             quantity: 1,
-            imageUrl: selectedStock.imageUrl
+            imageUrl: imageUrl,
         });
 
         // Show added to cart message
@@ -110,9 +233,15 @@ const ProductPage: React.FC = () => {
     // Reset selected storage when product changes
     useEffect(() => {
         // Make sure the selectedStorageId exists in the current stock
-        const storageExists = selectedStock.storage.some(storage => storage.id === selectedStorageId);
-        if (!storageExists && selectedStock.storage.length > 0) {
-            setSelectedStorageId(selectedStock.storage[0].id);
+        const propertyExists = selectedStock?.instanceProperty?.some(
+            (property) => property.id === selectedStorageId
+        );
+        if (
+            (!propertyExists || selectedStorageId === null) &&
+            selectedStock?.instanceProperty &&
+            selectedStock.instanceProperty.length > 0
+        ) {
+            setSelectedStorageId(selectedStock.instanceProperty[0].id);
         }
     }, [selectedStock, selectedStorageId]);
 
@@ -120,149 +249,261 @@ const ProductPage: React.FC = () => {
         <div className="py-12 text-start">
             <div className={"container mx-auto flex flex-col space-y-12 mb-12"}>
                 <div>
-                    <h1 className="text-5xl font-semibold mb-6">Mua {productData.name}</h1>
-                    <h2 className="text-2xl text-gray-700 mb-4">{productData.title}</h2>
+                    <h1 className="text-5xl font-semibold mb-6">
+                        Mua {product?.name}
+                    </h1>
+                    <h2 className="text-2xl text-gray-700 mb-4">
+                        {product?.description}
+                    </h2>
                 </div>
                 <div className={"flex gap-12 flex-col md:flex-row"}>
-                    <div className="items-center overflow-x-auto scrollbar-hide flex-[5] sticky top-12 bg-white z-10"
-                         style={{scrollSnapType: "x mandatory"}}>
+                    <div
+                        className="items-center overflow-x-auto scrollbar-hide flex-[5] sticky top-12 bg-white z-10"
+                        style={{ scrollSnapType: "x mandatory" }}
+                    >
                         <img
-                            key={selectedStock.id}
-                            src={selectedStock.imageUrl}
-                            alt={productData.name}
+                            key={selectedStock?.id}
+                            src={
+                                selectedStock?.productPhotos &&
+                                selectedStock.productPhotos.length > 0
+                                    ? selectedStock.productPhotos[0].imageUrl
+                                    : selectedStock?.imageUrl
+                            }
+                            alt={product?.name || "Product Image"}
                             className={`w-full object-cover transition duration-500 rounded-2xl mb-4 md:aspect-square aspect-video`}
-                            style={{scrollSnapAlign: "center"}}
+                            style={{ scrollSnapAlign: "center" }}
                         />
                     </div>
                     <div className={"flex-[2] flex flex-col space-y-28"}>
                         <div>
                             <div className={"text-3xl font-semibold"}>
-                                Màu. <span className={"text-gray-500"}>Chọn màu bạn yêu thích.</span>
+                                Màu.{" "}
+                                <span className={"text-gray-500"}>
+                                    Chọn màu bạn yêu thích.
+                                </span>
                             </div>
                             <div className="my-4 text-sm text-gray-600">
-                                Màu: {selectedStock.color.name}
+                                Màu: {selectedStock?.color.name}
                             </div>
                             <div className="flex space-x-3">
-                                {productData.stock.map((item, idx) => (
+                                {product?.stocks?.map((item, idx) => (
                                     <button
                                         key={item.color.id}
-                                        className={`relative size-8 p-0 z-0 transition rounded-full border-2 focus:outline-none ${selectedIndex === idx ? "border-blue-600" : "border-transparent"}`}
+                                        className={`relative size-8 p-0 z-0 transition rounded-full border-2 focus:outline-none ${
+                                            selectedIndex === idx
+                                                ? "border-blue-600"
+                                                : "border-transparent"
+                                        }`}
                                         onClick={() => {
                                             setSelectedIndex(idx);
-                                            const hasCurrentStorage = item.storage.some(storage => storage.id === selectedStorageId);
-                                            if (!hasCurrentStorage) {
-                                                setSelectedStorageId(item.storage[0].id);
+                                            const hasCurrentProperty =
+                                                item.instanceProperty.some(
+                                                    (property) =>
+                                                        property.id ===
+                                                        selectedStorageId
+                                                );
+                                            if (
+                                                !hasCurrentProperty &&
+                                                item.instanceProperty.length > 0
+                                            ) {
+                                                setSelectedStorageId(
+                                                    item.instanceProperty[0].id
+                                                );
                                             }
                                         }}
                                         aria-label={item.color.name}
                                     >
-                                        <div className={"absolute top-[0.155rem] left-[0.15rem] size-6 rounded-full"}
-                                             style={{
-                                                 backgroundColor: item.color.hex,
-                                                 boxShadow: `inset -2px 1px 5px -1px rgba(0,0,0,0.30)`,
-                                             }}></div>
+                                        <div
+                                            className={
+                                                "absolute top-[0.155rem] left-[0.15rem] size-6 rounded-full"
+                                            }
+                                            style={{
+                                                backgroundColor:
+                                                    item.color.hexCode,
+                                                boxShadow: `inset -2px 1px 5px -1px rgba(0,0,0,0.30)`,
+                                            }}
+                                        ></div>
                                     </button>
                                 ))}
                             </div>
                         </div>
                         <div className={"flex flex-col space-y-4 my-6"}>
                             <div className={"text-3xl font-semibold"}>
-                                Dung lượng lưu trữ. <span className={"text-gray-500"}>Bạn cần bao nhiêu dung lượng lưu trữ.</span>
+                                Các thuộc tính khác.{" "}
+                                <span className={"text-gray-500"}>
+                                    Chọn thuộc tính bạn cần.
+                                </span>
                             </div>
-                            {
-                                selectedStock.storage.map((storageItem) => (
+                            {selectedStock?.instanceProperty?.map(
+                                (property) => (
                                     <button
-                                        key={storageItem.id}
-                                        className={`px-4 py-4 flex justify-between items-center rounded-xl w-full border-1 focus:outline-none transition ${selectedStorageId === storageItem.id ? "border-2 border-blue-600 bg-blue-50" : "border-gray-200 bg-white hover:bg-gray-50"}`}
+                                        key={property.id}
+                                        className={`px-4 py-4 flex justify-between items-center rounded-xl w-full border-1 focus:outline-none transition ${
+                                            selectedStorageId === property.id
+                                                ? "border-2 border-blue-600 bg-blue-50"
+                                                : "border-gray-200 bg-white hover:bg-gray-50"
+                                        }`}
                                         onClick={() => {
-                                            setSelectedStorageId(storageItem.id);
+                                            setSelectedStorageId(property.id);
                                         }}
                                     >
-                                        <div className={"flex gap-2 items-center"}>
-                                            {selectedStorageId === storageItem.id && (
-                                                <span className="text-blue-600 font-semibold">✓</span>
+                                        <div
+                                            className={
+                                                "flex gap-2 items-center"
+                                            }
+                                        >
+                                            {selectedStorageId ===
+                                                property.id && (
+                                                <span className="text-blue-600 font-semibold">
+                                                    ✓
+                                                </span>
                                             )}
-                                            <span className={"text-base font-semibold"}>{storageItem.name}</span>
+                                            <span
+                                                className={
+                                                    "text-base font-semibold"
+                                                }
+                                            >
+                                                {property.name}
+                                            </span>
                                         </div>
-                                        <div className={"text-xs text-gray-600 font-normal text-right w-32"}>
-                                            Trả toàn bộ <br/>
-                                            {storageItem.price ? `${storageItem.price.toLocaleString('vi-VN', {
-                                                style: 'currency',
-                                                currency: 'VND'
-                                            })}` : ""} <br/>
-                                            bằng tài khoản <br/> hoặc <br/> khi nhận hàng.
+                                        <div
+                                            className={
+                                                "text-xs text-gray-600 font-normal text-right w-32"
+                                            }
+                                        >
+                                            Trả toàn bộ <br />
+                                            {property.price
+                                                ? `${property.price.toLocaleString(
+                                                      "vi-VN",
+                                                      {
+                                                          style: "currency",
+                                                          currency: "VND",
+                                                      }
+                                                  )}`
+                                                : `${selectedStock.price.toLocaleString(
+                                                      "vi-VN",
+                                                      {
+                                                          style: "currency",
+                                                          currency: "VND",
+                                                      }
+                                                  )}`}{" "}
+                                            <br />
+                                            bằng tài khoản <br /> hoặc <br />{" "}
+                                            khi nhận hàng.
                                         </div>
                                     </button>
-                                ))
-                            }
+                                )
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
             <div className={"bg-gray-100"}>
-                <div className={"container mx-auto grid lg:grid-cols-3 grid-cols-2 gap-12"}>
+                <div
+                    className={
+                        "container mx-auto grid lg:grid-cols-3 grid-cols-2 gap-12"
+                    }
+                >
                     <div className={"flex flex-col py-12 space-y-12"}>
                         <div className={"text-4xl font-semibold"}>
-                            {productData.name} mới của bạn.<br/>
-                            <span className={"text-gray-500"}>Theo cách bạn muốn.</span>
+                            {productData.name} mới của bạn.
+                            <br />
+                            <span className={"text-gray-500"}>
+                                Theo cách bạn muốn.
+                            </span>
                         </div>
                         <div className={"overflow-hidden h-64"}>
-                            <div className={"w-full aspect-square xl:scale-150 scale-[200%] relative xl:top-0 top-10"}
-                                 style={{
-                                     backgroundImage: `url(${selectedStock.imageUrl})`,
-                                     backgroundSize: 'cover',
-                                     backgroundPosition: 'top',
-                                 }}></div>
+                            <div
+                                className={
+                                    "w-full aspect-square xl:scale-150 scale-[200%] relative xl:top-0 top-10"
+                                }
+                                style={{
+                                    backgroundImage: `url(${
+                                        selectedStock?.productPhotos &&
+                                        selectedStock.productPhotos.length > 0
+                                            ? selectedStock.productPhotos[0]
+                                                  .imageUrl
+                                            : selectedStock?.imageUrl
+                                    })`,
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "top",
+                                }}
+                            ></div>
                         </div>
                     </div>
-                    <div className={"flex flex-col py-12 space-y-6 text-lg lg:col-span-2"}>
+                    <div
+                        className={
+                            "flex flex-col py-12 space-y-6 text-lg lg:col-span-2"
+                        }
+                    >
                         <div className={"flex flex-col gap-1"}>
                             <div>
-                                {productData.name}{' '}
-                                {selectedStock.storage.map((storageItem) => (
-                                    storageItem.id === selectedStorageId ? (
-                                        <span key={storageItem.id}>
-                                        {storageItem.name}
-                                    </span>
-                                    ) : null
-                                ))}{' '}
-                                {selectedStock.color.name}
+                                {product?.name || productData.name}{" "}
+                                {selectedStock?.instanceProperty?.map(
+                                    (property) =>
+                                        property.id === selectedStorageId ? (
+                                            <span key={property.id}>
+                                                {property.name}
+                                            </span>
+                                        ) : null
+                                )}{" "}
+                                {selectedStock?.color?.name}
                             </div>
                             <div>
-                            <span className={"font-semibold text-2xl"}>Tổng cộng{' '}
-                                {
-                                    selectedStock.storage.find(storage => storage.id === selectedStorageId)?.price
-                                        ? selectedStock.storage.find(storage => storage.id === selectedStorageId)?.price?.toLocaleString('vi-VN', {
-                                            style: 'currency',
-                                            currency: 'VND'
-                                        })
-                                        : selectedStock.price.toLocaleString('vi-VN', {
-                                            style: 'currency',
-                                            currency: 'VND'
-                                        })
-                                }</span>
+                                <span className={"font-semibold text-2xl"}>
+                                    Tổng cộng{" "}
+                                    {selectedStock?.instanceProperty?.find(
+                                        (property) =>
+                                            property.id === selectedStorageId
+                                    )?.price
+                                        ? selectedStock?.instanceProperty
+                                              .find(
+                                                  (property) =>
+                                                      property.id ===
+                                                      selectedStorageId
+                                              )
+                                              ?.price?.toLocaleString("vi-VN", {
+                                                  style: "currency",
+                                                  currency: "VND",
+                                              })
+                                        : selectedStock?.price?.toLocaleString(
+                                              "vi-VN",
+                                              {
+                                                  style: "currency",
+                                                  currency: "VND",
+                                              }
+                                          )}
+                                </span>
                             </div>
                             <div className={"text-xs"}>
-                                Bao gồm thuế GTGT khoảng {(
-                                selectedStock.storage.find(storage => storage.id === selectedStorageId)?.price
-                                    ? (selectedStock.storage.find(storage => storage.id === selectedStorageId)?.price ?? 0) * 0.1
-                                    : selectedStock.price * 0.1
-                            ).toLocaleString(
-                                'vi-VN',
-                                {style: 'currency', currency: 'VND'}
-                            )}
+                                Bao gồm thuế GTGT khoảng{" "}
+                                {(selectedStock?.instanceProperty?.find(
+                                    (property) =>
+                                        property.id === selectedStorageId
+                                )?.price
+                                    ? (selectedStock?.instanceProperty?.find(
+                                          (property) =>
+                                              property.id === selectedStorageId
+                                      )?.price ?? 0) * 0.1
+                                    : (selectedStock?.price ?? 0) * 0.1
+                                ).toLocaleString("vi-VN", {
+                                    style: "currency",
+                                    currency: "VND",
+                                })}
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
                             <button
                                 onClick={handleAddToCart}
-                                className="text-sm w-fit font-normal px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                className="text-sm w-fit font-normal px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
                                 Thêm vào giỏ hàng
                             </button>
 
                             {addedToCart && (
                                 <div className="text-green-600 text-sm mt-2 flex items-center gap-1">
-                                    <CheckCircleIcon className={"size-5"}/> Đã thêm vào giỏ hàng
+                                    <CheckCircleIcon className={"size-5"} /> Đã
+                                    thêm vào giỏ hàng
                                 </div>
                             )}
                         </div>

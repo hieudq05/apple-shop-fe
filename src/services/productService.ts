@@ -55,19 +55,16 @@ export interface Category {
   productCount?: number;
 }
 
-export interface ProductsParams {
-  categoryId?: number;
-  minPrice?: number;
-  maxPrice?: number;
-  sortBy?: 'name' | 'price' | 'rating' | 'newest';
-  sortOrder?: 'asc' | 'desc';
+export interface Params {
+  page?: number;
+  size?: number;
 }
 
 class ProductService {
   /**
    * Get all products with pagination and filters
    */
-  async getProducts(params: ProductsParams = {}): Promise<ApiResponse<Product[]>> {
+  async getProducts(params: Params = {}): Promise<ApiResponse<Product[]>> {
     try {
       const response = await publicAPI.get<ApiResponse<Product[]>>('/api/v1/products', {
         params
@@ -95,7 +92,7 @@ class ProductService {
   /**
    * Get products by category
    */
-  async getProductsByCategory(categoryId: number, params: ProductsParams = {}): Promise<ApiResponse<Product[]>> {
+  async getProductsByCategory(categoryId: number, params: Params = {}): Promise<ApiResponse<Product[]>> {
     try {
       const response = await publicAPI.get<ApiResponse<Product[]>>(`/products/${categoryId}`, {
         params
@@ -110,7 +107,7 @@ class ProductService {
   /**
    * Search products
    */
-  async searchProducts(query: string, params: ProductsParams = {}): Promise<ApiResponse<Product[]>> {
+  async searchProducts(query: string, params: Params = {}): Promise<ApiResponse<Product[]>> {
     try {
       const response = await publicAPI.get<ApiResponse<Product[]>>('/api/v1/products/search', {
         params: { ...params, search: query }
