@@ -21,6 +21,24 @@ export interface OrderHistoryParams {
     toDate?: string;
 }
 
+export interface OrderSearchParams {
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    shippingAddress?: string;
+    province?: string; // Province code/ID
+    district?: string; // District code/ID
+    ward?: string; // Ward code/ID
+    country?: string;
+    shippingTrackingCode?: string;
+    createdAtFrom?: string; // ISO date string
+    createdAtTo?: string; // ISO date string
+    searchTerm?: string;
+    status?: string;
+    page?: number;
+    size?: number;
+}
+
 class OrderHistoryService {
     /**
      * Get user's order history
@@ -29,33 +47,36 @@ class OrderHistoryService {
         params: OrderHistoryParams = {}
     ): Promise<ApiResponse<OrderHistory[]>> {
         try {
-            const response = await userRoleAPI.get<
-                ApiResponse<ApiOrderHistory[]>
-            >("/orders/me", {
-                params,
-            });
+            const response = await userRoleAPI.get<ApiOrderHistory[]>(
+                "/orders/me",
+                { params }
+            );
 
-            if (response.success && response.data) {
+            if (response.data && response.data.length > 0) {
                 // Transform API data thành UI format
                 const transformedOrders = response.data.map(
                     transformApiOrderToOrderHistory
                 );
 
                 return {
-                    success: response.success,
-                    message: response.message || response.msg || "Success",
+                    success: true,
+                    message: "Success",
                     data: transformedOrders,
                 };
             }
 
             return {
-                success: false,
-                message: response.error.msg || "Không có dữ liệu",
+                success: true,
+                message: "Không có dữ liệu",
                 data: [],
             };
         } catch (error) {
             console.error("Error fetching order history:", error);
-            throw error;
+            return {
+                success: false,
+                message: "Có lỗi xảy ra khi tải lịch sử đơn hàng",
+                data: [],
+            };
         }
     }
 
@@ -102,29 +123,33 @@ class OrderHistoryService {
         orderId: number
     ): Promise<ApiResponse<OrderDetail>> {
         try {
-            const response = await userRoleAPI.get<
-                ApiResponse<ApiOrderDetailResponse>
-            >(`/orders/${orderId}`);
+            const response = await userRoleAPI.get<ApiOrderDetailResponse>(
+                `/orders/${orderId}`
+            );
 
-            if (response.success && response.data) {
+            if (response.data) {
                 const transformedOrderDetail =
                     transformApiOrderDetailToOrderDetail(response.data);
 
                 return {
-                    success: response.success,
-                    message: response.msg || "Success",
+                    success: true,
+                    message: "Success",
                     data: transformedOrderDetail,
                 };
             }
 
             return {
                 success: false,
-                message: response.error.msg || "Không tìm thấy đơn hàng",
+                message: "Không tìm thấy đơn hàng",
                 data: undefined,
             };
         } catch (error) {
             console.error("Error fetching order detail:", error);
-            throw error;
+            return {
+                success: false,
+                message: "Có lỗi xảy ra khi tải chi tiết đơn hàng",
+                data: undefined,
+            };
         }
     }
 
@@ -136,13 +161,14 @@ class OrderHistoryService {
         reason?: string
     ): Promise<ApiResponse<CancelOrderResponse>> {
         try {
-            const response = await userRoleAPI.post<
-                ApiResponse<CancelOrderResponse>
-            >(`/orders/${orderId}/cancel`, { reason });
+            const response = await userRoleAPI.patch<CancelOrderResponse>(
+                `/orders/${orderId}/cancel`,
+                { reason }
+            );
 
             return {
-                success: response.success || false,
-                message: response.msg || "Đơn hàng đã được hủy thành công",
+                success: true,
+                message: "Đơn hàng đã được hủy thành công",
                 data: response.data || {
                     message: "Đơn hàng đã được hủy thành công",
                     cancelled: true,
@@ -157,6 +183,46 @@ class OrderHistoryService {
                     message: "Có lỗi xảy ra khi hủy đơn hàng",
                     cancelled: false,
                 },
+            };
+        }
+    }
+
+    /**
+     * Search orders with detailed criteria
+     */
+    async searchOrders(
+        searchParams: OrderSearchParams
+    ): Promise<ApiResponse<OrderHistory[]>> {
+        try {
+            const response = await userRoleAPI.post<ApiOrderHistory[]>(
+                "/orders/search",
+                searchParams
+            );
+
+            if (response.data && response.data.length > 0) {
+                // Transform API data thành UI format
+                const transformedOrders = response.data.map(
+                    transformApiOrderToOrderHistory
+                );
+
+                return {
+                    success: true,
+                    message: "Tìm kiếm thành công",
+                    data: transformedOrders,
+                };
+            }
+
+            return {
+                success: true,
+                message: "Không tìm thấy đơn hàng nào",
+                data: [],
+            };
+        } catch (error) {
+            console.error("Error searching orders:", error);
+            return {
+                success: false,
+                message: "Có lỗi xảy ra khi tìm kiếm đơn hàng",
+                data: [],
             };
         }
     }

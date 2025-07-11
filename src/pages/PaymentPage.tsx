@@ -1,67 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { type CartItem, useCart } from "../contexts/CartContext";
-import { ChevronDownIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
-
-interface Province {
-    id: string;
-    name: string;
-}
-
-interface District {
-    id: string;
-    name: string;
-    provinceId: string;
-}
-
-interface Ward {
-    id: string;
-    name: string;
-    districtId: string;
-}
-
-// API response interfaces for provinces.open-api.vn
-interface ApiProvince {
-    code: number;
-    name: string;
-}
-
-interface ApiDistrict {
-    code: number;
-    name: string;
-}
-
-interface ApiWard {
-    code: number;
-    name: string;
-}
-
-interface ApiProvinceWithDistricts {
-    code: number;
-    name: string;
-    districts: ApiDistrict[];
-}
-
-interface ApiDistrictWithWards {
-    code: number;
-    name: string;
-    wards: ApiWard[];
-}
+import { cartApiService, type CartItem } from "../services/cartApiService";
+import userService, { type MyShippingAddress } from "../services/userService";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import EditAddressDialog from "../components/EditAddressDialog";
+import CreateAddressDialog from "../components/CreateAddressDialog";
 
 const PaymentPage: React.FC = () => {
     const navigate = useNavigate();
-    const { cartItems, getCartCount } = useCart();
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
 
     // Step 1 state
-    const [provinces, setProvinces] = useState<Province[]>([]);
-    const [districts, setDistricts] = useState<District[]>([]);
-    const [wards, setWards] = useState<Ward[]>([]);
-    const [selectedProvince, setSelectedProvince] = useState<string>("");
-    const [selectedDistrict, setSelectedDistrict] = useState<string>("");
-    const [selectedWard, setSelectedWard] = useState<string>("");
-    const [address, setAddress] = useState<string>("");
     const [selectedAddress, setSelectedAddress] = useState<string>("");
 
     // Step 2 state
@@ -70,109 +47,72 @@ const PaymentPage: React.FC = () => {
     const [phone, setPhone] = useState<string>("");
     const [paymentMethod, setPaymentMethod] = useState<string>("cod");
 
-    // Fetch provinces on component mount
+    // Shipping address management state
+    const [shippingAddresses, setShippingAddresses] = useState<
+        MyShippingAddress[]
+    >([]);
+    const [selectedShippingAddress, setSelectedShippingAddress] =
+        useState<MyShippingAddress | null>(null);
+    const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+    const [addressError, setAddressError] = useState<string>("");
+
+    // Edit address dialog state
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [editingAddress, setEditingAddress] =
+        useState<MyShippingAddress | null>(null);
+
+    // Delete confirmation dialog state
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deletingAddressId, setDeletingAddressId] = useState<number | null>(
+        null
+    );
+
+    // Create address dialog state
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+    // Load cart data from API
     useEffect(() => {
-        const fetchProvinces = async () => {
-            try {
-                const response = await fetch(
-                    "https://provinces.open-api.vn/api/?depth=1"
-                );
-                const data: ApiProvince[] = await response.json();
-
-                // Transform data to match our interface
-                const transformedProvinces = data.map(
-                    (province: ApiProvince) => ({
-                        id: province.code.toString(),
-                        name: province.name,
-                    })
-                );
-
-                setProvinces(transformedProvinces);
-            } catch (error) {
-                console.error("Error fetching provinces:", error);
-            }
-        };
-
-        fetchProvinces();
+        loadCartData();
+        loadShippingAddresses();
     }, []);
 
-    // Fetch districts when province changes
-    useEffect(() => {
-        if (selectedProvince) {
-            const fetchDistricts = async () => {
-                try {
-                    const response = await fetch(
-                        `https://provinces.open-api.vn/api/p/${selectedProvince}?depth=2`
-                    );
-                    const data: ApiProvinceWithDistricts =
-                        await response.json();
-
-                    // Transform data to match our interface
-                    const transformedDistricts = data.districts.map(
-                        (district: ApiDistrict) => ({
-                            id: district.code.toString(),
-                            name: district.name,
-                            provinceId: selectedProvince,
-                        })
-                    );
-
-                    setDistricts(transformedDistricts);
-                    setSelectedDistrict("");
-                    setSelectedWard("");
-                    setWards([]);
-                } catch (error) {
-                    console.error("Error fetching districts:", error);
-                }
-            };
-
-            fetchDistricts();
+    const loadCartData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const items = await cartApiService.getCart();
+            setCartItems(items);
+        } catch (err) {
+            console.error("Error loading cart:", err);
+            setError("Không thể tải giỏ hàng. Vui lòng thử lại.");
+        } finally {
+            setLoading(false);
         }
-    }, [selectedProvince]);
+    };
 
-    // Fetch wards when district changes
-    useEffect(() => {
-        if (selectedDistrict) {
-            const fetchWards = async () => {
-                try {
-                    const response = await fetch(
-                        `https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`
-                    );
-                    const data: ApiDistrictWithWards = await response.json();
+    // Load shipping addresses
+    const loadShippingAddresses = async () => {
+        try {
+            setIsLoadingAddresses(true);
+            setAddressError("");
+            const response = await userService.getMyShippingAddress();
+            setShippingAddresses(response.data);
 
-                    // Transform data to match our interface
-                    const transformedWards = data.wards.map(
-                        (ward: ApiWard) => ({
-                            id: ward.code.toString(),
-                            name: ward.name,
-                            districtId: selectedDistrict,
-                        })
-                    );
-
-                    setWards(transformedWards);
-                    setSelectedWard("");
-                } catch (error) {
-                    console.error("Error fetching wards:", error);
-                }
-            };
-
-            fetchWards();
+            // Auto-select default address if available
+            const defaultAddress = response.data.find(
+                (addr: MyShippingAddress) => addr.isDefault
+            );
+            if (defaultAddress) {
+                setSelectedShippingAddress(defaultAddress);
+                const formattedAddress = `${defaultAddress.address}, ${defaultAddress.ward}, ${defaultAddress.district}, ${defaultAddress.province}`;
+                setSelectedAddress(formattedAddress);
+            }
+        } catch (err) {
+            console.error("Error loading shipping addresses:", err);
+            setAddressError("Không thể tải danh sách địa chỉ giao hàng");
+        } finally {
+            setIsLoadingAddresses(false);
         }
-    }, [selectedDistrict]);
-
-    const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedProvince(e.target.value);
-    };
-
-    const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedDistrict(e.target.value);
-    };
-
-    const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedWard(e.target.value);
-    };
-
-    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAddress(e.target.value);
     };
 
     const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,35 +138,6 @@ const PaymentPage: React.FC = () => {
         setIsAddressDialogOpen(true);
     };
 
-    const closeAddressDialog = () => {
-        setIsAddressDialogOpen(false);
-    };
-
-    const handleSaveAddress = () => {
-        // Validate address data
-        if (
-            !selectedProvince ||
-            !selectedDistrict ||
-            !selectedWard ||
-            !address
-        ) {
-            alert("Vui lòng điền đầy đủ thông tin địa chỉ giao hàng");
-            return;
-        }
-
-        const provinceName =
-            provinces.find((p) => p.id === selectedProvince)?.name || "";
-        const districtName =
-            districts.find((d) => d.id === selectedDistrict)?.name || "";
-        const wardName = wards.find((w) => w.id === selectedWard)?.name || "";
-
-        // Format the full address
-        const formattedAddress = `${address}, ${wardName}, ${districtName}, ${provinceName}`;
-        setSelectedAddress(formattedAddress);
-
-        closeAddressDialog();
-    };
-
     const handleNextStep = () => {
         // Validate step 1 data
         if (!selectedAddress) {
@@ -250,15 +161,33 @@ const PaymentPage: React.FC = () => {
             return;
         }
 
+        if (!selectedShippingAddress) {
+            alert("Vui lòng chọn địa chỉ giao hàng");
+            return;
+        }
+
+        // Calculate cart totals
+        const subtotal = cartItems.reduce(
+            (total, item) => total + item.total,
+            0
+        );
+        const cartCount = cartItems.reduce(
+            (total, item) => total + item.quantity,
+            0
+        );
+        const shippingFee = 0; // Free shipping
+        const vat = subtotal * 0.1; // 10% VAT
+        const totalAmount = subtotal + shippingFee + vat;
+
         // Create order data
         const orderData = {
             shippingAddress: {
-                province: provinces.find((p) => p.id === selectedProvince)
-                    ?.name,
-                district: districts.find((d) => d.id === selectedDistrict)
-                    ?.name,
-                ward: wards.find((w) => w.id === selectedWard)?.name,
-                address,
+                fullName,
+                phone,
+                address: selectedShippingAddress.address,
+                ward: selectedShippingAddress.ward,
+                district: selectedShippingAddress.district,
+                province: selectedShippingAddress.province,
             },
             contactInfo: {
                 fullName,
@@ -267,7 +196,11 @@ const PaymentPage: React.FC = () => {
             },
             paymentMethod,
             products: cartItems,
-            getCartCount,
+            cartCount,
+            subtotal,
+            shippingFee,
+            vat,
+            totalAmount,
         };
 
         // Send order data to API
@@ -278,7 +211,90 @@ const PaymentPage: React.FC = () => {
         navigate("/");
     };
 
-    // Check if cart is empty
+    // Address management handlers
+    const handleSelectAddress = (address: MyShippingAddress) => {
+        setSelectedShippingAddress(address);
+        const formattedAddress = `${address.address}, ${address.ward}, ${address.district}, ${address.province}`;
+        setSelectedAddress(formattedAddress);
+        setIsAddressDialogOpen(false);
+    };
+
+    const handleEditAddress = (address: MyShippingAddress) => {
+        setEditingAddress(address);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleDeleteAddress = (addressId: number) => {
+        setDeletingAddressId(addressId);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDeleteAddress = async () => {
+        if (!deletingAddressId) return;
+
+        try {
+            await userService.deleteShippingAddress(deletingAddressId);
+            await loadShippingAddresses();
+
+            // If deleted address was selected, clear selection
+            if (selectedShippingAddress?.id === deletingAddressId) {
+                setSelectedShippingAddress(null);
+                setSelectedAddress("");
+            }
+        } catch (error) {
+            console.error("Error deleting address:", error);
+            setAddressError("Không thể xóa địa chỉ giao hàng");
+        } finally {
+            setIsDeleteDialogOpen(false);
+            setDeletingAddressId(null);
+        }
+    };
+
+    const handleSetDefaultAddress = async (addressId: number) => {
+        try {
+            await userService.setDefaultShippingAddress(addressId);
+            await loadShippingAddresses();
+        } catch (error) {
+            console.error("Error setting default address:", error);
+            setAddressError("Không thể đặt địa chỉ mặc định");
+        }
+    };
+
+    // Check if cart is empty or loading
+    if (loading) {
+        return (
+            <div className="container mx-auto py-8 px-4">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold mb-4">
+                        Đang tải giỏ hàng...
+                    </h2>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container mx-auto py-8 px-4">
+                <div className="text-center text-red-600">
+                    <h2 className="text-2xl font-bold mb-4">{error}</h2>
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
+                        onClick={loadCartData}
+                    >
+                        Thử lại
+                    </button>
+                    <button
+                        className="bg-gray-500 text-white px-4 py-2 rounded"
+                        onClick={() => navigate("/cart")}
+                    >
+                        Về giỏ hàng
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     if (!cartItems || cartItems.length === 0) {
         return (
             <div className="container mx-auto py-8 px-4">
@@ -345,26 +361,44 @@ const PaymentPage: React.FC = () => {
                                         {cartItems.map(
                                             (item: CartItem, index: number) => (
                                                 <div
-                                                    key={index}
+                                                    key={`${item.id}-${index}`}
                                                     className="flex gap-4"
                                                 >
                                                     <img
                                                         src={
-                                                            item.imageUrl ||
+                                                            item.productImage ||
                                                             "https://via.placeholder.com/50"
                                                         }
-                                                        alt={item.name}
+                                                        alt={item.productName}
                                                         className="w-[10rem] object-cover aspect-[8/10] rounded-xl"
                                                     />
                                                     <div>
                                                         <p className="text-sm font-medium">
-                                                            {item.name}{" "}
-                                                            {item.storage.name}{" "}
+                                                            {item.productName}{" "}
+                                                            {item.instances
+                                                                .map(
+                                                                    (
+                                                                        instance
+                                                                    ) =>
+                                                                        instance.name
+                                                                )
+                                                                .join(" ")}{" "}
                                                             {item.color.name}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
                                                             Số lượng:{" "}
                                                             {item.quantity}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            Giá:{" "}
+                                                            {item.price.toLocaleString(
+                                                                "vi-VN",
+                                                                {
+                                                                    style: "currency",
+                                                                    currency:
+                                                                        "VND",
+                                                                }
+                                                            )}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -709,167 +743,230 @@ const PaymentPage: React.FC = () => {
                     )}
                 </div>
 
-                {/* Address Dialog */}
-                {isAddressDialogOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-3xl py-5 px-5 w-full max-w-2xl h-fit overflow-y-auto space-y-4">
-                            <div className="flex flex-col pb-6">
-                                <div className={"flex justify-end"}>
-                                    <button
-                                        className="text-gray-400 w-fit hover:text-gray-600 transition bg-gray-100 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                        onClick={closeAddressDialog}
+                {/* Address Management Dialog */}
+                <Dialog
+                    open={isAddressDialogOpen}
+                    onOpenChange={setIsAddressDialogOpen}
+                >
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl font-semibold text-center">
+                                Chọn địa chỉ giao hàng
+                            </DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            {/* Address List */}
+                            {isLoadingAddresses ? (
+                                <div className="text-center py-8">
+                                    <p>Đang tải danh sách địa chỉ...</p>
+                                </div>
+                            ) : addressError ? (
+                                <div className="text-center py-8 text-red-600">
+                                    <p>{addressError}</p>
+                                    <Button
+                                        onClick={loadShippingAddresses}
+                                        className="mt-2"
+                                        variant="outline"
                                     >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="size-5"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
+                                        Thử lại
+                                    </Button>
+                                </div>
+                            ) : shippingAddresses.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <p className="text-gray-500 mb-4">
+                                        Bạn chưa có địa chỉ giao hàng nào
+                                    </p>
+                                    <Button
+                                        onClick={() =>
+                                            setIsCreateDialogOpen(true)
+                                        }
+                                        className="bg-blue-600 hover:bg-blue-500"
+                                    >
+                                        Thêm địa chỉ mới
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Add New Address Button */}
+                                    <div className="flex justify-end">
+                                        <Button
+                                            onClick={() =>
+                                                setIsCreateDialogOpen(true)
+                                            }
+                                            className="bg-blue-600 hover:bg-blue-500"
                                         >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={3}
-                                                d="M6 18L18 6M6 6l12 12"
-                                            />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <h2 className="text-3xl font-semibold text-center">
-                                    Chọn địa chỉ giao hàng
-                                </h2>
-                            </div>
+                                            Thêm địa chỉ mới
+                                        </Button>
+                                    </div>
 
-                            <div className="space-y-4 px-20">
-                                <div className={"relative"}>
-                                    <label className="absolute top-2 left-3 text-gray-500 mb-1 text-xs">
-                                        Tỉnh/Thành phố{" "}
-                                        <span className={"text-red-600"}>
-                                            *
-                                        </span>
-                                    </label>
-                                    <select
-                                        className="w-full text-lg cursor-pointer disabled:cursor-not-allowed px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
-                                        value={selectedProvince}
-                                        onChange={handleProvinceChange}
-                                    >
-                                        <option value="">
-                                            Chọn Tỉnh/Thành phố
-                                        </option>
-                                        {provinces.map((province) => (
-                                            <option
-                                                key={province.id}
-                                                value={province.id}
+                                    {/* Address Cards */}
+                                    <div className="space-y-3">
+                                        {shippingAddresses.map((address) => (
+                                            <div
+                                                key={address.id}
+                                                className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                                                    selectedShippingAddress?.id ===
+                                                    address.id
+                                                        ? "border-blue-500 bg-blue-50"
+                                                        : "border-gray-200 hover:border-gray-300"
+                                                }`}
+                                                onClick={() =>
+                                                    handleSelectAddress(address)
+                                                }
                                             >
-                                                {province.name}
-                                            </option>
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <span className="font-medium">
+                                                                {
+                                                                    address.firstName
+                                                                }{" "}
+                                                                {
+                                                                    address.lastName
+                                                                }
+                                                            </span>
+                                                            {address.isDefault && (
+                                                                <Badge
+                                                                    variant="default"
+                                                                    className="text-xs"
+                                                                >
+                                                                    Mặc định
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 mb-1">
+                                                            {address.phone}
+                                                        </p>
+                                                        <p className="text-sm text-gray-700">
+                                                            {address.address},{" "}
+                                                            {address.ward},{" "}
+                                                            {address.district},{" "}
+                                                            {address.province}
+                                                        </p>
+                                                    </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger
+                                                            asChild
+                                                        >
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-8 w-8 p-0"
+                                                                onClick={(e) =>
+                                                                    e.stopPropagation()
+                                                                }
+                                                            >
+                                                                <span className="sr-only">
+                                                                    Mở menu
+                                                                </span>
+                                                                ⋮
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                                onClick={(
+                                                                    e
+                                                                ) => {
+                                                                    e.stopPropagation();
+                                                                    handleEditAddress(
+                                                                        address
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Chỉnh sửa
+                                                            </DropdownMenuItem>
+                                                            {!address.isDefault && (
+                                                                <DropdownMenuItem
+                                                                    onClick={(
+                                                                        e
+                                                                    ) => {
+                                                                        e.stopPropagation();
+                                                                        handleSetDefaultAddress(
+                                                                            address.id
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    Đặt làm mặc
+                                                                    định
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            <DropdownMenuItem
+                                                                onClick={(
+                                                                    e
+                                                                ) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteAddress(
+                                                                        address.id
+                                                                    );
+                                                                }}
+                                                                className="text-red-600"
+                                                            >
+                                                                Xóa
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </div>
                                         ))}
-                                    </select>
-                                    <ChevronDownIcon
-                                        className={
-                                            "size-5 text-gray-500 absolute top-5 right-3"
-                                        }
-                                    />
-                                </div>
-
-                                <div className={"relative"}>
-                                    <label className="absolute top-2 left-3 text-gray-500 mb-1 text-xs">
-                                        Quận/Huyện{" "}
-                                        <span className={"text-red-600"}>
-                                            *
-                                        </span>
-                                    </label>
-                                    <select
-                                        className="w-full text-lg cursor-pointer disabled:cursor-not-allowed px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:text-gray-500"
-                                        value={selectedDistrict}
-                                        onChange={handleDistrictChange}
-                                        disabled={!selectedProvince}
-                                    >
-                                        <option value="">
-                                            Chọn Quận/Huyện
-                                        </option>
-                                        {districts.map((district) => (
-                                            <option
-                                                key={district.id}
-                                                value={district.id}
-                                            >
-                                                {district.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDownIcon
-                                        className={
-                                            "size-5 text-gray-500 absolute top-5 right-3"
-                                        }
-                                    />
-                                </div>
-
-                                <div className={"relative"}>
-                                    <label className="absolute top-2 left-3 text-gray-500 mb-1 text-xs">
-                                        Phường/Xã{" "}
-                                        <span className={"text-red-600"}>
-                                            *
-                                        </span>
-                                    </label>
-                                    <select
-                                        className="w-full text-lg cursor-pointer disabled:cursor-not-allowed px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:text-gray-500"
-                                        value={selectedWard}
-                                        onChange={handleWardChange}
-                                        disabled={!selectedDistrict}
-                                    >
-                                        <option value="">Chọn Phường/Xã</option>
-                                        {wards.map((ward) => (
-                                            <option
-                                                key={ward.id}
-                                                value={ward.id}
-                                            >
-                                                {ward.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDownIcon
-                                        className={
-                                            "size-5 text-gray-500 absolute top-5 right-3"
-                                        }
-                                    />
-                                </div>
-
-                                <div className={"relative"}>
-                                    <label className="absolute top-2 left-3 text-gray-500 mb-1 text-xs">
-                                        Địa chỉ cụ thể{" "}
-                                        <span className={"text-red-600"}>
-                                            *
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
-                                        placeholder="Số nhà, tên đường..."
-                                        value={address}
-                                        onChange={handleAddressChange}
-                                    />
-                                </div>
-
-                                <div className="flex flex-col items-center pt-4 gap-4">
-                                    <button
-                                        type="button"
-                                        className="bg-blue-600 text-white px-4 py-3 rounded-xl w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition hover:bg-blue-500"
-                                        onClick={handleSaveAddress}
-                                    >
-                                        Lưu địa chỉ
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="p-0 rounded w-fit text-blue-600 hover:underline focus:outline-none focus:underline transition"
-                                        onClick={closeAddressDialog}
-                                    >
-                                        Hủy
-                                    </button>
-                                </div>
-                            </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
-                    </div>
-                )}
+                    </DialogContent>
+                </Dialog>
+
+                {/* Edit Address Dialog */}
+                <EditAddressDialog
+                    isOpen={isEditDialogOpen}
+                    onClose={() => {
+                        setIsEditDialogOpen(false);
+                        setEditingAddress(null);
+                    }}
+                    address={editingAddress}
+                    onSave={async () => {
+                        await loadShippingAddresses();
+                        setIsEditDialogOpen(false);
+                        setEditingAddress(null);
+                    }}
+                />
+
+                {/* Create Address Dialog */}
+                <CreateAddressDialog
+                    isOpen={isCreateDialogOpen}
+                    onClose={() => setIsCreateDialogOpen(false)}
+                    onSave={async () => {
+                        await loadShippingAddresses();
+                        setIsCreateDialogOpen(false);
+                    }}
+                />
+
+                {/* Delete Confirmation Dialog */}
+                <AlertDialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                >
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Xác nhận xóa địa chỉ
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Bạn có chắc chắn muốn xóa địa chỉ này? Hành động
+                                này không thể hoàn tác.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={confirmDeleteAddress}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                Xóa
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     );

@@ -1,13 +1,19 @@
-import OrderHistoryCard from "../components/OrderHistoryCard.tsx";
+import OrderHistoryCard from "../components/OrderHistoryCard";
+import OrderSearchForm from "../components/OrderSearchForm";
 import React, { useState, useEffect } from "react";
-import { orderHistoryService } from "../services/orderHistoryService";
+import {
+    orderHistoryService,
+    type OrderSearchParams,
+} from "../services/orderHistoryService";
 import type { OrderHistory } from "../types/order";
-import { getUserData } from "@/utils/storage.ts";
+import { getUserData } from "../utils/storage";
 
 const OrderHistoryPage: React.FC = () => {
     const [orders, setOrders] = useState<OrderHistory[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         fetchOrderHistory();
@@ -32,6 +38,45 @@ const OrderHistoryPage: React.FC = () => {
             setError("Có lỗi xảy ra khi tải lịch sử đơn hàng");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSearch = async (searchParams: OrderSearchParams) => {
+        try {
+            setSearchLoading(true);
+            setError(null);
+            setIsSearching(true);
+
+            const response = await orderHistoryService.searchOrders(
+                searchParams
+            );
+
+            if (response.success) {
+                setOrders(response.data || []);
+            } else {
+                setError(response.message || "Không thể tìm kiếm đơn hàng");
+            }
+        } catch (err) {
+            console.error("Error searching orders:", err);
+            setError("Có lỗi xảy ra khi tìm kiếm đơn hàng");
+        } finally {
+            setSearchLoading(false);
+        }
+    };
+
+    const handleClearSearch = () => {
+        setIsSearching(false);
+        fetchOrderHistory();
+    };
+
+    const handleOrderCancelled = () => {
+        if (isSearching) {
+            // If currently searching, we don't have the search params to re-search
+            // So just refresh the order history
+            fetchOrderHistory();
+            setIsSearching(false);
+        } else {
+            fetchOrderHistory();
         }
     };
 
@@ -92,22 +137,39 @@ const OrderHistoryPage: React.FC = () => {
             </div>
             <div className="container mx-auto py-12 flex flex-col gap-y-6">
                 <h1 className="text-4xl font-semibold">Lịch sử đơn hàng</h1>
+
+                {/* Search Form */}
+                <OrderSearchForm
+                    onSearch={handleSearch}
+                    onClear={handleClearSearch}
+                    isLoading={searchLoading}
+                />
+
+                {/* Results */}
                 {orders.length > 0 ? (
-                    orders.map((order: OrderHistory, idx) => (
-                        <OrderHistoryCard
-                            order={order}
-                            key={order.id}
-                            index={idx + 1}
-                            onOrderCancelled={fetchOrderHistory}
-                        />
-                    ))
+                    <div className="space-y-6">
+                        {orders.map((order: OrderHistory, idx) => (
+                            <OrderHistoryCard
+                                order={order}
+                                key={order.id}
+                                index={idx + 1}
+                                onOrderCancelled={handleOrderCancelled}
+                            />
+                        ))}
+                    </div>
                 ) : (
-                    <>
-                        <p className="text-xl text-gray-500 font-medium">
-                            Bạn không có đơn hàng nào gần đây.
+                    <div className="text-center py-12">
+                        <p className="text-xl text-gray-500 font-medium mb-4">
+                            {isSearching
+                                ? "Không tìm thấy đơn hàng nào phù hợp."
+                                : "Bạn không có đơn hàng nào gần đây."}
                         </p>
-                        <hr className={"my-6"} />
-                    </>
+                        {!isSearching && (
+                            <p className="text-gray-400">
+                                Khi bạn đặt hàng, chúng sẽ xuất hiện ở đây.
+                            </p>
+                        )}
+                    </div>
                 )}
                 <div className={"space-y-1"}>
                     <p className="text-xl font-medium">

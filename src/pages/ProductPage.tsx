@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useCart } from "../contexts/CartContext";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import productService from "@/services/productService";
+import { cartApiService } from "../services/cartApiService";
 
 // Define a more flexible stock interface to handle API responses
 interface ApiStock {
@@ -183,51 +183,41 @@ const ProductPage: React.FC = () => {
     const [selectedStorageId, setSelectedStorageId] = useState<number | null>(
         productData.stocks?.[0]?.instanceProperty?.[0]?.id || null
     );
-    const { addToCart } = useCart();
     const [addedToCart, setAddedToCart] = useState(false);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-    const handleAddToCart = () => {
-        if (!selectedStock || !selectedStorageId) return;
+    const handleAddToCart = async () => {
+        if (!selectedStock || !selectedStorageId || !product) return;
 
-        const selectedProperty = selectedStock.instanceProperty?.find(
-            (property) => property.id === selectedStorageId
-        );
-        if (!selectedProperty) return;
+        try {
+            setIsAddingToCart(true);
 
-        // Get image URL from either productPhotos or imageUrl
-        const imageUrl =
-            selectedStock.productPhotos &&
-            selectedStock.productPhotos.length > 0
-                ? selectedStock.productPhotos[0].imageUrl
-                : selectedStock.imageUrl || "";
+            // Add to cart using API
+            await cartApiService.addToCart({
+                productId: product.id,
+                stockId: selectedStock.id,
+                quantity: 1,
+            });
 
-        addToCart({
-            id: String(selectedStock.id), // Convert to string as cart expects string ID
-            name: product?.name || "",
-            price: selectedProperty.price || selectedStock.price,
-            color: {
-                id: String(selectedStock.color.id),
-                name: selectedStock.color.name,
-                hex: selectedStock.color.hexCode, // Map hexCode to hex for cart compatibility
-            },
-            storage: {
-                id: String(selectedProperty.id), // Convert to string as cart expects string ID
-                name: selectedProperty.name,
-            },
-            quantity: 1,
-            imageUrl: imageUrl,
-        });
+            // Show success message
+            setAddedToCart(true);
 
-        // Show added to cart message
-        setAddedToCart(true);
+            // Hide message after 3 seconds
+            setTimeout(() => {
+                setAddedToCart(false);
+            }, 3000);
 
-        // Hide message after 3 seconds
-        setTimeout(() => {
-            setAddedToCart(false);
-        }, 3000);
-        setTimeout(() => {
-            window.location.href = "/cart";
-        }, 1000);
+            // Redirect to cart after 1 second
+            setTimeout(() => {
+                window.location.href = "/cart";
+            }, 1000);
+        } catch (error) {
+            console.error("Error adding to cart:", error);
+            // You could show an error message here
+            alert("Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.");
+        } finally {
+            setIsAddingToCart(false);
+        }
     };
 
     // Reset selected storage when product changes
@@ -495,9 +485,16 @@ const ProductPage: React.FC = () => {
                         <div className="flex flex-col gap-2">
                             <button
                                 onClick={handleAddToCart}
-                                className="text-sm w-fit font-normal px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                disabled={
+                                    isAddingToCart ||
+                                    !selectedStock ||
+                                    !selectedStorageId
+                                }
+                                className="text-sm w-fit font-normal px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Thêm vào giỏ hàng
+                                {isAddingToCart
+                                    ? "Đang thêm..."
+                                    : "Thêm vào giỏ hàng"}
                             </button>
 
                             {addedToCart && (

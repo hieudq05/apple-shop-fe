@@ -151,18 +151,17 @@ export interface CancelOrderResponse {
 
 // Map status từ API thành status hiển thị tiếng Việt
 export const ORDER_STATUS_MAP: Record<string, string> = {
-    PENDING: "Đang chờ xử lý",
     PENDING_PAYMENT: "Chờ thanh toán",
-    CONFIRMED: "Đã xác nhận",
-    PROCESSING: "Đang xử lý",
-    SHIPPED: "Đang giao hàng",
-    DELIVERED: "Đã giao hàng",
-    CANCELLED: "Đã hủy",
+    FAILED_PAYMENT: "Thanh toán thất bại",
     PAID: "Đã thanh toán",
+    PROCESSING: "Đang xử lý",
+    AWAITING_SHIPMENT: "Chờ giao hàng",
+    SHIPPED: "Đang giao hàng",
+    DELIVERED: "Giao hàng thành công",
+    CANCELLED: "Đã hủy",
 };
 
 export const PAYMENT_STATUS_MAP: Record<string, string> = {
-    PENDING: "Chờ thanh toán",
     PENDING_PAYMENT: "Chờ thanh toán",
     PAID: "Đã thanh toán",
     FAILED: "Thanh toán thất bại",
