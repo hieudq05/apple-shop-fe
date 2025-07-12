@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import EditAddressDialog from "../components/EditAddressDialog";
 import CreateAddressDialog from "../components/CreateAddressDialog";
+import { Info } from "lucide-react";
 
 const PaymentPage: React.FC = () => {
     const navigate = useNavigate();
@@ -74,7 +75,23 @@ const PaymentPage: React.FC = () => {
     useEffect(() => {
         loadCartData();
         loadShippingAddresses();
+        loadUserInfo();
     }, []);
+
+    // Update contact info when shipping address is selected
+    useEffect(() => {
+        if (selectedShippingAddress) {
+            setFullName(
+                `${selectedShippingAddress.firstName} ${selectedShippingAddress.lastName}`
+            );
+            setEmail(selectedShippingAddress.email || "");
+            setPhone(selectedShippingAddress.phone || "");
+        }
+    }, [selectedShippingAddress]);
+
+    const loadUserInfo = async () => {
+        // You can implement this later to load user's default info if needed
+    };
 
     const loadCartData = async () => {
         try {
@@ -89,6 +106,25 @@ const PaymentPage: React.FC = () => {
             setLoading(false);
         }
     };
+
+    const createAddress = async (address: MyShippingAddress) => {
+        try {
+            setIsLoadingAddresses(true);
+            setAddressError("");
+            const response = await userService.createShippingAddress(address);
+            if (response.success) {
+                await loadShippingAddresses();
+                setIsCreateDialogOpen(false);
+            } else {
+                setAddressError(response.message || "Không thể tạo địa chỉ giao hàng");
+            }
+        } catch (err) {
+            console.error("Error creating address:", err);
+            setAddressError("Không thể tạo địa chỉ giao hàng");
+        } finally {
+            setIsLoadingAddresses(false);
+        }
+    }
 
     // Load shipping addresses
     const loadShippingAddresses = async () => {
@@ -115,19 +151,6 @@ const PaymentPage: React.FC = () => {
         }
     };
 
-    const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFullName(e.target.value);
-    };
-
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setEmail(e.target.value);
-    };
-
-    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const formattedPhone = e.target.value.replace(/\D/g, "");
-        setPhone(formattedPhone);
-    };
-
     const handlePaymentMethodChange = (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
@@ -140,7 +163,7 @@ const PaymentPage: React.FC = () => {
 
     const handleNextStep = () => {
         // Validate step 1 data
-        if (!selectedAddress) {
+        if (!selectedAddress || !selectedShippingAddress) {
             alert("Vui lòng chọn địa chỉ giao hàng");
             return;
         }
@@ -157,7 +180,9 @@ const PaymentPage: React.FC = () => {
 
         // Validate step 2 data
         if (!fullName || !email || !phone) {
-            alert("Vui lòng điền đầy đủ thông tin liên hệ");
+            alert(
+                "Thông tin liên hệ chưa đầy đủ. Vui lòng kiểm tra lại địa chỉ giao hàng đã chọn."
+            );
             return;
         }
 
@@ -333,7 +358,7 @@ const PaymentPage: React.FC = () => {
                             {selectedAddress ? (
                                 <div className="flex justify-between items-center">
                                     <button
-                                        className="text-blue-600 p-0 focus:outline-none underline underline-offset-2"
+                                        className="text-blue-600 cursor-pointer p-0 focus:outline-none underline underline-offset-2"
                                         onClick={openAddressDialog}
                                     >
                                         {selectedAddress}
@@ -341,7 +366,7 @@ const PaymentPage: React.FC = () => {
                                 </div>
                             ) : (
                                 <button
-                                    className="w-fit p-0 text-blue-600 focus:outline-none underline"
+                                    className="w-fit p-0 text-blue-600 cursor-pointer focus:outline-none underline"
                                     onClick={openAddressDialog}
                                 >
                                     Tỉnh/Thành phố
@@ -487,6 +512,31 @@ const PaymentPage: React.FC = () => {
                                 <h2 className="text-xl font-bold mb-4">
                                     Thông tin liên hệ
                                 </h2>
+                                {selectedShippingAddress && (
+                                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <p className="text-sm text-blue-700">
+                                            <span className="flex items-center gap-2">
+                                                <Info className="size-4" />{" "}
+                                                Thông tin liên hệ được tự động
+                                                điền từ địa chỉ giao hàng đã
+                                                chọn
+                                            </span>
+                                        </p>
+                                    </div>
+                                )}
+                                {selectedShippingAddress &&
+                                    (!fullName || !email || !phone) && (
+                                        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                            <p className="text-sm text-yellow-700">
+                                                <span className="font-medium">
+                                                    ⚠️ Địa chỉ giao hàng đã chọn
+                                                    thiếu thông tin liên hệ. Vui
+                                                    lòng cập nhật địa chỉ giao
+                                                    hàng để có thông tin đầy đủ.
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
                                 <form
                                     onSubmit={handleSubmitOrder}
                                     className="space-y-6"
@@ -502,10 +552,10 @@ const PaymentPage: React.FC = () => {
                                             </label>
                                             <input
                                                 type="text"
-                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
-                                                placeholder="Nhập họ và tên"
+                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
+                                                placeholder="Tự động điền từ địa chỉ giao hàng"
                                                 value={fullName}
-                                                onChange={handleFullNameChange}
+                                                readOnly
                                                 required
                                             />
                                         </div>
@@ -516,10 +566,10 @@ const PaymentPage: React.FC = () => {
                                             </label>
                                             <input
                                                 type="email"
-                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
-                                                placeholder="Nhập email"
+                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
+                                                placeholder="Tự động điền từ địa chỉ giao hàng"
                                                 value={email}
-                                                onChange={handleEmailChange}
+                                                readOnly
                                                 required
                                             />
                                         </div>
@@ -530,10 +580,10 @@ const PaymentPage: React.FC = () => {
                                             </label>
                                             <input
                                                 type="tel"
-                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
-                                                placeholder="Nhập số điện thoại"
+                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
+                                                placeholder="Tự động điền từ địa chỉ giao hàng"
                                                 value={phone}
-                                                onChange={handlePhoneChange}
+                                                readOnly
                                                 required
                                             />
                                         </div>
@@ -543,8 +593,8 @@ const PaymentPage: React.FC = () => {
                                         <h2 className="text-xl font-bold mb-4 mt-8">
                                             Phương thức thanh toán
                                         </h2>
-                                        <div className="grid gap-4 2xl:grid-cols-4 md:grid-cols-2 grid-cols-1">
-                                            <div
+                                        <div className="grid gap-4 2xl:grid-cols-4 md:grid-cols-3 grid-cols-1">
+                                            {/* <div
                                                 className={`flex gap-2 items-center border transition py-4 px-6 rounded-xl ${
                                                     paymentMethod === "cod"
                                                         ? "border-blue-600 text-black bg-blue-50"
@@ -574,7 +624,7 @@ const PaymentPage: React.FC = () => {
                                                     Thanh toán khi nhận hàng
                                                     (COD)
                                                 </label>
-                                            </div>
+                                            </div> */}
 
                                             <div
                                                 className={`flex gap-2 items-center border transition py-4 px-6 rounded-xl ${
@@ -588,13 +638,15 @@ const PaymentPage: React.FC = () => {
                                                     id="momo"
                                                     name="paymentMethod"
                                                     value="momo"
+                                                    disabled
+                                                    readOnly
                                                     checked={
                                                         paymentMethod === "momo"
                                                     }
                                                     onChange={
                                                         handlePaymentMethodChange
                                                     }
-                                                    className="size-3.5 focus:outline-none cursor-pointer"
+                                                    className="size-3.5 focus:outline-none cursor-not-allowed bg-amber-400"
                                                     style={{
                                                         accentColor: "#007bff",
                                                     }}
@@ -607,10 +659,17 @@ const PaymentPage: React.FC = () => {
                                                     <label
                                                         htmlFor="momo"
                                                         className={
-                                                            "cursor-pointer"
+                                                            " cursor-not-allowed space-y-0.5"
                                                         }
                                                     >
-                                                        Thanh toán bằng MOMO
+                                                        Thanh toán bằng MOMO{" "}
+                                                        <br />
+                                                        <span className="text-xs text-gray-500">
+                                                            (Hình thức thanh
+                                                            toán này sẽ được
+                                                            triển khai trong
+                                                            thời gian tới)
+                                                        </span>
                                                     </label>
                                                     <img
                                                         src={
@@ -936,8 +995,7 @@ const PaymentPage: React.FC = () => {
                     isOpen={isCreateDialogOpen}
                     onClose={() => setIsCreateDialogOpen(false)}
                     onSave={async () => {
-                        await loadShippingAddresses();
-                        setIsCreateDialogOpen(false);
+                        createAddress(editingAddress);
                     }}
                 />
 
