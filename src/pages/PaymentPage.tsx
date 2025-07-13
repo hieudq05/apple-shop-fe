@@ -120,7 +120,9 @@ const PaymentPage: React.FC = () => {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     // Promotion state
-    const [selectedPromotion, setSelectedPromotion] =
+    const [selectedProductPromotion, setSelectedProductPromotion] =
+        useState<Promotion | null>(null);
+    const [selectedShippingPromotion, setSelectedShippingPromotion] =
         useState<Promotion | null>(null);
 
     // Payment processing state
@@ -524,13 +526,13 @@ const PaymentPage: React.FC = () => {
         );
         const shippingFee = 40000; // 40,000 VND shipping fee
 
-        // Calculate promotion discount
+        // Calculate promotion discounts
         const promotionDiscount = calculatePromotionDiscount(
-            selectedPromotion,
+            selectedProductPromotion,
             subtotal
         );
         const shippingDiscount = calculateShippingDiscount(
-            selectedPromotion,
+            selectedShippingPromotion,
             shippingFee
         );
 
@@ -561,13 +563,22 @@ const PaymentPage: React.FC = () => {
             vat,
             promotionDiscount,
             shippingDiscount,
-            promotion: selectedPromotion
+            productPromotion: selectedProductPromotion
                 ? {
-                      id: selectedPromotion.id,
-                      code: selectedPromotion.code,
-                      name: selectedPromotion.name,
-                      type: selectedPromotion.promotionType,
-                      discountAmount: promotionDiscount + shippingDiscount,
+                      id: selectedProductPromotion.id,
+                      code: selectedProductPromotion.code,
+                      name: selectedProductPromotion.name,
+                      type: selectedProductPromotion.promotionType,
+                      discountAmount: promotionDiscount,
+                  }
+                : null,
+            shippingPromotion: selectedShippingPromotion
+                ? {
+                      id: selectedShippingPromotion.id,
+                      code: selectedShippingPromotion.code,
+                      name: selectedShippingPromotion.name,
+                      type: selectedShippingPromotion.promotionType,
+                      discountAmount: shippingDiscount,
                   }
                 : null,
             totalAmount,
@@ -588,15 +599,8 @@ const PaymentPage: React.FC = () => {
                 ward: parseInt(selectedShippingAddress.ward),
                 district: parseInt(selectedShippingAddress.district),
                 province: parseInt(selectedShippingAddress.province),
-                productPromotionCode:
-                    selectedPromotion?.promotionType === "FIXED_AMOUNT" ||
-                    selectedPromotion?.promotionType === "PERCENTAGE"
-                        ? selectedPromotion.code
-                        : null,
-                shippingPromotionCode:
-                    selectedPromotion?.promotionType === "SHIPPING_DISCOUNT"
-                        ? selectedPromotion.code
-                        : null,
+                productPromotionCode: selectedProductPromotion?.code || null,
+                shippingPromotionCode: selectedShippingPromotion?.code || null,
             };
 
             // Create payment URL based on payment method
@@ -640,8 +644,7 @@ const PaymentPage: React.FC = () => {
             }
         } catch (error) {
             console.error("Error creating payment:", error);
-            const errorEntity = error as Error;
-            let errorMessage = errorEntity.response.data.error.message;
+            let errorMessage = "Có lỗi xảy ra khi tạo thanh toán";
 
             // Check if it's a network error
             if (error instanceof Error) {
@@ -651,6 +654,8 @@ const PaymentPage: React.FC = () => {
                 } else if (error.message.includes("timeout")) {
                     errorMessage =
                         "Yêu cầu quá thời gian chờ. Vui lòng thử lại sau.";
+                } else {
+                    errorMessage = error.message;
                 }
             }
 
@@ -914,12 +919,11 @@ const PaymentPage: React.FC = () => {
                                                         "text-gray-500 text-sm uppercase text-end"
                                                     }
                                                 >
-                                                    {selectedPromotion?.promotionType ===
-                                                    "SHIPPING_DISCOUNT"
+                                                    {selectedShippingPromotion
                                                         ? `${(
                                                               40000 -
                                                               calculateShippingDiscount(
-                                                                  selectedPromotion,
+                                                                  selectedShippingPromotion,
                                                                   40000
                                                               )
                                                           ).toLocaleString(
@@ -1064,11 +1068,17 @@ const PaymentPage: React.FC = () => {
                                             Mã giảm giá
                                         </h2>
                                         <PromotionSelector
-                                            selectedPromotion={
-                                                selectedPromotion
+                                            selectedProductPromotion={
+                                                selectedProductPromotion
                                             }
-                                            onPromotionSelect={
-                                                setSelectedPromotion
+                                            selectedShippingPromotion={
+                                                selectedShippingPromotion
+                                            }
+                                            onProductPromotionSelect={
+                                                setSelectedProductPromotion
+                                            }
+                                            onShippingPromotionSelect={
+                                                setSelectedShippingPromotion
                                             }
                                             cartTotal={cartItems.reduce(
                                                 (total, item) =>
@@ -1293,60 +1303,53 @@ const PaymentPage: React.FC = () => {
                                                 <span>Phí vận chuyển:</span>
                                                 <span>40,000đ</span>
                                             </div>
-                                            {selectedPromotion &&
-                                                selectedPromotion.promotionType !==
-                                                    "SHIPPING_DISCOUNT" && (
-                                                    <div className="flex justify-between text-green-600">
-                                                        <span>
-                                                            Giảm giá (
-                                                            {
-                                                                selectedPromotion.code
-                                                            }
-                                                            ):
-                                                        </span>
-                                                        <span>
-                                                            -
-                                                            {calculatePromotionDiscount(
-                                                                selectedPromotion,
-                                                                cartItems.reduce(
-                                                                    (
-                                                                        total,
-                                                                        item
-                                                                    ) =>
-                                                                        total +
-                                                                        item.total,
-                                                                    0
-                                                                )
-                                                            ).toLocaleString(
-                                                                "vi-VN"
-                                                            )}
-                                                            đ
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            {selectedPromotion &&
-                                                selectedPromotion.promotionType ===
-                                                    "SHIPPING_DISCOUNT" && (
-                                                    <div className="flex justify-between text-green-600">
-                                                        <span>
-                                                            Giảm phí ship (
-                                                            {
-                                                                selectedPromotion.code
-                                                            }
-                                                            ):
-                                                        </span>
-                                                        <span>
-                                                            -
-                                                            {calculateShippingDiscount(
-                                                                selectedPromotion,
-                                                                40000
-                                                            ).toLocaleString(
-                                                                "vi-VN"
-                                                            )}
-                                                            đ
-                                                        </span>
-                                                    </div>
-                                                )}
+                                            {selectedProductPromotion && (
+                                                <div className="flex justify-between text-green-600">
+                                                    <span>
+                                                        Giảm giá sản phẩm (
+                                                        {
+                                                            selectedProductPromotion.code
+                                                        }
+                                                        ):
+                                                    </span>
+                                                    <span>
+                                                        -
+                                                        {calculatePromotionDiscount(
+                                                            selectedProductPromotion,
+                                                            cartItems.reduce(
+                                                                (total, item) =>
+                                                                    total +
+                                                                    item.total,
+                                                                0
+                                                            )
+                                                        ).toLocaleString(
+                                                            "vi-VN"
+                                                        )}
+                                                        đ
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {selectedShippingPromotion && (
+                                                <div className="flex justify-between text-blue-600">
+                                                    <span>
+                                                        Giảm phí ship (
+                                                        {
+                                                            selectedShippingPromotion.code
+                                                        }
+                                                        ):
+                                                    </span>
+                                                    <span>
+                                                        -
+                                                        {calculateShippingDiscount(
+                                                            selectedShippingPromotion,
+                                                            40000
+                                                        ).toLocaleString(
+                                                            "vi-VN"
+                                                        )}
+                                                        đ
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div className="flex justify-between">
                                                 <span>VAT (10%):</span>
                                                 <span>
@@ -1358,7 +1361,7 @@ const PaymentPage: React.FC = () => {
                                                             0
                                                         ) -
                                                             calculatePromotionDiscount(
-                                                                selectedPromotion,
+                                                                selectedProductPromotion,
                                                                 cartItems.reduce(
                                                                     (
                                                                         total,
@@ -1393,7 +1396,7 @@ const PaymentPage: React.FC = () => {
                                                             0
                                                         ) -
                                                             calculatePromotionDiscount(
-                                                                selectedPromotion,
+                                                                selectedProductPromotion,
                                                                 cartItems.reduce(
                                                                     (
                                                                         total,
@@ -1406,7 +1409,7 @@ const PaymentPage: React.FC = () => {
                                                             )) *
                                                             0.1 -
                                                         calculatePromotionDiscount(
-                                                            selectedPromotion,
+                                                            selectedProductPromotion,
                                                             cartItems.reduce(
                                                                 (total, item) =>
                                                                     total +
@@ -1415,7 +1418,7 @@ const PaymentPage: React.FC = () => {
                                                             )
                                                         ) -
                                                         calculateShippingDiscount(
-                                                            selectedPromotion,
+                                                            selectedShippingPromotion,
                                                             40000
                                                         )
                                                     ).toLocaleString("vi-VN")}

@@ -161,7 +161,7 @@ class OrderHistoryService {
         reason?: string
     ): Promise<ApiResponse<CancelOrderResponse>> {
         try {
-            const response = await userRoleAPI.patch<CancelOrderResponse>(
+            const response = await userRoleAPI.post<CancelOrderResponse>(
                 `/orders/${orderId}/cancel`,
                 { reason }
             );

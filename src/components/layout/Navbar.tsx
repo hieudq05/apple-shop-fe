@@ -402,7 +402,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                             <Menu
                                 as="div"
                                 id={"user-menu"}
-                                className="inline-block text-left"
+                                className="inline-block text-left mt-1"
                                 onMouseEnter={() =>
                                     handleMouseEnter("user-menu")
                                 }
@@ -431,8 +431,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                         className="absolute right-0 w-80 origin-top-right bg-white shadow-lg focus:outline-none z-40 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-screen"
                                     >
                                         {isAuthenticated && user ? (
-                                            <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto">
-                                                <div className="flex items-start space-x-4 pb-6 border-b border-gray-200">
+                                            <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col items-end">
+                                                <div className="flex items-start space-x-4">
                                                     <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                                                         {user.imageUrl ? (
                                                             <img
@@ -458,7 +458,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="pt-4 space-y-2">
+                                                <div className="flex flex-col gap-2">
                                                     <MenuItem>
                                                         {({ active }) => (
                                                             <Link
@@ -503,7 +503,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                         {({ active }) => (
                                                             <button
                                                                 onClick={logout}
-                                                                className={`${
+                                                                className={`cursor-pointer ${
                                                                     active
                                                                         ? "bg-gray-50"
                                                                         : ""

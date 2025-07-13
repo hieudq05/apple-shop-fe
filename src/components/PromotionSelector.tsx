@@ -21,15 +21,19 @@ import { Loader2, Search, Tag, X } from "lucide-react";
 import promotionService, { type Promotion } from "../services/promotionService";
 
 interface PromotionSelectorProps {
-    selectedPromotion?: Promotion | null;
-    onPromotionSelect: (promotion: Promotion | null) => void;
+    selectedProductPromotion?: Promotion | null;
+    selectedShippingPromotion?: Promotion | null;
+    onProductPromotionSelect: (promotion: Promotion | null) => void;
+    onShippingPromotionSelect: (promotion: Promotion | null) => void;
     cartTotal: number;
     disabled?: boolean;
 }
 
 const PromotionSelector: React.FC<PromotionSelectorProps> = ({
-    selectedPromotion,
-    onPromotionSelect,
+    selectedProductPromotion,
+    selectedShippingPromotion,
+    onProductPromotionSelect,
+    onShippingPromotionSelect,
     cartTotal,
     disabled = false,
 }) => {
@@ -113,13 +117,22 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
         }
     };
 
-    const handlePromotionSelect = (promotion: Promotion) => {
-        onPromotionSelect(promotion);
+    const handleProductPromotionSelect = (promotion: Promotion) => {
+        onProductPromotionSelect(promotion);
         setIsOpen(false);
     };
 
-    const handleRemovePromotion = () => {
-        onPromotionSelect(null);
+    const handleShippingPromotionSelect = (promotion: Promotion) => {
+        onShippingPromotionSelect(promotion);
+        setIsOpen(false);
+    };
+
+    const handleRemoveProductPromotion = () => {
+        onProductPromotionSelect(null);
+    };
+
+    const handleRemoveShippingPromotion = () => {
+        onShippingPromotionSelect(null);
     };
 
     const formatDiscountValue = (promotion: Promotion) => {
@@ -162,25 +175,28 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
 
     return (
         <div className="space-y-4">
-            {/* Selected Promotion Display */}
-            {selectedPromotion && (
+            {/* Selected Product Promotion Display */}
+            {selectedProductPromotion && (
                 <Card className="border-green-200 bg-green-50">
-                    <CardContent className="pt-4">
+                    <CardContent className="pt-0">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                                 <Tag className="h-5 w-5 text-green-600" />
                                 <div>
                                     <p className="font-medium text-green-800">
-                                        {selectedPromotion.name}
+                                        {selectedProductPromotion.name}
                                     </p>
                                     <p className="text-sm text-green-600">
-                                        Mã: {selectedPromotion.code} • Giảm{" "}
-                                        {formatDiscountValue(selectedPromotion)}
+                                        Mã sản phẩm:{" "}
+                                        {selectedProductPromotion.code} • Giảm{" "}
+                                        {formatDiscountValue(
+                                            selectedProductPromotion
+                                        )}
                                     </p>
                                     <p className="text-sm text-green-600">
                                         Tiết kiệm:{" "}
                                         {calculateDiscount(
-                                            selectedPromotion
+                                            selectedProductPromotion
                                         ).toLocaleString("vi-VN")}
                                         đ
                                     </p>
@@ -189,8 +205,48 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={handleRemovePromotion}
+                                onClick={handleRemoveProductPromotion}
                                 className="text-green-600 hover:text-green-800"
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Selected Shipping Promotion Display */}
+            {selectedShippingPromotion && (
+                <Card className="border-blue-200 bg-blue-50">
+                    <CardContent className="pt-0">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <Tag className="h-5 w-5 text-blue-600" />
+                                <div>
+                                    <p className="font-medium text-blue-800">
+                                        {selectedShippingPromotion.name}
+                                    </p>
+                                    <p className="text-sm text-blue-600">
+                                        Mã vận chuyển:{" "}
+                                        {selectedShippingPromotion.code} • Giảm{" "}
+                                        {formatDiscountValue(
+                                            selectedShippingPromotion
+                                        )}
+                                    </p>
+                                    <p className="text-sm text-blue-600">
+                                        Tiết kiệm phí ship:{" "}
+                                        {calculateDiscount(
+                                            selectedShippingPromotion
+                                        ).toLocaleString("vi-VN")}
+                                        đ
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleRemoveShippingPromotion}
+                                className="text-blue-600 hover:text-blue-800"
                             >
                                 <X className="h-4 w-4" />
                             </Button>
@@ -203,12 +259,17 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
                     <Button
-                        variant={selectedPromotion ? "outline" : "default"}
+                        variant={
+                            selectedProductPromotion ||
+                            selectedShippingPromotion
+                                ? "outline"
+                                : "default"
+                        }
                         className="w-full"
                         disabled={disabled}
                     >
                         <Tag className="mr-2 h-4 w-4" />
-                        {selectedPromotion
+                        {selectedProductPromotion || selectedShippingPromotion
                             ? "Thay đổi mã giảm giá"
                             : "Chọn mã giảm giá"}
                     </Button>
@@ -250,33 +311,70 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
                             {promotions.map((promotion) => {
                                 const eligible = isPromotionEligible(promotion);
                                 const discount = calculateDiscount(promotion);
+                                const isShippingPromo =
+                                    promotion.promotionType ===
+                                    "SHIPPING_DISCOUNT";
+                                const isAlreadySelected = isShippingPromo
+                                    ? selectedShippingPromotion?.id ===
+                                      promotion.id
+                                    : selectedProductPromotion?.id ===
+                                      promotion.id;
+                                const canSelect = isShippingPromo
+                                    ? !selectedShippingPromotion ||
+                                      selectedShippingPromotion.id ===
+                                          promotion.id
+                                    : !selectedProductPromotion ||
+                                      selectedProductPromotion.id ===
+                                          promotion.id;
 
                                 return (
                                     <Card
                                         key={promotion.id}
-                                        className={`cursor-pointer transition-colors ${
-                                            eligible
+                                        className={`cursor-pointer transition-colors gap-1 ${
+                                            eligible && canSelect
                                                 ? "hover:border-primary"
                                                 : "opacity-50 cursor-not-allowed"
                                         } ${
-                                            selectedPromotion?.id ===
-                                            promotion.id
+                                            isAlreadySelected
                                                 ? "border-primary bg-primary/5"
                                                 : ""
                                         }`}
-                                        onClick={() =>
-                                            eligible &&
-                                            handlePromotionSelect(promotion)
-                                        }
+                                        onClick={() => {
+                                            if (eligible && canSelect) {
+                                                if (isShippingPromo) {
+                                                    handleShippingPromotionSelect(
+                                                        promotion
+                                                    );
+                                                } else {
+                                                    handleProductPromotionSelect(
+                                                        promotion
+                                                    );
+                                                }
+                                            }
+                                        }}
                                     >
-                                        <CardHeader className="pb-2">
+                                        <CardHeader className="pb-0">
                                             <div className="flex items-center justify-between">
-                                                <CardTitle className="text-sm">
-                                                    {promotion.name}
-                                                </CardTitle>
+                                                <div className="flex items-center gap-2">
+                                                    <CardTitle className="text-sm">
+                                                        {promotion.name}
+                                                    </CardTitle>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={`text-xs ${
+                                                            isShippingPromo
+                                                                ? "border-blue-500 text-blue-600"
+                                                                : "border-green-500 text-green-600"
+                                                        }`}
+                                                    >
+                                                        {isShippingPromo
+                                                            ? "Vận chuyển"
+                                                            : "Sản phẩm"}
+                                                    </Badge>
+                                                </div>
                                                 <Badge
                                                     variant={
-                                                        eligible
+                                                        eligible && canSelect
                                                             ? "default"
                                                             : "secondary"
                                                     }
@@ -288,6 +386,15 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
                                             </div>
                                             <CardDescription className="text-xs">
                                                 Mã: {promotion.code}
+                                                {!canSelect && (
+                                                    <span className="text-amber-600 ml-2">
+                                                        (Đã chọn{" "}
+                                                        {isShippingPromo
+                                                            ? "mã vận chuyển"
+                                                            : "mã sản phẩm"}{" "}
+                                                        khác)
+                                                    </span>
+                                                )}
                                             </CardDescription>
                                         </CardHeader>
                                         <CardContent className="pt-0">

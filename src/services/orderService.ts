@@ -155,7 +155,7 @@ class OrderService {
         reason?: string
     ): Promise<ApiResponse<any>> {
         try {
-            const response = await privateAPI.patch<ApiResponse<any>>(
+            const response = await privateAPI.post<ApiResponse<any>>(
                 `/api/v1/orders/${orderId}/cancel`,
                 {
                     reason,
