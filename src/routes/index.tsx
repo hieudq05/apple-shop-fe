@@ -10,6 +10,7 @@ import ProductsPage from "../pages/ProductsPage.tsx";
 import ProductPage from "../pages/ProductPage.tsx";
 import CartPage from "../pages/CartPage.tsx";
 import PaymentPage from "../pages/PaymentPage";
+import PaymentResultPage from "../pages/PaymentResultPage";
 import ProfilePage from "../pages/ProfilePage.tsx";
 import OrderHistoryPage from "../pages/OrderHistoryPage.tsx";
 import UserOrderDetailPage from "../pages/OrderDetailPage.tsx";
@@ -92,6 +93,10 @@ export const routesConfig: RouteObject[] = [
             {
                 path: "payment",
                 element: <PaymentPage />,
+            },
+            {
+                path: "payment-result",
+                element: <PaymentResultPage />,
             },
             {
                 path: "profile",

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { cartApiService, type CartItem } from "../services/cartApiService";
 import userService, { type MyShippingAddress } from "../services/userService";
+import paymentService, {
+    type CreatePaymentRequest,
+} from "../services/paymentService";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import {
     Dialog,
@@ -29,7 +32,55 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import EditAddressDialog from "../components/EditAddressDialog";
 import CreateAddressDialog from "../components/CreateAddressDialog";
+import PromotionSelector from "../components/PromotionSelector";
+import NotificationDialog from "../components/NotificationDialog";
 import { Info } from "lucide-react";
+import { type Promotion } from "../services/promotionService";
+
+// API interfaces for provinces.open-api.vn
+interface Province {
+    id: string;
+    name: string;
+}
+
+interface District {
+    id: string;
+    name: string;
+    provinceId: string;
+}
+
+interface Ward {
+    id: string;
+    name: string;
+    districtId: string;
+}
+
+interface ApiProvince {
+    code: number;
+    name: string;
+}
+
+interface ApiDistrict {
+    code: number;
+    name: string;
+}
+
+interface ApiWard {
+    code: number;
+    name: string;
+}
+
+interface ApiProvinceWithDistricts {
+    code: number;
+    name: string;
+    districts: ApiDistrict[];
+}
+
+interface ApiDistrictWithWards {
+    code: number;
+    name: string;
+    wards: ApiWard[];
+}
 
 const PaymentPage: React.FC = () => {
     const navigate = useNavigate();
@@ -39,14 +90,11 @@ const PaymentPage: React.FC = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
 
-    // Step 1 state
-    const [selectedAddress, setSelectedAddress] = useState<string>("");
-
     // Step 2 state
     const [fullName, setFullName] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [phone, setPhone] = useState<string>("");
-    const [paymentMethod, setPaymentMethod] = useState<string>("cod");
+    const [paymentMethod, setPaymentMethod] = useState<string>("vnpay");
 
     // Shipping address management state
     const [shippingAddresses, setShippingAddresses] = useState<
@@ -71,11 +119,285 @@ const PaymentPage: React.FC = () => {
     // Create address dialog state
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
+    // Promotion state
+    const [selectedPromotion, setSelectedPromotion] =
+        useState<Promotion | null>(null);
+
+    // Payment processing state
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+    // Notification dialog state
+    const [notificationDialog, setNotificationDialog] = useState<{
+        isOpen: boolean;
+        type: "success" | "error" | "warning" | "info";
+        title: string;
+        message: string;
+    }>({
+        isOpen: false,
+        type: "info",
+        title: "",
+        message: "",
+    });
+
+    // Helper function to show notification
+    const showNotification = React.useCallback(
+        (
+            type: "success" | "error" | "warning" | "info",
+            title: string,
+            message: string
+        ) => {
+            setNotificationDialog({
+                isOpen: true,
+                type,
+                title,
+                message,
+            });
+        },
+        []
+    );
+
+    // Helper function to close notification
+    const closeNotification = React.useCallback(() => {
+        setNotificationDialog((prev) => ({ ...prev, isOpen: false }));
+    }, []);
+
+    // Calculate promotion discount
+    const calculatePromotionDiscount = (
+        promotion: Promotion | null,
+        cartTotal: number
+    ): number => {
+        if (!promotion) return 0;
+
+        if (promotion.promotionType === "PERCENTAGE") {
+            const discount = (cartTotal * promotion.value) / 100;
+            return promotion.maxDiscountAmount
+                ? Math.min(discount, promotion.maxDiscountAmount)
+                : discount;
+        } else if (promotion.promotionType === "FIXED_AMOUNT") {
+            return Math.min(promotion.value, cartTotal);
+        }
+        return 0; // SHIPPING_DISCOUNT không áp dụng cho cart total
+    };
+
+    // Calculate shipping discount
+    const calculateShippingDiscount = (
+        promotion: Promotion | null,
+        shippingFee: number
+    ): number => {
+        if (!promotion || promotion.promotionType !== "SHIPPING_DISCOUNT")
+            return 0;
+
+        if (promotion.value === 100) {
+            // 100% discount
+            return promotion.maxDiscountAmount
+                ? Math.min(shippingFee, promotion.maxDiscountAmount)
+                : shippingFee;
+        }
+
+        const discount = (shippingFee * promotion.value) / 100;
+        return promotion.maxDiscountAmount
+            ? Math.min(discount, promotion.maxDiscountAmount)
+            : discount;
+    };
+
+    // Cache for API responses to avoid repeated calls
+    const apiCache = React.useRef<{
+        provinces?: Province[];
+        districts: { [provinceId: string]: District[] };
+        wards: { [districtId: string]: Ward[] };
+    }>({
+        districts: {},
+        wards: {},
+    });
+
+    // Fetch provinces, districts, and wards from API
+    const fetchProvinces = async (): Promise<Province[]> => {
+        if (apiCache.current.provinces) {
+            return apiCache.current.provinces;
+        }
+
+        try {
+            const response = await fetch(
+                "https://provinces.open-api.vn/api/?depth=1"
+            );
+            const data: ApiProvince[] = await response.json();
+
+            // Transform data to match our interface
+            const provinces = data.map((province: ApiProvince) => ({
+                id: province.code.toString(),
+                name: province.name,
+            }));
+
+            apiCache.current.provinces = provinces;
+            return provinces;
+        } catch (error) {
+            console.error("Error fetching provinces:", error);
+            return [];
+        }
+    };
+
+    const fetchDistricts = async (provinceId: string): Promise<District[]> => {
+        if (apiCache.current.districts[provinceId]) {
+            return apiCache.current.districts[provinceId];
+        }
+
+        try {
+            const response = await fetch(
+                `https://provinces.open-api.vn/api/p/${provinceId}?depth=2`
+            );
+            const data: ApiProvinceWithDistricts = await response.json();
+
+            // Transform data to match our interface
+            const districts = data.districts.map((district: ApiDistrict) => ({
+                id: district.code.toString(),
+                name: district.name,
+                provinceId: provinceId,
+            }));
+
+            apiCache.current.districts[provinceId] = districts;
+            return districts;
+        } catch (error) {
+            console.error("Error fetching districts:", error);
+            return [];
+        }
+    };
+
+    const fetchWards = async (districtId: string): Promise<Ward[]> => {
+        if (apiCache.current.wards[districtId]) {
+            return apiCache.current.wards[districtId];
+        }
+
+        try {
+            const response = await fetch(
+                `https://provinces.open-api.vn/api/d/${districtId}?depth=2`
+            );
+            const data: ApiDistrictWithWards = await response.json();
+
+            // Transform data to match our interface
+            const wards = data.wards.map((ward: ApiWard) => ({
+                id: ward.code.toString(),
+                name: ward.name,
+                districtId: districtId,
+            }));
+
+            apiCache.current.wards[districtId] = wards;
+            return wards;
+        } catch (error) {
+            console.error("Error fetching wards:", error);
+            return [];
+        }
+    };
+
+    const formatAddress = async (
+        address: MyShippingAddress
+    ): Promise<string> => {
+        try {
+            const parts = [];
+
+            // Add specific address first
+            if (address.address) parts.push(address.address);
+
+            // Get ward name from API
+            if (address.ward && address.district) {
+                const wardData = await fetchWards(address.district);
+
+                // Try both exact match and string conversion
+                const ward = wardData.find(
+                    (w) =>
+                        w.id === address.ward ||
+                        w.id === address.ward.toString()
+                );
+                if (ward) {
+                    parts.push(`${ward.name}`);
+                } else {
+                    parts.push(`Phường/Xã ${address.ward}`);
+                }
+            }
+
+            // Get district name from API
+            if (address.district && address.province) {
+                const districtData = await fetchDistricts(address.province);
+
+                // Try both exact match and string conversion
+                const district = districtData.find(
+                    (d) =>
+                        d.id === address.district ||
+                        d.id === address.district.toString()
+                );
+                if (district) {
+                    parts.push(`${district.name}`);
+                } else {
+                    parts.push(`Quận/Huyện ${address.district}`);
+                }
+            }
+
+            // Get province name from API
+            if (address.province) {
+                const provinceData = await fetchProvinces();
+
+                // Try both exact match and string conversion
+                const province = provinceData.find(
+                    (p) =>
+                        p.id === address.province ||
+                        p.id === address.province.toString()
+                );
+                if (province) {
+                    parts.push(`${province.name}`);
+                } else {
+                    parts.push(`Tỉnh/TP ${address.province}`);
+                }
+            }
+
+            const formattedAddress =
+                parts.length > 0
+                    ? parts.join(", ")
+                    : "Không có thông tin địa chỉ";
+
+            return formattedAddress;
+        } catch (error) {
+            console.error("Error formatting address:", error);
+            // Fallback to original format with IDs
+            const parts = [];
+            if (address.address) parts.push(address.address);
+            if (address.ward) parts.push(`Phường/Xã ${address.ward}`);
+            if (address.district) parts.push(`Quận/Huyện ${address.district}`);
+            if (address.province) parts.push(`Tỉnh/TP ${address.province}`);
+
+            return parts.length > 0
+                ? parts.join(", ")
+                : "Không có thông tin địa chỉ";
+        }
+    };
+
+    // Component to display formatted address
+    const AddressDisplay: React.FC<{ address: MyShippingAddress }> = ({
+        address,
+    }) => {
+        const [formattedAddress, setFormattedAddress] = useState<string>(
+            "Đang tải địa chỉ..."
+        );
+
+        React.useEffect(() => {
+            const loadAddress = async () => {
+                const formatted = await formatAddress(address);
+                setFormattedAddress(formatted);
+            };
+            loadAddress();
+        }, [address]);
+
+        return (
+            <span className="leading-relaxed text-base">
+                {formattedAddress}
+            </span>
+        );
+    };
+
     // Load cart data from API
     useEffect(() => {
         loadCartData();
         loadShippingAddresses();
         loadUserInfo();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Update contact info when shipping address is selected
@@ -107,49 +429,39 @@ const PaymentPage: React.FC = () => {
         }
     };
 
-    const createAddress = async (address: MyShippingAddress) => {
-        try {
-            setIsLoadingAddresses(true);
-            setAddressError("");
-            const response = await userService.createShippingAddress(address);
-            if (response.success) {
-                await loadShippingAddresses();
-                setIsCreateDialogOpen(false);
-            } else {
-                setAddressError(response.message || "Không thể tạo địa chỉ giao hàng");
-            }
-        } catch (err) {
-            console.error("Error creating address:", err);
-            setAddressError("Không thể tạo địa chỉ giao hàng");
-        } finally {
-            setIsLoadingAddresses(false);
-        }
-    }
-
     // Load shipping addresses
-    const loadShippingAddresses = async () => {
+    const loadShippingAddresses = React.useCallback(async () => {
         try {
             setIsLoadingAddresses(true);
             setAddressError("");
             const response = await userService.getMyShippingAddress();
-            setShippingAddresses(response.data);
 
-            // Auto-select default address if available
-            const defaultAddress = response.data.find(
-                (addr: MyShippingAddress) => addr.isDefault
-            );
-            if (defaultAddress) {
-                setSelectedShippingAddress(defaultAddress);
-                const formattedAddress = `${defaultAddress.address}, ${defaultAddress.ward}, ${defaultAddress.district}, ${defaultAddress.province}`;
-                setSelectedAddress(formattedAddress);
+            if (response.success) {
+                setShippingAddresses(response.data);
+
+                // Auto-select default address if available
+                const defaultAddress = response.data.find(
+                    (addr: MyShippingAddress) => addr.isDefault
+                );
+                if (defaultAddress) {
+                    setSelectedShippingAddress(defaultAddress);
+                }
+            } else {
+                const errorMsg =
+                    response.message ||
+                    "Không thể tải danh sách địa chỉ giao hàng";
+                setAddressError(errorMsg);
+                showNotification("error", "Lỗi tải địa chỉ", errorMsg);
             }
         } catch (err) {
             console.error("Error loading shipping addresses:", err);
-            setAddressError("Không thể tải danh sách địa chỉ giao hàng");
+            const errorMsg = "Không thể tải danh sách địa chỉ giao hàng";
+            setAddressError(errorMsg);
+            showNotification("error", "Lỗi hệ thống", errorMsg);
         } finally {
             setIsLoadingAddresses(false);
         }
-    };
+    }, [showNotification]);
 
     const handlePaymentMethodChange = (
         e: React.ChangeEvent<HTMLInputElement>
@@ -163,8 +475,12 @@ const PaymentPage: React.FC = () => {
 
     const handleNextStep = () => {
         // Validate step 1 data
-        if (!selectedAddress || !selectedShippingAddress) {
-            alert("Vui lòng chọn địa chỉ giao hàng");
+        if (!selectedShippingAddress) {
+            showNotification(
+                "warning",
+                "Thiếu thông tin giao hàng",
+                "Vui lòng chọn địa chỉ giao hàng trước khi tiếp tục đến bước thanh toán."
+            );
             return;
         }
 
@@ -175,19 +491,25 @@ const PaymentPage: React.FC = () => {
         setCurrentStep(1);
     };
 
-    const handleSubmitOrder = (e: React.FormEvent) => {
+    const handleSubmitOrder = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate step 2 data
-        if (!fullName || !email || !phone) {
-            alert(
-                "Thông tin liên hệ chưa đầy đủ. Vui lòng kiểm tra lại địa chỉ giao hàng đã chọn."
+        if (!selectedShippingAddress) {
+            showNotification(
+                "warning",
+                "Thiếu thông tin giao hàng",
+                "Vui lòng chọn địa chỉ giao hàng trước khi tiếp tục."
             );
             return;
         }
 
-        if (!selectedShippingAddress) {
-            alert("Vui lòng chọn địa chỉ giao hàng");
+        // Validate step 2 data
+        if (!fullName || !email || !phone) {
+            showNotification(
+                "warning",
+                "Thông tin liên hệ chưa đầy đủ",
+                "Vui lòng kiểm tra lại địa chỉ giao hàng đã chọn để đảm bảo có đầy đủ thông tin liên hệ (tên, email, số điện thoại)."
+            );
             return;
         }
 
@@ -200,9 +522,21 @@ const PaymentPage: React.FC = () => {
             (total, item) => total + item.quantity,
             0
         );
-        const shippingFee = 0; // Free shipping
-        const vat = subtotal * 0.1; // 10% VAT
-        const totalAmount = subtotal + shippingFee + vat;
+        const shippingFee = 40000; // 40,000 VND shipping fee
+
+        // Calculate promotion discount
+        const promotionDiscount = calculatePromotionDiscount(
+            selectedPromotion,
+            subtotal
+        );
+        const shippingDiscount = calculateShippingDiscount(
+            selectedPromotion,
+            shippingFee
+        );
+
+        const vat = (subtotal - promotionDiscount) * 0.1; // 10% VAT after discount
+        const totalAmount =
+            subtotal + shippingFee + vat - promotionDiscount - shippingDiscount;
 
         // Create order data
         const orderData = {
@@ -225,22 +559,110 @@ const PaymentPage: React.FC = () => {
             subtotal,
             shippingFee,
             vat,
+            promotionDiscount,
+            shippingDiscount,
+            promotion: selectedPromotion
+                ? {
+                      id: selectedPromotion.id,
+                      code: selectedPromotion.code,
+                      name: selectedPromotion.name,
+                      type: selectedPromotion.promotionType,
+                      discountAmount: promotionDiscount + shippingDiscount,
+                  }
+                : null,
             totalAmount,
         };
 
-        // Send order data to API
         console.log("Order data:", orderData);
 
-        // Redirect to confirmation page or show success message
-        alert("Đặt hàng thành công!");
-        navigate("/");
+        try {
+            setIsProcessingPayment(true);
+
+            // Prepare payment request data
+            const paymentData: CreatePaymentRequest = {
+                firstName: selectedShippingAddress.firstName,
+                lastName: selectedShippingAddress.lastName,
+                email: selectedShippingAddress.email || email,
+                phone: selectedShippingAddress.phone || phone,
+                address: selectedShippingAddress.address,
+                ward: parseInt(selectedShippingAddress.ward),
+                district: parseInt(selectedShippingAddress.district),
+                province: parseInt(selectedShippingAddress.province),
+                productPromotionCode:
+                    selectedPromotion?.promotionType === "FIXED_AMOUNT" ||
+                    selectedPromotion?.promotionType === "PERCENTAGE"
+                        ? selectedPromotion.code
+                        : null,
+                shippingPromotionCode:
+                    selectedPromotion?.promotionType === "SHIPPING_DISCOUNT"
+                        ? selectedPromotion.code
+                        : null,
+            };
+
+            // Create payment URL based on payment method
+            let paymentResponse;
+            if (paymentMethod === "vnpay") {
+                paymentResponse = await paymentService.createVNPayPayment(
+                    paymentData
+                );
+            } else if (paymentMethod === "paypal") {
+                paymentResponse = await paymentService.createPayPalPayment(
+                    paymentData
+                );
+            } else {
+                showNotification(
+                    "error",
+                    "Phương thức thanh toán không hỗ trợ",
+                    "Vui lòng chọn phương thức thanh toán VNPay hoặc PayPal."
+                );
+                return;
+            }
+
+            if (paymentResponse.success && paymentResponse.data.paymentUrl) {
+                // Show success notification before redirect
+                showNotification(
+                    "success",
+                    "Tạo thanh toán thành công",
+                    "Bạn sẽ được chuyển hướng đến trang thanh toán trong giây lát..."
+                );
+
+                // Redirect after a short delay to let user see the notification
+                setTimeout(() => {
+                    window.location.href = paymentResponse.data.paymentUrl;
+                }, 2000);
+            } else {
+                showNotification(
+                    "error",
+                    "Lỗi tạo thanh toán",
+                    paymentResponse.msg ||
+                        "Không thể tạo URL thanh toán. Vui lòng thử lại sau."
+                );
+            }
+        } catch (error) {
+            console.error("Error creating payment:", error);
+            const errorEntity = error as Error;
+            let errorMessage = errorEntity.response.data.error.message;
+
+            // Check if it's a network error
+            if (error instanceof Error) {
+                if (error.message.includes("Network")) {
+                    errorMessage =
+                        "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.";
+                } else if (error.message.includes("timeout")) {
+                    errorMessage =
+                        "Yêu cầu quá thời gian chờ. Vui lòng thử lại sau.";
+                }
+            }
+
+            showNotification("error", "Lỗi hệ thống", errorMessage);
+        } finally {
+            setIsProcessingPayment(false);
+        }
     };
 
     // Address management handlers
     const handleSelectAddress = (address: MyShippingAddress) => {
         setSelectedShippingAddress(address);
-        const formattedAddress = `${address.address}, ${address.ward}, ${address.district}, ${address.province}`;
-        setSelectedAddress(formattedAddress);
         setIsAddressDialogOpen(false);
     };
 
@@ -258,17 +680,28 @@ const PaymentPage: React.FC = () => {
         if (!deletingAddressId) return;
 
         try {
-            await userService.deleteShippingAddress(deletingAddressId);
-            await loadShippingAddresses();
+            const response = await userService.deleteShippingAddress(
+                deletingAddressId
+            );
 
-            // If deleted address was selected, clear selection
-            if (selectedShippingAddress?.id === deletingAddressId) {
-                setSelectedShippingAddress(null);
-                setSelectedAddress("");
+            if (response.success) {
+                await loadShippingAddresses();
+
+                // If deleted address was selected, clear selection
+                if (selectedShippingAddress?.id === deletingAddressId) {
+                    setSelectedShippingAddress(null);
+                }
+            } else {
+                const errorMsg =
+                    response.message || "Không thể xóa địa chỉ giao hàng";
+                setAddressError(errorMsg);
+                showNotification("error", "Lỗi xóa địa chỉ", errorMsg);
             }
         } catch (error) {
             console.error("Error deleting address:", error);
-            setAddressError("Không thể xóa địa chỉ giao hàng");
+            const errorMsg = "Không thể xóa địa chỉ giao hàng";
+            setAddressError(errorMsg);
+            showNotification("error", "Lỗi hệ thống", errorMsg);
         } finally {
             setIsDeleteDialogOpen(false);
             setDeletingAddressId(null);
@@ -277,11 +710,23 @@ const PaymentPage: React.FC = () => {
 
     const handleSetDefaultAddress = async (addressId: number) => {
         try {
-            await userService.setDefaultShippingAddress(addressId);
-            await loadShippingAddresses();
+            const response = await userService.setDefaultShippingAddress(
+                addressId
+            );
+
+            if (response.success) {
+                await loadShippingAddresses();
+            } else {
+                const errorMsg =
+                    response.message || "Không thể đặt địa chỉ mặc định";
+                setAddressError(errorMsg);
+                showNotification("error", "Lỗi cập nhật địa chỉ", errorMsg);
+            }
         } catch (error) {
             console.error("Error setting default address:", error);
-            setAddressError("Không thể đặt địa chỉ mặc định");
+            const errorMsg = "Không thể đặt địa chỉ mặc định";
+            setAddressError(errorMsg);
+            showNotification("error", "Lỗi hệ thống", errorMsg);
         }
     };
 
@@ -340,7 +785,7 @@ const PaymentPage: React.FC = () => {
 
     return (
         <div>
-            <h1 className="bg-gray-100 text-lg py-5 font-semibold">
+            <h1 className="bg-gray-100 text-base py-5 font-semibold">
                 <div className={"container mx-auto"}>Thanh toán</div>
             </h1>
             <div className="container mx-auto py-12 px-4 space-y-12">
@@ -351,17 +796,19 @@ const PaymentPage: React.FC = () => {
                         </h2>
                         <div
                             className={
-                                "flex justify-center items-center space-x-1"
+                                "flex justify-center items-center space-x-1 text-lg"
                             }
                         >
                             <p>Giao hàng đến:</p>
-                            {selectedAddress ? (
+                            {selectedShippingAddress ? (
                                 <div className="flex justify-between items-center">
                                     <button
                                         className="text-blue-600 cursor-pointer p-0 focus:outline-none underline underline-offset-2"
                                         onClick={openAddressDialog}
                                     >
-                                        {selectedAddress}
+                                        <AddressDisplay
+                                            address={selectedShippingAddress}
+                                        />
                                     </button>
                                 </div>
                             ) : (
@@ -369,7 +816,7 @@ const PaymentPage: React.FC = () => {
                                     className="w-fit p-0 text-blue-600 cursor-pointer focus:outline-none underline"
                                     onClick={openAddressDialog}
                                 >
-                                    Tỉnh/Thành phố
+                                    Chọn địa chỉ giao hàng
                                 </button>
                             )}
                         </div>
@@ -382,7 +829,7 @@ const PaymentPage: React.FC = () => {
                                     Còn hàng
                                 </h2>
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-12 pb-12">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 pb-12">
                                         {cartItems.map(
                                             (item: CartItem, index: number) => (
                                                 <div
@@ -437,7 +884,7 @@ const PaymentPage: React.FC = () => {
                                         </h3>
                                         <button
                                             className={
-                                                "bg-gray-50 rounded-xl border border-blue-500 text-start flex items-center justify-between p-4 w-full hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                                "bg-gray-50 rounded-xl border border-blue-500 text-start flex md:flex-row flex-col md:items-center items-start justify-between p-4 w-full hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                             }
                                         >
                                             <div>
@@ -467,7 +914,18 @@ const PaymentPage: React.FC = () => {
                                                         "text-gray-500 text-sm uppercase text-end"
                                                     }
                                                 >
-                                                    Miễn phí
+                                                    {selectedPromotion?.promotionType ===
+                                                    "SHIPPING_DISCOUNT"
+                                                        ? `${(
+                                                              40000 -
+                                                              calculateShippingDiscount(
+                                                                  selectedPromotion,
+                                                                  40000
+                                                              )
+                                                          ).toLocaleString(
+                                                              "vi-VN"
+                                                          )}đ`
+                                                        : "40,000đ"}
                                                 </div>
                                             </div>
                                         </button>
@@ -520,6 +978,17 @@ const PaymentPage: React.FC = () => {
                                                 Thông tin liên hệ được tự động
                                                 điền từ địa chỉ giao hàng đã
                                                 chọn
+                                            </span>
+                                        </p>
+                                    </div>
+                                )}
+                                {!selectedShippingAddress && (
+                                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <p className="text-sm text-yellow-700">
+                                            <span className="font-medium">
+                                                ⚠️ Chưa chọn địa chỉ giao hàng.
+                                                Vui lòng quay lại bước 1 để chọn
+                                                địa chỉ.
                                             </span>
                                         </p>
                                     </div>
@@ -587,6 +1056,27 @@ const PaymentPage: React.FC = () => {
                                                 required
                                             />
                                         </div>
+                                    </div>
+
+                                    {/* Promotion Selection */}
+                                    <div>
+                                        <h2 className="text-xl font-bold mb-4 mt-8">
+                                            Mã giảm giá
+                                        </h2>
+                                        <PromotionSelector
+                                            selectedPromotion={
+                                                selectedPromotion
+                                            }
+                                            onPromotionSelect={
+                                                setSelectedPromotion
+                                            }
+                                            cartTotal={cartItems.reduce(
+                                                (total, item) =>
+                                                    total + item.total,
+                                                0
+                                            )}
+                                            disabled={!selectedShippingAddress}
+                                        />
                                     </div>
 
                                     <div>
@@ -777,6 +1267,164 @@ const PaymentPage: React.FC = () => {
                                         </div>
                                     </div>
 
+                                    {/* Order Summary */}
+                                    <div className="mt-8 p-6 bg-gray-50 rounded-xl">
+                                        <h3 className="text-lg font-semibold mb-4">
+                                            Tóm tắt đơn hàng
+                                        </h3>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between">
+                                                <span>Tạm tính:</span>
+                                                <span>
+                                                    {cartItems
+                                                        .reduce(
+                                                            (total, item) =>
+                                                                total +
+                                                                item.total,
+                                                            0
+                                                        )
+                                                        .toLocaleString(
+                                                            "vi-VN"
+                                                        )}
+                                                    đ
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Phí vận chuyển:</span>
+                                                <span>40,000đ</span>
+                                            </div>
+                                            {selectedPromotion &&
+                                                selectedPromotion.promotionType !==
+                                                    "SHIPPING_DISCOUNT" && (
+                                                    <div className="flex justify-between text-green-600">
+                                                        <span>
+                                                            Giảm giá (
+                                                            {
+                                                                selectedPromotion.code
+                                                            }
+                                                            ):
+                                                        </span>
+                                                        <span>
+                                                            -
+                                                            {calculatePromotionDiscount(
+                                                                selectedPromotion,
+                                                                cartItems.reduce(
+                                                                    (
+                                                                        total,
+                                                                        item
+                                                                    ) =>
+                                                                        total +
+                                                                        item.total,
+                                                                    0
+                                                                )
+                                                            ).toLocaleString(
+                                                                "vi-VN"
+                                                            )}
+                                                            đ
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            {selectedPromotion &&
+                                                selectedPromotion.promotionType ===
+                                                    "SHIPPING_DISCOUNT" && (
+                                                    <div className="flex justify-between text-green-600">
+                                                        <span>
+                                                            Giảm phí ship (
+                                                            {
+                                                                selectedPromotion.code
+                                                            }
+                                                            ):
+                                                        </span>
+                                                        <span>
+                                                            -
+                                                            {calculateShippingDiscount(
+                                                                selectedPromotion,
+                                                                40000
+                                                            ).toLocaleString(
+                                                                "vi-VN"
+                                                            )}
+                                                            đ
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            <div className="flex justify-between">
+                                                <span>VAT (10%):</span>
+                                                <span>
+                                                    {(
+                                                        (cartItems.reduce(
+                                                            (total, item) =>
+                                                                total +
+                                                                item.total,
+                                                            0
+                                                        ) -
+                                                            calculatePromotionDiscount(
+                                                                selectedPromotion,
+                                                                cartItems.reduce(
+                                                                    (
+                                                                        total,
+                                                                        item
+                                                                    ) =>
+                                                                        total +
+                                                                        item.total,
+                                                                    0
+                                                                )
+                                                            )) *
+                                                        0.1
+                                                    ).toLocaleString("vi-VN")}
+                                                    đ
+                                                </span>
+                                            </div>
+                                            <hr className="my-3" />
+                                            <div className="flex justify-between font-semibold text-lg">
+                                                <span>Tổng cộng:</span>
+                                                <span className="text-blue-600">
+                                                    {(
+                                                        cartItems.reduce(
+                                                            (total, item) =>
+                                                                total +
+                                                                item.total,
+                                                            0
+                                                        ) +
+                                                        40000 +
+                                                        (cartItems.reduce(
+                                                            (total, item) =>
+                                                                total +
+                                                                item.total,
+                                                            0
+                                                        ) -
+                                                            calculatePromotionDiscount(
+                                                                selectedPromotion,
+                                                                cartItems.reduce(
+                                                                    (
+                                                                        total,
+                                                                        item
+                                                                    ) =>
+                                                                        total +
+                                                                        item.total,
+                                                                    0
+                                                                )
+                                                            )) *
+                                                            0.1 -
+                                                        calculatePromotionDiscount(
+                                                            selectedPromotion,
+                                                            cartItems.reduce(
+                                                                (total, item) =>
+                                                                    total +
+                                                                    item.total,
+                                                                0
+                                                            )
+                                                        ) -
+                                                        calculateShippingDiscount(
+                                                            selectedPromotion,
+                                                            40000
+                                                        )
+                                                    ).toLocaleString("vi-VN")}
+                                                    đ
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="flex justify-between mt-6">
                                         <button
                                             type="button"
@@ -791,9 +1439,37 @@ const PaymentPage: React.FC = () => {
 
                                         <button
                                             type="submit"
-                                            className="bg-blue-600 text-white px-6 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition hover:bg-blue-500"
+                                            disabled={isProcessingPayment}
+                                            className={`px-6 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center gap-2 ${
+                                                isProcessingPayment
+                                                    ? "bg-gray-400 cursor-not-allowed"
+                                                    : "bg-blue-600 hover:bg-blue-500 text-white"
+                                            }`}
                                         >
-                                            Tiến hành thanh toán
+                                            {isProcessingPayment && (
+                                                <svg
+                                                    className="animate-spin h-4 w-4"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <circle
+                                                        className="opacity-25"
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="10"
+                                                        stroke="currentColor"
+                                                        strokeWidth="4"
+                                                    ></circle>
+                                                    <path
+                                                        className="opacity-75"
+                                                        fill="currentColor"
+                                                        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                    ></path>
+                                                </svg>
+                                            )}
+                                            {isProcessingPayment
+                                                ? "Đang xử lý..."
+                                                : "Tiến hành thanh toán"}
                                         </button>
                                     </div>
                                 </form>
@@ -837,9 +1513,9 @@ const PaymentPage: React.FC = () => {
                                         Bạn chưa có địa chỉ giao hàng nào
                                     </p>
                                     <Button
-                                        onClick={() =>
-                                            setIsCreateDialogOpen(true)
-                                        }
+                                        onClick={() => {
+                                            setIsCreateDialogOpen(true);
+                                        }}
                                         className="bg-blue-600 hover:bg-blue-500"
                                     >
                                         Thêm địa chỉ mới
@@ -850,9 +1526,9 @@ const PaymentPage: React.FC = () => {
                                     {/* Add New Address Button */}
                                     <div className="flex justify-end">
                                         <Button
-                                            onClick={() =>
-                                                setIsCreateDialogOpen(true)
-                                            }
+                                            onClick={() => {
+                                                setIsCreateDialogOpen(true);
+                                            }}
                                             className="bg-blue-600 hover:bg-blue-500"
                                         >
                                             Thêm địa chỉ mới
@@ -897,12 +1573,13 @@ const PaymentPage: React.FC = () => {
                                                         <p className="text-sm text-gray-600 mb-1">
                                                             {address.phone}
                                                         </p>
-                                                        <p className="text-sm text-gray-700">
-                                                            {address.address},{" "}
-                                                            {address.ward},{" "}
-                                                            {address.district},{" "}
-                                                            {address.province}
-                                                        </p>
+                                                        <div className="text-sm text-gray-700">
+                                                            <AddressDisplay
+                                                                address={
+                                                                    address
+                                                                }
+                                                            />
+                                                        </div>
                                                     </div>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger
@@ -983,10 +1660,34 @@ const PaymentPage: React.FC = () => {
                         setEditingAddress(null);
                     }}
                     address={editingAddress}
-                    onSave={async () => {
-                        await loadShippingAddresses();
-                        setIsEditDialogOpen(false);
-                        setEditingAddress(null);
+                    onSave={async (
+                        addressData: Partial<
+                            import("@/services/userService").MyShippingAddress
+                        >
+                    ) => {
+                        try {
+                            if (editingAddress?.id) {
+                                const response =
+                                    await userService.updateShippingAddress(
+                                        editingAddress.id,
+                                        addressData
+                                    );
+
+                                if (response.success) {
+                                    await loadShippingAddresses();
+                                    setIsEditDialogOpen(false);
+                                    setEditingAddress(null);
+                                } else {
+                                    throw new Error(
+                                        response.message ||
+                                            "Không thể cập nhật địa chỉ"
+                                    );
+                                }
+                            }
+                        } catch (error) {
+                            console.error("Error updating address:", error);
+                            throw error;
+                        }
                     }}
                 />
 
@@ -994,8 +1695,28 @@ const PaymentPage: React.FC = () => {
                 <CreateAddressDialog
                     isOpen={isCreateDialogOpen}
                     onClose={() => setIsCreateDialogOpen(false)}
-                    onSave={async () => {
-                        createAddress(editingAddress);
+                    onSave={async (
+                        addressData: import("@/services/userService").CreateShippingAddressData
+                    ) => {
+                        try {
+                            const response =
+                                await userService.createShippingAddress(
+                                    addressData
+                                );
+
+                            if (response.success) {
+                                await loadShippingAddresses();
+                                setIsCreateDialogOpen(false);
+                            } else {
+                                throw new Error(
+                                    response.message ||
+                                        "Không thể tạo địa chỉ mới"
+                                );
+                            }
+                        } catch (error) {
+                            console.error("Error creating address:", error);
+                            throw error;
+                        }
                     }}
                 />
 
@@ -1025,6 +1746,15 @@ const PaymentPage: React.FC = () => {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                {/* Notification Dialog */}
+                <NotificationDialog
+                    isOpen={notificationDialog.isOpen}
+                    onClose={closeNotification}
+                    type={notificationDialog.type}
+                    title={notificationDialog.title}
+                    message={notificationDialog.message}
+                />
             </div>
         </div>
     );

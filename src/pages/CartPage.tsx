@@ -162,11 +162,10 @@ const CartPage: React.FC = () => {
     };
 
     // Calculate totals
-    const subtotal =
-        cartItems.reduce((total, item) => total + item.total, 0) + 40000;
+    const subtotal = cartItems.reduce((total, item) => total + item.total, 0);
     const vatRate = 0.1;
     const vatAmount = subtotal * vatRate;
-    const totalAmount = subtotal + vatAmount;
+    const totalAmount = subtotal + vatAmount + 40000; // Adding shipping fee of 40,000 VND
 
     if (loading) {
         return (
@@ -196,43 +195,45 @@ const CartPage: React.FC = () => {
 
     return (
         <div className={"py-12 container mx-auto"}>
-            <div className={"space-y-10 text-center pb-12"}>
-                <p>
-                    Xin lưu ý rằng chúng tôi không chấp nhận đổi trả đối với các
-                    đơn hàng trực tuyến.
-                </p>
-                <h1 className={"font-semibold text-4xl"}>
-                    Tổng giá trị giỏ hàng của bạn là{" "}
-                    {subtotal.toLocaleString("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                    })}
-                </h1>
-                <div className={"flex flex-col space-y-4 items-center"}>
-                    <p>
-                        Phí vận chuyển cho đơn hàng của bạn -{" "}
-                        <strong>40.000đ</strong>
-                    </p>
-                    <Link
-                        to={"/payment"}
-                        className={
-                            "bg-blue-600 hover:bg-blue-500 transition w-fit text-white px-16 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        }
-                    >
-                        Thanh toán
-                    </Link>
-                </div>
-            </div>
             {cartItems.length > 0 ? (
-                <div className={"mt-10 flex flex-col border-b"}>
-                    {cartItems.map((item) => (
-                        <ProductCart
-                            key={item.id}
-                            {...item}
-                            onQuantityChange={handleQuantityChange}
-                            onRemoveItem={handleRemoveItem}
-                        />
-                    ))}
+                <div>
+                    <div className={"space-y-10 text-center pb-12"}>
+                        <p>
+                            Xin lưu ý rằng chúng tôi không chấp nhận đổi trả đối
+                            với các đơn hàng trực tuyến.
+                        </p>
+                        <h1 className={"font-semibold text-4xl"}>
+                            Tổng giá trị giỏ hàng của bạn là{" "}
+                            {subtotal.toLocaleString("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                            })}
+                        </h1>
+                        <div className={"flex flex-col space-y-4 items-center"}>
+                            <p>
+                                Phí vận chuyển cho đơn hàng của bạn -{" "}
+                                <strong>40.000đ</strong>
+                            </p>
+                            <Link
+                                to={"/payment"}
+                                className={
+                                    "bg-blue-600 hover:bg-blue-500 transition w-fit text-white px-16 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                }
+                            >
+                                Thanh toán
+                            </Link>
+                        </div>
+                    </div>
+                    <div className={"mt-10 flex flex-col border-b"}>
+                        {cartItems.map((item) => (
+                            <ProductCart
+                                key={item.id}
+                                {...item}
+                                onQuantityChange={handleQuantityChange}
+                                onRemoveItem={handleRemoveItem}
+                            />
+                        ))}
+                    </div>
                 </div>
             ) : (
                 <p className={"text-center mt-10"}>

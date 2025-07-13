@@ -109,14 +109,13 @@ const ProductCart: React.FC<ProductCartProps> = ({
                             backgroundSize: "0.9em 0.9em",
                         }}
                     >
-                        {Array.from(
-                            { length: Math.min(maxQuantity, 10) },
-                            (_, i) => i + 1
-                        ).map((q) => (
-                            <option key={q} value={q}>
-                                {q}
-                            </option>
-                        ))}
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map(
+                            (q) => (
+                                <option key={q} value={q}>
+                                    {q}
+                                </option>
+                            )
+                        )}
                     </select>
                     {maxQuantity < 10 && (
                         <p className="text-xs text-gray-500 mt-1">
