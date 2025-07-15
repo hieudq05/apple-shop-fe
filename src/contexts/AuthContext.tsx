@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { clearAllStorage, getAccessToken, setUserData } from "../utils/storage";
 import { getUserFromToken, isTokenExpired } from "../utils/jwt";
+import authService from "../services/authService";
 
 interface User {
     email: string;
@@ -21,7 +22,7 @@ interface AuthContextType {
     user: User | null;
     token: string | null;
     login: (accessToken: string, refreshToken: string) => void;
-    logout: () => void;
+    logout: () => Promise<void>;
     isAuthenticated: boolean;
     isAdmin: boolean;
     isStaff: boolean;
@@ -71,10 +72,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
     };
 
-    const logout = () => {
-        clearAllStorage();
-        setUser(null);
-        setToken(null);
+    const logout = async () => {
+        try {
+            // Call logout API
+            await authService.logout();
+        } catch (error) {
+            console.error("Logout failed:", error);
+        } finally {
+            // Always clear local state regardless of API result
+            clearAllStorage();
+            setUser(null);
+            setToken(null);
+        }
     };
 
     const isAuthenticated = !!token && !!user;

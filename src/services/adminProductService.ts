@@ -428,7 +428,7 @@ export class AdminProductService {
                     },
                 }
             );
-            return response.data;
+            return response;
         } catch (error) {
             console.error("Error creating product:", error);
             throw error;

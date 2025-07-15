@@ -1,11 +1,13 @@
 import OrderHistoryCard from "../components/OrderHistoryCard";
 import OrderSearchForm from "../components/OrderSearchForm";
+import Pagination from "../components/Pagination";
 import React, { useState, useEffect } from "react";
 import {
     orderHistoryService,
     type OrderSearchParams,
 } from "../services/orderHistoryService";
 import type { OrderHistory } from "../types/order";
+import type { MetadataResponse } from "../types/api";
 import { getUserData } from "../utils/storage";
 
 const OrderHistoryPage: React.FC = () => {
@@ -14,22 +16,30 @@ const OrderHistoryPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [searchLoading, setSearchLoading] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState<MetadataResponse | null>(null);
+    const [currentSearchParams, setCurrentSearchParams] =
+        useState<OrderSearchParams | null>(null);
+
+    const itemsPerPage = 10;
 
     useEffect(() => {
         fetchOrderHistory();
     }, []);
 
-    const fetchOrderHistory = async () => {
+    const fetchOrderHistory = async (page: number = 1) => {
         try {
             setLoading(true);
             setError(null);
             const response = await orderHistoryService.getOrderHistory({
-                page: 0,
-                size: 20,
+                page: page - 1, // API uses 0-based pagination
+                size: itemsPerPage,
             });
 
             if (response.success && response.data) {
                 setOrders(response.data);
+                setPagination(response.meta || null);
+                setCurrentPage(page);
             } else {
                 setError(response.message || "Không thể tải lịch sử đơn hàng");
             }
@@ -41,18 +51,30 @@ const OrderHistoryPage: React.FC = () => {
         }
     };
 
-    const handleSearch = async (searchParams: OrderSearchParams) => {
+    const handleSearch = async (
+        searchParams: OrderSearchParams,
+        page: number = 1
+    ) => {
         try {
             setSearchLoading(true);
             setError(null);
             setIsSearching(true);
 
+            const searchParamsWithPagination = {
+                ...searchParams,
+                page: page - 1, // API uses 0-based pagination
+                size: itemsPerPage,
+            };
+
             const response = await orderHistoryService.searchOrders(
-                searchParams
+                searchParamsWithPagination
             );
 
             if (response.success) {
                 setOrders(response.data || []);
+                setPagination(response.meta || null);
+                setCurrentPage(page);
+                setCurrentSearchParams(searchParams);
             } else {
                 setError(response.message || "Không thể tìm kiếm đơn hàng");
             }
@@ -66,17 +88,24 @@ const OrderHistoryPage: React.FC = () => {
 
     const handleClearSearch = () => {
         setIsSearching(false);
-        fetchOrderHistory();
+        setCurrentSearchParams(null);
+        setCurrentPage(1);
+        fetchOrderHistory(1);
+    };
+
+    const handlePageChange = (page: number) => {
+        if (isSearching && currentSearchParams) {
+            handleSearch(currentSearchParams, page);
+        } else {
+            fetchOrderHistory(page);
+        }
     };
 
     const handleOrderCancelled = () => {
-        if (isSearching) {
-            // If currently searching, we don't have the search params to re-search
-            // So just refresh the order history
-            fetchOrderHistory();
-            setIsSearching(false);
+        if (isSearching && currentSearchParams) {
+            handleSearch(currentSearchParams, currentPage);
         } else {
-            fetchOrderHistory();
+            fetchOrderHistory(currentPage);
         }
     };
 
@@ -117,7 +146,7 @@ const OrderHistoryPage: React.FC = () => {
                         <p className="font-medium">Có lỗi xảy ra</p>
                         <p className="text-sm">{error}</p>
                         <button
-                            onClick={fetchOrderHistory}
+                            onClick={() => fetchOrderHistory(1)}
                             className="mt-2 text-sm underline hover:no-underline"
                         >
                             Thử lại
@@ -140,23 +169,41 @@ const OrderHistoryPage: React.FC = () => {
 
                 {/* Search Form */}
                 <OrderSearchForm
-                    onSearch={handleSearch}
+                    onSearch={(params) => handleSearch(params, 1)}
                     onClear={handleClearSearch}
                     isLoading={searchLoading}
                 />
 
                 {/* Results */}
                 {orders.length > 0 ? (
-                    <div className="space-y-6">
-                        {orders.map((order: OrderHistory, idx) => (
-                            <OrderHistoryCard
-                                order={order}
-                                key={order.id}
-                                index={idx + 1}
-                                onOrderCancelled={handleOrderCancelled}
+                    <>
+                        <div className="space-y-6">
+                            {orders.map((order: OrderHistory, idx) => (
+                                <OrderHistoryCard
+                                    order={order}
+                                    key={order.id}
+                                    index={
+                                        (currentPage - 1) * itemsPerPage +
+                                        idx +
+                                        1
+                                    }
+                                    onOrderCancelled={handleOrderCancelled}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {pagination && pagination.totalPage > 1 && (
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={pagination.totalPage}
+                                totalItems={pagination.totalElements}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={handlePageChange}
+                                loading={loading || searchLoading}
                             />
-                        ))}
-                    </div>
+                        )}
+                    </>
                 ) : (
                     <div className="text-center py-12">
                         <p className="text-xl text-gray-500 font-medium mb-4">

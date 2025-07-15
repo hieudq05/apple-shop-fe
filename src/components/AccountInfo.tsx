@@ -8,6 +8,7 @@ import userService, {
 import EditUserInfoDialog from "./EditUserInfoDialog";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import ShippingAddressDialog from "./ShippingAddressDialog";
+import EditAvatarDialog from "./EditAvatarDialog";
 
 export interface AccountInfoProps {
     id: string;
@@ -54,8 +55,6 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
         try {
             const response = await userService.updateMyInfo(updatedInfo);
             if (response.success) {
-                console.log("Thông tin đã được cập nhật thành công!");
-
                 // Cập nhật dữ liệu hiển thị local
                 setDisplayInfo((prev) => ({
                     ...prev,
@@ -102,6 +101,42 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
         }
     };
 
+    const handleAvatarUpdate = async (
+        imageFile: File | null,
+        updatedInfo: UpdateMyInfoData
+    ) => {
+        if (!imageFile) {
+            throw new Error("Vui lòng chọn ảnh!");
+        }
+
+        try {
+            // Sử dụng updateMyInfo với imageFile để cập nhật ảnh
+            const response = await userService.updateMyInfo(
+                updatedInfo,
+                imageFile
+            );
+            if (response.success) {
+                console.log("Ảnh đã được cập nhật thành công!");
+
+                // Cập nhật dữ liệu hiển thị local
+                setDisplayInfo((prev) => ({
+                    ...prev,
+                    image: response.data.image,
+                }));
+
+                // Gọi callback để cập nhật data ở parent component
+                if (onUserInfoUpdate) {
+                    onUserInfoUpdate(response.data);
+                }
+            } else {
+                throw new Error(response.message || "Cập nhật ảnh thất bại");
+            }
+        } catch (error) {
+            console.error("Error updating avatar:", error);
+            throw error; // Re-throw để dialog có thể catch và hiển thị error
+        }
+    };
+
     const currentUserInfo: MyInfo = displayInfo;
 
     return (
@@ -117,19 +152,33 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
                     <p className={"font-semibold"}>Ảnh hồ sơ</p>
                     <div className={"relative w-fit"}>
                         <img
-                            src={displayInfo.image}
+                            src={
+                                displayInfo.image ||
+                                "https://via.placeholder.com/150x150/gray/white?text=User"
+                            }
                             alt={"Avatar"}
                             className={
                                 "size-32 rounded-full object-cover object-center"
                             }
+                            onError={(e) => {
+                                e.currentTarget.src =
+                                    "https://via.placeholder.com/150x150/gray/white?text=User";
+                            }}
                         />
-                        <button
-                            className={
-                                "absolute w-fit bottom-0 right-0 p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
-                            }
+                        <EditAvatarDialog
+                            currentImage={displayInfo.image}
+                            onSave={handleAvatarUpdate}
+                            currentInfo={currentUserInfo}
                         >
-                            <PencilIcon className={"size-5"} />
-                        </button>
+                            <button
+                                type="button"
+                                className={
+                                    "absolute w-fit bottom-0 right-0 p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                }
+                            >
+                                <PencilIcon className={"size-5"} />
+                            </button>
+                        </EditAvatarDialog>
                     </div>
                 </div>
                 <div className={"lg:col-span-2 space-y-1"}>

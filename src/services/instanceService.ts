@@ -32,7 +32,7 @@ export const fetchAdminInstances = async (): Promise<Instance[]> => {
                 size: 99
             }
         });
-        return response.data;
+        return response;
     } catch (error) {
         console.error('Error fetching admin instances:', error);
         throw error;

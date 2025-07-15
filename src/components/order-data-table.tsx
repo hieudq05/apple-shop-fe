@@ -1,5 +1,5 @@
-import * as React from "react"
-import { z } from "zod"
+import * as React from "react";
+import { z } from "zod";
 import {
     type ColumnDef,
     type ColumnFiltersState,
@@ -11,7 +11,7 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 import {
     Eye,
     CheckCircle,
@@ -19,18 +19,18 @@ import {
     X,
     Truck,
     Package,
-    MoreHorizontal
-} from "lucide-react"
+    MoreHorizontal,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
     Table,
     TableBody,
@@ -38,8 +38,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
-import { Link } from "react-router-dom"
+} from "@/components/ui/table";
+import { Link } from "react-router-dom";
 
 // Schema for order data validation
 export const orderSchema = z.object({
@@ -47,7 +47,15 @@ export const orderSchema = z.object({
     orderNumber: z.string(),
     customerName: z.string(),
     customerEmail: z.string(),
-    status: z.enum(['PENDING_PAYMENT', 'PAID', 'AWAITING_SHIPMENT', 'SHIPPED', 'DELIVERED', 'CANCELLED']),
+    status: z.enum([
+        "PENDING_PAYMENT",
+        "PAID",
+        "PROCESSING",
+        "AWAITING_SHIPMENT",
+        "SHIPPED",
+        "DELIVERED",
+        "CANCELLED",
+    ]),
     totalAmount: z.number(),
     itemCount: z.number(),
     createdAt: z.string(),
@@ -59,90 +67,112 @@ export const orderSchema = z.object({
         lastName: z.string().nullable(),
         image: z.string().nullable(),
     }),
-})
+});
 
-export type Order = z.infer<typeof orderSchema>
+export type Order = z.infer<typeof orderSchema>;
 
 interface OrderDataTableProps {
-    data: Order[]
-    onView?: (orderId: number) => void
-    onUpdateStatus?: (orderId: number, newStatus: Order['status']) => void
-    updatingOrderId?: number | null
+    data: Order[];
+    onView?: (orderId: number) => void;
+    onUpdateStatus?: (orderId: number, newStatus: Order["status"]) => void;
+    updatingOrderId?: number | null;
 }
 
 export function OrderDataTable({
     data,
     onView,
     onUpdateStatus,
-    updatingOrderId
+    updatingOrderId,
 }: OrderDataTableProps) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = React.useState({})
+    const [sorting, setSorting] = React.useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] =
+        React.useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] =
+        React.useState<VisibilityState>({});
+    const [rowSelection, setRowSelection] = React.useState({});
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('vi-VN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
+        return new Date(dateString).toLocaleDateString("vi-VN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
         });
     };
 
-    const getStatusIcon = (status: Order['status']) => {
+    const getStatusIcon = (status: Order["status"]) => {
         switch (status) {
-            case 'PENDING_PAYMENT':
+            case "PENDING_PAYMENT":
                 return <Clock className="w-4 h-4" />;
-            case 'PAID':
-                return <CheckCircle className="w-4 h-4" />;
-            case 'AWAITING_SHIPMENT':
-                return <Package className="w-4 h-4" />;
-            case 'SHIPPED':
+            case "PAID":
+                return (
+                    <div className="size-3 bg-purple-200 rounded-full relative">
+                        <div className="size-1.5 bg-purple-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                    </div>
+                );
+            case "PROCESSING":
+                return <MoreHorizontal className="w-4 h-4" />;
+            case "AWAITING_SHIPMENT":
+                return (
+                    <div className="size-3 bg-yellow-200 rounded-full relative">
+                        <div className="size-1.5 bg-yellow-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                    </div>
+                );
+            case "SHIPPED":
                 return <Truck className="w-4 h-4" />;
-            case 'DELIVERED':
-                return <CheckCircle className="w-4 h-4" />;
-            case 'CANCELLED':
-                return <X className="w-4 h-4" />;
+            case "DELIVERED":
+                return (
+                    <div className="size-3 bg-green-200 rounded-full relative">
+                        <div className="size-1.5 bg-green-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                    </div>
+                );
+            case "CANCELLED":
+                return (
+                    <div className="size-3 bg-red-200 rounded-full relative">
+                        <div className="size-1.5 bg-red-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                    </div>
+                );
             default:
                 return <Clock className="w-4 h-4" />;
         }
     };
 
-    const getStatusText = (status: Order['status']) => {
+    const getStatusText = (status: Order["status"]) => {
         switch (status) {
-            case 'PENDING_PAYMENT':
-                return 'Chờ thanh toán';
-            case 'PAID':
-                return 'Đã thanh toán';
-            case 'AWAITING_SHIPMENT':
-                return 'Chờ vận chuyển';
-            case 'SHIPPED':
-                return 'Đang giao';
-            case 'DELIVERED':
-                return 'Đã giao';
-            case 'CANCELLED':
-                return 'Đã hủy';
+            case "PENDING_PAYMENT":
+                return "Chờ thanh toán";
+            case "PAID":
+                return "Đã thanh toán";
+            case "PROCESSING":
+                return "Đang xử lý";
+            case "AWAITING_SHIPMENT":
+                return "Chờ vận chuyển";
+            case "SHIPPED":
+                return "Đang giao";
+            case "DELIVERED":
+                return "Đã giao";
+            case "CANCELLED":
+                return "Đã hủy";
             default:
                 return status;
         }
     };
 
-    const getStatusBadgeClass = (status: Order['status']) => {
+    const getStatusBadgeClass = (status: Order["status"]) => {
         switch (status) {
-            case 'DELIVERED':
-                return 'bg-green-100 text-green-800';
-            case 'CANCELLED':
-                return 'bg-red-100 text-red-800';
-            case 'SHIPPED':
-                return 'bg-blue-100 text-blue-800';
-            case 'AWAITING_SHIPMENT':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'PAID':
-                return 'bg-purple-100 text-purple-800';
+            case "DELIVERED":
+                return "bg-green-50 text-green-800";
+            case "CANCELLED":
+                return "bg-red-50 text-red-800";
+            case "SHIPPED":
+                return "bg-blue-50 text-blue-800";
+            case "AWAITING_SHIPMENT":
+                return "bg-yellow-50 text-yellow-800";
+            case "PAID":
+                return "bg-purple-50 text-purple-800";
             default:
-                return 'bg-gray-100 text-gray-800';
+                return "bg-gray-50 text-gray-800";
         }
     };
 
@@ -154,7 +184,9 @@ export function OrderDataTable({
                 const order = row.original;
                 return (
                     <div className="py-1">
-                        <div className="font-medium text-sm">{order.orderNumber}</div>
+                        <div className="font-medium text-sm">
+                            {order.orderNumber}
+                        </div>
                         <p className="text-xs text-muted-foreground">
                             {order.paymentType}
                         </p>
@@ -170,13 +202,19 @@ export function OrderDataTable({
                 return (
                     <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
-                            <AvatarImage src={order.createdBy.image || ""} alt={order.customerName} />
+                            <AvatarImage
+                                className="object-cover"
+                                src={order.createdBy.image || ""}
+                                alt={order.customerName}
+                            />
                             <AvatarFallback>
                                 {order.customerName.charAt(0)}
                             </AvatarFallback>
                         </Avatar>
                         <div>
-                            <div className="font-medium text-sm">{order.customerName}</div>
+                            <div className="font-medium text-sm">
+                                {order.customerName}
+                            </div>
                             <p className="text-xs text-muted-foreground">
                                 ID: {order.createdBy.id}
                             </p>
@@ -189,11 +227,13 @@ export function OrderDataTable({
             accessorKey: "status",
             header: "Trạng thái",
             cell: ({ row }) => {
-                const status = row.getValue("status") as Order['status'];
+                const status = row.getValue("status") as Order["status"];
                 return (
                     <Badge
                         variant="outline"
-                        className={`flex items-center gap-1 w-fit ${getStatusBadgeClass(status)}`}
+                        className={`flex items-center gap-1 w-fit ${getStatusBadgeClass(
+                            status
+                        )}`}
                     >
                         {getStatusIcon(status)}
                         {getStatusText(status)}
@@ -209,7 +249,9 @@ export function OrderDataTable({
                 return (
                     <div className="py-1">
                         <div className="text-muted-foreground">
-                            {order.approveAt ? `Duyệt: ${formatDate(order.approveAt)}` : 'Chưa duyệt'}
+                            {order.approveAt
+                                ? `Duyệt: ${formatDate(order.approveAt)}`
+                                : "Chưa duyệt"}
                         </div>
                     </div>
                 );
@@ -232,7 +274,10 @@ export function OrderDataTable({
 
                 return (
                     <div className="flex items-center justify-end gap-2 w-6">
-                        <Link className="p-2 hover:bg-gray-200 rounded-md" to={`/admin/orders/${order.id}`}>
+                        <Link
+                            className="p-2 hover:bg-gray-200 rounded-md"
+                            to={`/admin/orders/${order.id}`}
+                        >
                             <Eye className="w-4 h-4" />
                         </Link>
                     </div>
@@ -273,9 +318,10 @@ export function OrderDataTable({
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
+                                                      header.column.columnDef
+                                                          .header,
+                                                      header.getContext()
+                                                  )}
                                         </TableHead>
                                     );
                                 })}
@@ -287,11 +333,16 @@ export function OrderDataTable({
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
+                                    data-state={
+                                        row.getIsSelected() && "selected"
+                                    }
                                     className="h-16"
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="py-4">
+                                        <TableCell
+                                            key={cell.id}
+                                            className="py-4"
+                                        >
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()

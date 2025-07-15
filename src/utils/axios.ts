@@ -36,18 +36,9 @@ privateAPI.interceptors.request.use((config) => {
 });
 
 // Add response interceptor to handle token expiration
-privateAPI.interceptors.response.use(
-    (response: AxiosResponse) => {
-        return response.data; // Return only data part
-    },
-    (error) => {
-        if (error.response?.status === 401) {
-            // Token expired or invalid, clear storage and redirect to login
-            removeTokens();
-            window.location.href = "/admin/login";
-        }
-    }
-);
+privateAPI.interceptors.response.use((response: AxiosResponse) => {
+    return response.data; // Return only data part
+});
 
 // Add response interceptor to public API
 publicAPI.interceptors.response.use((response: AxiosResponse) => {

@@ -41,15 +41,16 @@ const groupStocksByColor = (stocks: ApiStock[]): ProductStock[] => {
                 color: stock.color,
                 imageUrl: stock.imageUrl,
                 price: stock.price,
-                productPhotos: stock.productPhotos,
-                quantity: stock.quantity,
+                productPhotos: stock.productPhotos || [],
+                quantity: stock.quantity || 0,
                 instanceProperty: [...properties],
+                allStocks: [stock], // Keep track of all stocks for this color
             };
         } else {
-            // If we have seen this color, merge the instanceProperty arrays
+            // If we have seen this color, merge the data
             const existingStock = colorMap[colorId];
 
-            // Add any instanceProperty items not already included
+            // Merge instanceProperty arrays - avoid duplicates by id
             properties.forEach((property: InstanceProperty) => {
                 const propertyExists = existingStock.instanceProperty.some(
                     (existingProperty) => existingProperty.id === property.id
@@ -59,6 +60,24 @@ const groupStocksByColor = (stocks: ApiStock[]): ProductStock[] => {
                     existingStock.instanceProperty.push(property);
                 }
             });
+
+            // Accumulate quantities from all stocks of the same color
+            existingStock.quantity =
+                (existingStock.quantity || 0) + (stock.quantity || 0);
+
+            // Add to allStocks array
+            existingStock.allStocks?.push(stock);
+
+            // Use the stock with productPhotos if current doesn't have any
+            if (
+                (!existingStock.productPhotos ||
+                    existingStock.productPhotos.length === 0) &&
+                stock.productPhotos &&
+                stock.productPhotos.length > 0
+            ) {
+                existingStock.productPhotos = stock.productPhotos;
+                existingStock.imageUrl = stock.imageUrl;
+            }
         }
     });
 
@@ -82,6 +101,7 @@ interface ProductStock {
     }[];
     instanceProperty: InstanceProperty[];
     quantity?: number;
+    allStocks?: ApiStock[]; // Keep track of all stocks for this color
 }
 
 interface InstanceProperty {
@@ -180,14 +200,21 @@ const ProductPage: React.FC = () => {
     const selectedStock = product?.stocks
         ? product.stocks[selectedIndex]
         : null;
-    const [selectedStorageId, setSelectedStorageId] = useState<number | null>(
-        productData.stocks?.[0]?.instanceProperty?.[0]?.id || null
-    );
+    const [selectedStockId, setSelectedStockId] = useState<number | null>(null);
     const [addedToCart, setAddedToCart] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
 
     const handleAddToCart = async () => {
-        if (!selectedStock || !selectedStorageId || !product) return;
+        if (!selectedStock || !product) return;
+
+        // Find the actual selected stock from allStocks
+        const actualSelectedStock = selectedStockId
+            ? selectedStock.allStocks?.find(
+                  (stock) => stock.id === selectedStockId
+              )
+            : selectedStock.allStocks?.[0] || selectedStock;
+
+        if (!actualSelectedStock) return;
 
         try {
             setIsAddingToCart(true);
@@ -195,7 +222,7 @@ const ProductPage: React.FC = () => {
             // Add to cart using API
             await cartApiService.addToCart({
                 productId: product.id,
-                stockId: selectedStock.id,
+                stockId: actualSelectedStock.id,
                 quantity: 1,
             });
 
@@ -222,21 +249,26 @@ const ProductPage: React.FC = () => {
 
     // Reset selected storage when product changes
     useEffect(() => {
-        // Make sure the selectedStorageId exists in the current stock
-        const propertyExists = selectedStock?.instanceProperty?.some(
-            (property) => property.id === selectedStorageId
-        );
-        if (
-            (!propertyExists || selectedStorageId === null) &&
-            selectedStock?.instanceProperty &&
-            selectedStock.instanceProperty.length > 0
-        ) {
-            setSelectedStorageId(selectedStock.instanceProperty[0].id);
+        // Auto-select first stock when color changes
+        if (selectedStock?.allStocks && selectedStock.allStocks.length > 0) {
+            setSelectedStockId(selectedStock.allStocks[0].id);
+        } else {
+            setSelectedStockId(null);
         }
-    }, [selectedStock, selectedStorageId]);
+    }, [selectedIndex, selectedStock]);
+
+    // Also set initial storage when product first loads
+    useEffect(() => {
+        if (product?.stocks && product.stocks.length > 0) {
+            const firstStock = product.stocks[0];
+            if (firstStock.allStocks && firstStock.allStocks.length > 0) {
+                setSelectedStockId(firstStock.allStocks[0].id);
+            }
+        }
+    }, [product]);
 
     return (
-        <div className="py-12 text-start">
+        <div className="py-12 text-start lg:px-72">
             <div className={"container mx-auto flex flex-col space-y-12 mb-12"}>
                 <div>
                     <h1 className="text-5xl font-semibold mb-6">
@@ -248,7 +280,7 @@ const ProductPage: React.FC = () => {
                 </div>
                 <div className={"flex gap-12 flex-col md:flex-row"}>
                     <div
-                        className="items-center overflow-x-auto scrollbar-hide flex-[5] sticky top-12 bg-white z-10"
+                        className="items-center overflow-x-auto scrollbar-hide flex-[3] sticky top-12 bg-white z-10"
                         style={{ scrollSnapType: "x mandatory" }}
                     >
                         <img
@@ -286,20 +318,6 @@ const ProductPage: React.FC = () => {
                                         }`}
                                         onClick={() => {
                                             setSelectedIndex(idx);
-                                            const hasCurrentProperty =
-                                                item.instanceProperty.some(
-                                                    (property) =>
-                                                        property.id ===
-                                                        selectedStorageId
-                                                );
-                                            if (
-                                                !hasCurrentProperty &&
-                                                item.instanceProperty.length > 0
-                                            ) {
-                                                setSelectedStorageId(
-                                                    item.instanceProperty[0].id
-                                                );
-                                            }
                                         }}
                                         aria-label={item.color.name}
                                     >
@@ -324,85 +342,156 @@ const ProductPage: React.FC = () => {
                                     Chọn thuộc tính bạn cần.
                                 </span>
                             </div>
-                            {selectedStock?.instanceProperty?.map(
-                                (property) => (
-                                    <button
-                                        key={property.id}
-                                        className={`px-4 py-4 flex justify-between items-center rounded-xl w-full border-1 focus:outline-none transition ${
-                                            selectedStorageId === property.id
-                                                ? "border-2 border-blue-600 bg-blue-50"
-                                                : "border-gray-200 bg-white hover:bg-gray-50"
-                                        }`}
-                                        onClick={() => {
-                                            setSelectedStorageId(property.id);
-                                        }}
-                                    >
-                                        <div
-                                            className={
-                                                "flex gap-2 items-center"
+                            {selectedStock?.allStocks &&
+                            selectedStock.allStocks.length > 0 ? (
+                                <div className="space-y-3">
+                                    {selectedStock.allStocks.map((stock) => (
+                                        <button
+                                            key={stock.id}
+                                            className={`px-4 py-4 flex justify-between items-center rounded-xl w-full border-2 focus:outline-none transition ${
+                                                selectedStockId === stock.id
+                                                    ? "border-blue-600 bg-blue-50"
+                                                    : "border-gray-200 bg-white hover:bg-gray-50"
+                                            }`}
+                                            onClick={() =>
+                                                setSelectedStockId(stock.id)
                                             }
                                         >
-                                            {selectedStorageId ===
-                                                property.id && (
-                                                <span className="text-blue-600 font-semibold">
-                                                    ✓
-                                                </span>
-                                            )}
-                                            <span
-                                                className={
-                                                    "text-base font-semibold"
-                                                }
-                                            >
-                                                {property.name}
+                                            <div className="flex gap-2 items-center">
+                                                {selectedStockId ===
+                                                    stock.id && (
+                                                    <span className="text-blue-600 font-semibold">
+                                                        ✓
+                                                    </span>
+                                                )}
+                                                <div className="text-left">
+                                                    <div className="text-base font-semibold">
+                                                        {stock.instanceProperty?.map(
+                                                            (
+                                                                property,
+                                                                propIndex
+                                                            ) => (
+                                                                <span
+                                                                    key={
+                                                                        property.id
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        property.name
+                                                                    }
+                                                                    {propIndex <
+                                                                        (stock
+                                                                            .instanceProperty
+                                                                            ?.length ||
+                                                                            0) -
+                                                                            1 &&
+                                                                        " • "}
+                                                                </span>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                    <div className="text-sm text-gray-600 mt-1">
+                                                        {stock.instanceProperty
+                                                            ?.length || 0}{" "}
+                                                        thuộc tính • Số lượng:{" "}
+                                                        {stock.quantity || 0}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-xs text-gray-600 font-normal text-right w-32">
+                                                Trả toàn bộ <br />
+                                                {stock.price.toLocaleString(
+                                                    "vi-VN",
+                                                    {
+                                                        style: "currency",
+                                                        currency: "VND",
+                                                    }
+                                                )}{" "}
+                                                <br />
+                                                bằng tài khoản <br /> hoặc{" "}
+                                                <br /> khi nhận hàng.
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : selectedStock?.instanceProperty &&
+                              selectedStock.instanceProperty.length > 0 ? (
+                                <div className="space-y-3">
+                                    <button className="px-4 py-4 flex justify-between items-center rounded-xl w-full border-2 border-blue-600 bg-blue-50 focus:outline-none transition">
+                                        <div className="flex gap-2 items-center">
+                                            <span className="text-blue-600 font-semibold">
+                                                ✓
                                             </span>
+                                            <div className="text-left">
+                                                <div className="text-base font-semibold">
+                                                    {selectedStock.instanceProperty.map(
+                                                        (property, index) => (
+                                                            <span
+                                                                key={
+                                                                    property.id
+                                                                }
+                                                            >
+                                                                {property.name}
+                                                                {index <
+                                                                    selectedStock
+                                                                        .instanceProperty
+                                                                        .length -
+                                                                        1 &&
+                                                                    " • "}
+                                                            </span>
+                                                        )
+                                                    )}
+                                                </div>
+                                                <div className="text-sm text-gray-600 mt-1">
+                                                    Tổng{" "}
+                                                    {
+                                                        selectedStock
+                                                            .instanceProperty
+                                                            .length
+                                                    }{" "}
+                                                    thuộc tính
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div
-                                            className={
-                                                "text-xs text-gray-600 font-normal text-right w-32"
-                                            }
-                                        >
+                                        <div className="text-xs text-gray-600 font-normal text-right w-32">
                                             Trả toàn bộ <br />
-                                            {property.price
-                                                ? `${property.price.toLocaleString(
-                                                      "vi-VN",
-                                                      {
-                                                          style: "currency",
-                                                          currency: "VND",
-                                                      }
-                                                  )}`
-                                                : `${selectedStock.price.toLocaleString(
-                                                      "vi-VN",
-                                                      {
-                                                          style: "currency",
-                                                          currency: "VND",
-                                                      }
-                                                  )}`}{" "}
+                                            {selectedStock.price.toLocaleString(
+                                                "vi-VN",
+                                                {
+                                                    style: "currency",
+                                                    currency: "VND",
+                                                }
+                                            )}{" "}
                                             <br />
                                             bằng tài khoản <br /> hoặc <br />{" "}
                                             khi nhận hàng.
                                         </div>
                                     </button>
-                                )
+                                </div>
+                            ) : (
+                                <div className="text-gray-500 text-center py-8">
+                                    Không có thuộc tính nào cho sản phẩm này
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
             </div>
-            <div className={"bg-gray-100"}>
+            <div className={"bg-gray-100 p-12 rounded-4xl"}>
                 <div
                     className={
                         "container mx-auto grid lg:grid-cols-3 grid-cols-2 gap-12"
                     }
                 >
-                    <div className={"flex flex-col py-12 space-y-12"}>
+                    <div className={"flex flex-col space-y-12"}>
                         <div className={"text-4xl font-semibold"}>
-                            {productData.name} mới của bạn.
+                            {product?.name || productData.name} mới của bạn.
                             <br />
                             <span className={"text-gray-500"}>
                                 Theo cách bạn muốn.
                             </span>
                         </div>
-                        <div className={"overflow-hidden h-64"}>
+                        <div className={"overflow-hidden rounded-2xl h-64"}>
                             <div
                                 className={
                                     "w-full aspect-square xl:scale-150 scale-[200%] relative xl:top-0 top-10"
@@ -423,73 +512,91 @@ const ProductPage: React.FC = () => {
                     </div>
                     <div
                         className={
-                            "flex flex-col py-12 space-y-6 text-lg lg:col-span-2"
+                            "flex flex-col space-y-6 text-lg lg:col-span-2"
                         }
                     >
                         <div className={"flex flex-col gap-1"}>
                             <div>
                                 {product?.name || productData.name}{" "}
-                                {selectedStock?.instanceProperty?.map(
-                                    (property) =>
-                                        property.id === selectedStorageId ? (
-                                            <span key={property.id}>
-                                                {property.name}
-                                            </span>
-                                        ) : null
-                                )}{" "}
+                                {(() => {
+                                    const actualSelectedStock = selectedStockId
+                                        ? selectedStock?.allStocks?.find(
+                                              (stock) =>
+                                                  stock.id === selectedStockId
+                                          )
+                                        : selectedStock?.allStocks?.[0] ||
+                                          selectedStock;
+
+                                    return actualSelectedStock?.instanceProperty &&
+                                        actualSelectedStock.instanceProperty
+                                            .length > 0 ? (
+                                        <span>
+                                            {actualSelectedStock.instanceProperty.map(
+                                                (property, index) => (
+                                                    <span key={property.id}>
+                                                        {property.name}
+                                                        {index <
+                                                            (actualSelectedStock
+                                                                .instanceProperty
+                                                                ?.length || 0) -
+                                                                1 && " • "}
+                                                    </span>
+                                                )
+                                            )}
+                                        </span>
+                                    ) : null;
+                                })()}{" "}
                                 {selectedStock?.color?.name}
                             </div>
                             <div>
                                 <span className={"font-semibold text-2xl"}>
                                     Tổng cộng{" "}
-                                    {selectedStock?.instanceProperty?.find(
-                                        (property) =>
-                                            property.id === selectedStorageId
-                                    )?.price
-                                        ? selectedStock?.instanceProperty
-                                              .find(
-                                                  (property) =>
-                                                      property.id ===
-                                                      selectedStorageId
-                                              )
-                                              ?.price?.toLocaleString("vi-VN", {
-                                                  style: "currency",
-                                                  currency: "VND",
-                                              })
-                                        : selectedStock?.price?.toLocaleString(
-                                              "vi-VN",
-                                              {
-                                                  style: "currency",
-                                                  currency: "VND",
-                                              }
-                                          )}
+                                    {(() => {
+                                        const actualSelectedStock =
+                                            selectedStockId
+                                                ? selectedStock?.allStocks?.find(
+                                                      (stock) =>
+                                                          stock.id ===
+                                                          selectedStockId
+                                                  )
+                                                : selectedStock
+                                                      ?.allStocks?.[0] ||
+                                                  selectedStock;
+
+                                        return actualSelectedStock?.price?.toLocaleString(
+                                            "vi-VN",
+                                            {
+                                                style: "currency",
+                                                currency: "VND",
+                                            }
+                                        );
+                                    })()}
                                 </span>
                             </div>
                             <div className={"text-xs"}>
                                 Bao gồm thuế GTGT khoảng{" "}
-                                {(selectedStock?.instanceProperty?.find(
-                                    (property) =>
-                                        property.id === selectedStorageId
-                                )?.price
-                                    ? (selectedStock?.instanceProperty?.find(
-                                          (property) =>
-                                              property.id === selectedStorageId
-                                      )?.price ?? 0) * 0.1
-                                    : (selectedStock?.price ?? 0) * 0.1
-                                ).toLocaleString("vi-VN", {
-                                    style: "currency",
-                                    currency: "VND",
-                                })}
+                                {(() => {
+                                    const actualSelectedStock = selectedStockId
+                                        ? selectedStock?.allStocks?.find(
+                                              (stock) =>
+                                                  stock.id === selectedStockId
+                                          )
+                                        : selectedStock?.allStocks?.[0] ||
+                                          selectedStock;
+
+                                    return (
+                                        (actualSelectedStock?.price ?? 0) * 0.1
+                                    ).toLocaleString("vi-VN", {
+                                        style: "currency",
+                                        currency: "VND",
+                                    });
+                                })()}
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
                             <button
                                 onClick={handleAddToCart}
-                                disabled={
-                                    isAddingToCart ||
-                                    !selectedStock ||
-                                    !selectedStorageId
-                                }
+                                disabled={isAddingToCart || !selectedStock}
                                 className="text-sm w-fit font-normal px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isAddingToCart

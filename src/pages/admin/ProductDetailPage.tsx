@@ -361,8 +361,8 @@ const ProductDetailPage: React.FC = () => {
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-purple-600">
+                                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-blue-600">
                                         {getTotalStock()}
                                     </div>
                                     <div className="text-sm text-gray-600">
@@ -377,16 +377,16 @@ const ProductDetailPage: React.FC = () => {
                                         Phiên bản
                                     </div>
                                 </div>
-                                <div className="text-center p-4 bg-green-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">
+                                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-blue-600">
                                         {product.features?.length || 0}
                                     </div>
                                     <div className="text-sm text-gray-600">
                                         Tính năng
                                     </div>
                                 </div>
-                                <div className="text-center p-4 bg-orange-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-orange-600">
+                                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                                    <div className="text-2xl font-bold text-blue-600">
                                         {allPhotos.length}
                                     </div>
                                     <div className="text-sm text-gray-600">

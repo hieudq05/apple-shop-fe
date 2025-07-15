@@ -47,12 +47,11 @@ class OrderHistoryService {
         params: OrderHistoryParams = {}
     ): Promise<ApiResponse<OrderHistory[]>> {
         try {
-            const response = await userRoleAPI.get<ApiOrderHistory[]>(
-                "/orders/me",
-                { params }
-            );
+            const response = await userRoleAPI.get<
+                ApiResponse<ApiOrderHistory[]>
+            >("/orders/me", { params });
 
-            if (response.data && response.data.length > 0) {
+            if (response.success && response.data && response.data.length > 0) {
                 // Transform API data thành UI format
                 const transformedOrders = response.data.map(
                     transformApiOrderToOrderHistory
@@ -62,6 +61,7 @@ class OrderHistoryService {
                     success: true,
                     message: "Success",
                     data: transformedOrders,
+                    meta: response.meta, // Include pagination metadata
                 };
             }
 
@@ -69,6 +69,7 @@ class OrderHistoryService {
                 success: true,
                 message: "Không có dữ liệu",
                 data: [],
+                meta: response.meta,
             };
         } catch (error) {
             console.error("Error fetching order history:", error);
@@ -89,15 +90,14 @@ class OrderHistoryService {
                 `/api/v1/orders/${orderId}`
             );
 
-            if (response.data.success && response.data.data) {
+            if (response.success && response.data) {
                 const transformedOrder = transformApiOrderToOrderHistory(
-                    response.data.data
+                    response.data
                 );
 
                 return {
-                    success: response.data.success,
-                    message:
-                        response.data.message || response.data.msg || "Success",
+                    success: response.success,
+                    message: response.message || response.msg || "Success",
                     data: transformedOrder,
                 };
             }
@@ -105,8 +105,8 @@ class OrderHistoryService {
             return {
                 success: false,
                 message:
-                    response.data.message ||
-                    response.data.msg ||
+                    response.message ||
+                    response.msg ||
                     "Không tìm thấy đơn hàng",
                 data: undefined,
             };
@@ -195,7 +195,7 @@ class OrderHistoryService {
     ): Promise<ApiResponse<OrderHistory[]>> {
         try {
             const response = await userRoleAPI.post<ApiOrderHistory[]>(
-                "/orders/search",
+                "/orders/search?size=10&page=" + searchParams.page,
                 searchParams
             );
 
@@ -209,6 +209,7 @@ class OrderHistoryService {
                     success: true,
                     message: "Tìm kiếm thành công",
                     data: transformedOrders,
+                    meta: response.meta,
                 };
             }
 
@@ -216,6 +217,7 @@ class OrderHistoryService {
                 success: true,
                 message: "Không tìm thấy đơn hàng nào",
                 data: [],
+                meta: response.meta,
             };
         } catch (error) {
             console.error("Error searching orders:", error);
@@ -223,6 +225,7 @@ class OrderHistoryService {
                 success: false,
                 message: "Có lỗi xảy ra khi tìm kiếm đơn hàng",
                 data: [],
+                meta: response.meta,
             };
         }
     }

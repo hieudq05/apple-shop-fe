@@ -33,7 +33,7 @@ export const fetchAdminFeatures = async (): Promise<Feature[]> => {
                 size: 99
             }
         });
-        return response.data;
+        return response;
     } catch (error) {
         console.error('Error fetching admin features:', error);
         throw error;

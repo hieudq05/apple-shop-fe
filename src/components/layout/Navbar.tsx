@@ -6,6 +6,7 @@ import {
     Bars3Icon,
     XMarkIcon,
     ArrowRightStartOnRectangleIcon,
+    InboxStackIcon,
 } from "@heroicons/react/24/outline";
 import {
     Menu,
@@ -18,6 +19,7 @@ import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchCategories } from "@/services/categoryService";
+import { User } from "lucide-react";
 
 const navbarParams = [
     {
@@ -159,7 +161,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         const fetchNavbarCategories = async () => {
             try {
                 const response = await fetchCategories();
-                setCategories(response.data);
+                setCategories(response);
             } catch (error) {
                 console.error("Error fetching categories:", error);
             }
@@ -217,7 +219,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     return (
         <>
             <nav className="bg-white text-black sticky top-0 z-50">
-                <div className="container mx-auto px-4 flex justify-between items-center relative">
+                <div className="container mx-auto px-4 flex justify-between items-center relative h-12">
                     <div className="xl:hidden">
                         <button
                             onClick={toggleMobileMenu}
@@ -471,7 +473,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                                     flex items-center px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md`}
                                                             >
                                                                 <span className="text-base">
-                                                                    📦
+                                                                    <InboxStackIcon className="w-4 h-4" />
                                                                 </span>
                                                                 <span className="ml-3">
                                                                     Đơn hàng
@@ -491,7 +493,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                                     flex items-center px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md`}
                                                             >
                                                                 <span className="text-base">
-                                                                    👤
+                                                                    <UserIcon className="w-4 h-4" />
                                                                 </span>
                                                                 <span className="ml-3">
                                                                     Tài khoản
@@ -502,7 +504,9 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                     <MenuItem>
                                                         {({ active }) => (
                                                             <button
-                                                                onClick={logout}
+                                                                onClick={async () =>
+                                                                    await logout()
+                                                                }
                                                                 className={`cursor-pointer ${
                                                                     active
                                                                         ? "bg-gray-50"
@@ -671,7 +675,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                             Tài khoản
                                         </a>
                                         <button
-                                            onClick={logout}
+                                            onClick={async () => await logout()}
                                             className="flex items-center text-lg font-semibold w-fit hover:underline text-left"
                                         >
                                             <ArrowRightStartOnRectangleIcon className="w-5 h-5 mr-2" />

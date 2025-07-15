@@ -24,7 +24,7 @@ import AdminAnalyticsPage from "../pages/admin/AdminAnalyticsPage";
 import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
 import CreateProductPage from "../pages/admin/CreateProductPage";
 import ProductDetailPage from "../pages/admin/ProductDetailPage";
-import EditProductPage from "../pages/admin/EditProductPage";
+import SimpleEditProductPage from "../pages/admin/SimpleEditProductPage";
 import OrderDetailPage from "../pages/admin/OrderDetailPage";
 import UserDetailPage from "../pages/admin/UserDetailPage";
 import CategoryManagementPage from "../pages/admin/CategoryManagementPage";
@@ -166,7 +166,7 @@ export const routesConfig: RouteObject[] = [
             },
             {
                 path: "products/:categoryId/:id/edit",
-                element: <EditProductPage />,
+                element: <SimpleEditProductPage />,
             },
             {
                 path: "orders",

@@ -122,7 +122,7 @@ const promotionService = {
     // Toggle promotion status
     togglePromotionStatus: async (id: number, isActive: boolean): Promise<{ success: boolean; msg: string; data: Promotion }> => {
         try {
-            const response = await privateAPI.patch(`/promotions/${id}/status`, { isActive });
+            const response = await privateAPI.put(`/promotions/${id}/toggle-status`, { isActive });
             return response;
         } catch (error) {
             console.error('Error toggling promotion status:', error);

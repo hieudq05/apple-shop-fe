@@ -1,8 +1,9 @@
-import React from 'react';
-import {useRoutes} from 'react-router-dom';
-import {routesConfig} from "./routes";
-import { CartProvider } from './contexts/CartContext';
-import { AuthProvider } from './contexts/AuthContext';
+import React from "react";
+import { useRoutes } from "react-router-dom";
+import { routesConfig } from "./routes";
+import { CartProvider } from "./contexts/CartContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
 
 const App: React.FC = () => {
     const routes = useRoutes(routesConfig);
@@ -11,6 +12,7 @@ const App: React.FC = () => {
         <AuthProvider>
             <CartProvider>
                 {routes}
+                <Toaster position="top-right" richColors />
             </CartProvider>
         </AuthProvider>
     );

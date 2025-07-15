@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { orderHistoryService } from "../services/orderHistoryService";
+import paymentService from "../services/paymentService";
 import type { OrderDetail } from "../types/order";
-import { ORDER_STATUS_MAP, PAYMENT_METHOD_MAP } from "../types/order";
-import {
-    ArrowLeftIcon,
-    ClipboardDocumentIcon,
-} from "@heroicons/react/24/outline";
+import { PAYMENT_METHOD_MAP } from "../types/order";
+import { ArrowLeftIcon, CreditCardIcon } from "@heroicons/react/24/outline";
 import {
     Dialog,
     DialogContent,
@@ -16,8 +14,8 @@ import {
     DialogTitle,
 } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
-import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
+import OrderStatusTimeline from "../components/OrderStatusTimeline";
 
 const OrderDetailPage: React.FC = () => {
     const { orderId } = useParams<{ orderId: string }>();
@@ -28,6 +26,10 @@ const OrderDetailPage: React.FC = () => {
     const [cancelling, setCancelling] = useState(false);
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] =
+        useState<string>("vnpay");
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     useEffect(() => {
         if (orderId) {
@@ -51,28 +53,6 @@ const OrderDetailPage: React.FC = () => {
             setError("Có lỗi xảy ra khi tải chi tiết đơn hàng");
         } finally {
             setLoading(false);
-        }
-    };
-
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        // You can add a toast notification here
-    };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "DELIVERED":
-                return "bg-green-100 text-green-800";
-            case "PAID":
-                return "bg-orange-100 text-orange-600";
-            case "PENDING_PAYMENT":
-                return "bg-yellow-100 text-yellow-600";
-            case "SHIPPED":
-                return "bg-blue-100 text-blue-600";
-            case "CANCELLED":
-                return "bg-red-100 text-red-600";
-            default:
-                return "bg-gray-100 text-gray-600";
         }
     };
 
@@ -114,6 +94,41 @@ const OrderDetailPage: React.FC = () => {
             setError("Có lỗi xảy ra khi hủy đơn hàng");
         } finally {
             setCancelling(false);
+        }
+    };
+
+    const handlePayment = async (paymentMethod: string) => {
+        setIsProcessingPayment(true);
+
+        try {
+            let paymentResponse;
+            if (paymentMethod === "vnpay") {
+                paymentResponse =
+                    await paymentService.createVNPayPaymentForOrder(
+                        orderDetail?.id || 0
+                    );
+            } else if (paymentMethod === "paypal") {
+                paymentResponse =
+                    await paymentService.createPayPalPaymentForOrder(
+                        orderDetail?.id || 0
+                    );
+            } else {
+                alert("Phương thức thanh toán không hỗ trợ");
+                return;
+            }
+
+            if (paymentResponse.success && paymentResponse.data.paymentUrl) {
+                // Redirect to payment URL
+                window.location.href = paymentResponse.data.paymentUrl;
+            } else {
+                alert(paymentResponse.msg || "Không thể tạo URL thanh toán");
+            }
+        } catch (error) {
+            console.error("Error creating payment:", error);
+            alert("Có lỗi xảy ra khi tạo thanh toán");
+        } finally {
+            setIsProcessingPayment(false);
+            setShowPaymentModal(false);
         }
     };
 
@@ -209,68 +224,36 @@ const OrderDetailPage: React.FC = () => {
                         </h1>
                     </div>
 
-                    {/* Cancel button for PENDING_PAYMENT orders */}
+                    {/* Action buttons for PENDING_PAYMENT orders */}
                     {orderDetail.status === "PENDING_PAYMENT" && (
-                        <Button
-                            variant={"destructive"}
-                            onClick={() => setShowCancelDialog(true)}
-                        >
-                            Hủy đơn hàng
-                        </Button>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="default"
+                                onClick={() => setShowPaymentModal(true)}
+                                className="flex items-center gap-2"
+                            >
+                                <CreditCardIcon className="size-4" />
+                                Thanh toán
+                            </Button>
+                            <Button
+                                variant={"destructive"}
+                                onClick={() => setShowCancelDialog(true)}
+                            >
+                                Hủy đơn hàng
+                            </Button>
+                        </div>
                     )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main content */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Order status */}
-                        <div className="bg-white rounded-lg border p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-semibold">
-                                    Trạng thái đơn hàng
-                                </h2>
-                                <span
-                                    className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                                        orderDetail.status
-                                    )}`}
-                                >
-                                    {ORDER_STATUS_MAP[orderDetail.status] ||
-                                        orderDetail.status}
-                                </span>
-                            </div>
-                            <div className="text-sm text-gray-600">
-                                <p>
-                                    Ngày đặt hàng:{" "}
-                                    {new Date(
-                                        orderDetail.createdAt
-                                    ).toLocaleDateString("vi-VN", {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </p>
-                                {orderDetail.trackingCode && (
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <p>
-                                            Mã vận đơn:{" "}
-                                            {orderDetail.trackingCode}
-                                        </p>
-                                        <button
-                                            onClick={() =>
-                                                copyToClipboard(
-                                                    orderDetail.trackingCode!
-                                                )
-                                            }
-                                            className="text-blue-600 hover:text-blue-800"
-                                        >
-                                            <ClipboardDocumentIcon className="size-4" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        {/* Order status timeline */}
+                        <OrderStatusTimeline
+                            currentStatus={orderDetail.status}
+                            orderDate={orderDetail.createdAt}
+                            trackingCode={orderDetail.trackingCode}
+                        />
 
                         {/* Order items */}
                         <div className="bg-white rounded-lg border p-6">
@@ -480,16 +463,35 @@ const OrderDetailPage: React.FC = () => {
                                     </div>
                                 )}
                                 <hr className="my-3" />
-                                <div className="flex justify-between font-semibold text-lg">
-                                    <span>Tổng cộng:</span>
-                                    <span className="text-blue-600">
-                                        {orderDetail.pricing.finalTotal.toLocaleString(
-                                            "vi-VN",
-                                            {
-                                                style: "currency",
-                                                currency: "VND",
-                                            }
-                                        )}
+                                <div>
+                                    <div className="flex justify-between font-semibold text-lg">
+                                        <span>Tổng cộng :</span>
+                                        <span className="text-blue-600">
+                                            {orderDetail.pricing.finalTotal.toLocaleString(
+                                                "vi-VN",
+                                                {
+                                                    style: "currency",
+                                                    currency: "VND",
+                                                }
+                                            )}
+                                        </span>
+                                    </div>
+                                    <span className="text-sm font-normal">
+                                        (Đã bao gồm{" "}
+                                        {(
+                                            orderDetail.pricing.finalTotal -
+                                            (orderDetail.pricing
+                                                .productDiscountAmount +
+                                                orderDetail.pricing
+                                                    .shippingDiscountAmount -
+                                                orderDetail.pricing
+                                                    .shippingFee +
+                                                orderDetail.pricing.subtotal)
+                                        ).toLocaleString("vi-VN", {
+                                            style: "currency",
+                                            currency: "VND",
+                                        })}{" "}
+                                        thuế VAT)
                                     </span>
                                 </div>
                             </div>
@@ -546,6 +548,88 @@ const OrderDetailPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Payment Modal */}
+                <Dialog
+                    open={showPaymentModal}
+                    onOpenChange={setShowPaymentModal}
+                >
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>
+                                Chọn phương thức thanh toán
+                            </DialogTitle>
+                            <DialogDescription>
+                                Vui lòng chọn phương thức thanh toán để hoàn tất
+                                đơn hàng.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            <div className="space-y-3">
+                                <Label className="text-sm font-medium">
+                                    Phương thức thanh toán
+                                </Label>
+                                <div className="space-y-2">
+                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            value="vnpay"
+                                            checked={
+                                                selectedPaymentMethod ===
+                                                "vnpay"
+                                            }
+                                            onChange={(e) =>
+                                                setSelectedPaymentMethod(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-4 h-4 text-blue-600"
+                                        />
+                                        <span>VNPay</span>
+                                    </label>
+                                    <label className="flex items-center space-x-3 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            value="paypal"
+                                            checked={
+                                                selectedPaymentMethod ===
+                                                "paypal"
+                                            }
+                                            onChange={(e) =>
+                                                setSelectedPaymentMethod(
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="w-4 h-4 text-blue-600"
+                                        />
+                                        <span>PayPal</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowPaymentModal(false)}
+                                disabled={isProcessingPayment}
+                            >
+                                Hủy
+                            </Button>
+                            <Button
+                                onClick={() =>
+                                    handlePayment(selectedPaymentMethod)
+                                }
+                                disabled={isProcessingPayment}
+                            >
+                                {isProcessingPayment
+                                    ? "Đang xử lý..."
+                                    : "Thanh toán"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Cancel Order Dialog */}
                 <Dialog

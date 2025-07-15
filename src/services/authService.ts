@@ -1,74 +1,103 @@
 // Authentication service using axios
-import axios from 'axios';
-import type { RegisterRequest, ApiResponse, OtpResponse } from '../types/api';
+import axios from "axios";
+import type { RegisterRequest, ApiResponse, OtpResponse } from "../types/api";
+import { getRefreshToken, getAccessToken } from "../utils/storage";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 // Create axios instance
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+    baseURL: API_BASE_URL,
+    timeout: 10000,
+    headers: {
+        "Content-Type": "application/json",
+    },
 });
 
 const AuthService = {
     login: async (credentials: any) => {
         // Replace with actual API call
-        console.log('AuthService login:', credentials);
+        console.log("AuthService login:", credentials);
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         // Simulate successful login
-        return { token: 'fake-jwt-token', user: { id: '1', name: 'Test User' } };
+        return {
+            token: "fake-jwt-token",
+            user: { id: "1", name: "Test User" },
+        };
         // Simulate failed login
         // throw new Error('Invalid credentials');
     },
 
-    register: async (registerData: RegisterRequest): Promise<ApiResponse<OtpResponse>> => {
+    register: async (
+        registerData: RegisterRequest
+    ): Promise<ApiResponse<OtpResponse>> => {
         try {
-            const response = await axiosInstance.post('/auth/register', registerData);
-            if(response.)
+            const response = await axiosInstance.post(
+                "/auth/register",
+                registerData
+            );
+            return response.data;
         } catch (error: any) {
             return {
                 success: false,
-                message: error?.response?.data?.message || error?.message || 'Đăng ký thất bại',
+                message:
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    "Đăng ký thất bại",
                 data: undefined,
-                error: error?.response?.data?.error || {
-                    errorCode: 'REGISTRATION_FAILED',
-                    errorMessage: error?.message || 'Đăng ký thất bại',
-                    errors: error?.response?.data?.errors || []
-                }
             };
         }
     },
 
     googleRegister: async (googleToken: string): Promise<ApiResponse<any>> => {
         try {
-            console.log('🌐 AuthService: Google registration');
-            const response = await axiosInstance.post('/auth/google/register', { token: googleToken });
+            console.log("🌐 AuthService: Google registration");
+            const response = await axiosInstance.post("/auth/google/register", {
+                token: googleToken,
+            });
 
-            console.log('✅ AuthService: Google registration successful');
+            console.log("✅ AuthService: Google registration successful");
             return response.data;
         } catch (error: any) {
-            console.error('❌ AuthService: Google registration error:', error);
+            console.error("❌ AuthService: Google registration error:", error);
             return {
                 success: false,
-                message: error?.response?.data?.message || error?.message || 'Đăng ký bằng Google thất bại',
+                message:
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    "Đăng ký bằng Google thất bại",
                 data: undefined,
-                error: error?.response?.data?.error || {
-                    errorCode: 'GOOGLE_REGISTRATION_FAILED',
-                    errorMessage: error?.message || 'Đăng ký bằng Google thất bại'
-                }
             };
         }
     },
 
     logout: async () => {
-        // Replace with actual API call or token removal logic
-        console.log('AuthService logout');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        try {
+            // Get tokens from localStorage
+            const refreshToken = getRefreshToken();
+            const accessToken = getAccessToken();
+
+            // Call logout API endpoint with refreshToken as request parameter and accessToken in header
+            await axiosInstance.post(
+                "/auth/logout",
+                { refreshToken: refreshToken },
+                {
+                    headers: {
+                        Authorization: accessToken,
+                    },
+                }
+            );
+            console.log("Logout API call successful");
+        } catch (error) {
+            console.error("Logout API call failed:", error);
+            // Continue with local logout even if API call fails
+        } finally {
+            // Always clear local storage regardless of API result
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+        }
     },
 
     // getCurrentUser: () => {

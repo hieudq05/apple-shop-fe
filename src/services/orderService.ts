@@ -329,10 +329,7 @@ class OrderService {
     ): Promise<ApiResponse<Order>> {
         try {
             const response = await privateAPI.patch(
-                `/orders/${orderId}/status`,
-                {
-                    status,
-                }
+                `/orders/${orderId}/status?status=${status}`
             );
             return response.data || response; // Handle both cases
         } catch (error) {

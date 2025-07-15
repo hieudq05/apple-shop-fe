@@ -114,6 +114,36 @@ const paymentService = {
             throw error;
         }
     },
+
+    // Create VNPay payment URL for existing order
+    createVNPayPaymentForOrder: async (
+        orderId: number
+    ): Promise<CreatePaymentResponse> => {
+        try {
+            const response = await userRoleAPI.post(
+                `/payments/vnpay/create-payment-v1/order/${orderId}`
+            );
+            return response;
+        } catch (error) {
+            console.error("Error creating VNPay payment for order:", error);
+            throw error;
+        }
+    },
+
+    // Create PayPal payment URL for existing order
+    createPayPalPaymentForOrder: async (
+        orderId: number
+    ): Promise<CreatePaymentResponse> => {
+        try {
+            const response = await userRoleAPI.post(
+                `/payments/paypal/create-payment-v1/order/${orderId}`
+            );
+            return response;
+        } catch (error) {
+            console.error("Error creating PayPal payment for order:", error);
+            throw error;
+        }
+    },
 };
 
 export default paymentService;

@@ -14,7 +14,7 @@ export interface Color {
 export const fetchColors = async (): Promise<Color[]> => {
     try {
         const response = await publicAPI.get<ApiResponse<Color[]>>('/colors');
-        return response.data;
+        return response;
     } catch (error) {
         console.error('Error fetching colors:', error);
         throw error;
@@ -32,7 +32,7 @@ export const fetchAdminColors = async (): Promise<Color[]> => {
                 size: 99
             }
         });
-        return response.data;
+        return response;
     } catch (error) {
         console.error('Error fetching admin colors:', error);
         throw error;
@@ -51,7 +51,7 @@ export const createColor = async (color: { name: string, hexCode: string, id: nu
             name: color.name,
             hexCode: color.hexCode
         });
-        return response.data.data;
+        return response;
     } catch (error) {
         console.error('Error creating color:', error);
         throw error;

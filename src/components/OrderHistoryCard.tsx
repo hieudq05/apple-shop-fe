@@ -1,9 +1,17 @@
 import React, { useState } from "react";
-import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
+import { ArrowUpRightIcon, CreditCardIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import type { OrderHistory } from "../types/order";
 import { ORDER_STATUS_MAP, PAYMENT_METHOD_MAP } from "../types/order";
-import { orderHistoryService } from "../services/orderHistoryService";
+import paymentService, { type CreatePaymentRequest } from "../services/paymentService";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export interface OrderHistoryCardProps {
     order: OrderHistory;
@@ -14,11 +22,14 @@ export interface OrderHistoryCardProps {
 const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
     order,
     index,
-    onOrderCancelled,
+    onOrderCancelled: _onOrderCancelled,
 }) => {
     const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>(
         {}
     );
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("vnpay");
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     const toggleItemExpand = (itemIndex: number) => {
         setExpandedItems((prev) => ({
@@ -66,6 +77,69 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
         return parts.join(", ");
     };
 
+    const handlePayment = async (paymentMethod: string) => {
+        setIsProcessingPayment(true);
+        
+        try {
+            // Prepare payment data from order information
+            const shippingAddress = order.shippingAddress;
+            let paymentData: CreatePaymentRequest;
+
+            if (typeof shippingAddress === 'string') {
+                // If shipping address is just a string, we need basic info
+                paymentData = {
+                    firstName: "Khách",
+                    lastName: "Hàng",
+                    email: "customer@example.com", // You might need to get this from user context
+                    phone: "0123456789", // You might need to get this from user context
+                    address: shippingAddress,
+                    ward: 1, // Default values - you might need to handle this better
+                    district: 1,
+                    province: 1,
+                    productPromotionCode: null,
+                    shippingPromotionCode: null,
+                };
+            } else {
+                // If shipping address is an object with detailed info
+                paymentData = {
+                    firstName: shippingAddress.fullName?.split(' ')[0] || "Khách",
+                    lastName: shippingAddress.fullName?.split(' ').slice(1).join(' ') || "Hàng",
+                    email: "customer@example.com", // You might need to get this from user context
+                    phone: shippingAddress.phone || "0123456789",
+                    address: shippingAddress.address,
+                    ward: parseInt(shippingAddress.ward || "1"),
+                    district: parseInt(shippingAddress.district || "1"),
+                    province: parseInt(shippingAddress.province || "1"),
+                    productPromotionCode: null,
+                    shippingPromotionCode: null,
+                };
+            }
+
+            let paymentResponse;
+            if (paymentMethod === "vnpay") {
+                paymentResponse = await paymentService.createVNPayPayment(paymentData);
+            } else if (paymentMethod === "paypal") {
+                paymentResponse = await paymentService.createPayPalPayment(paymentData);
+            } else {
+                alert("Phương thức thanh toán không hỗ trợ");
+                return;
+            }
+
+            if (paymentResponse.success && paymentResponse.data.paymentUrl) {
+                // Redirect to payment URL
+                window.location.href = paymentResponse.data.paymentUrl;
+            } else {
+                alert(paymentResponse.msg || "Không thể tạo URL thanh toán");
+            }
+        } catch (error) {
+            console.error("Error creating payment:", error);
+            alert("Có lỗi xảy ra khi tạo thanh toán");
+        } finally {
+            setIsProcessingPayment(false);
+            setShowPaymentModal(false);
+        }
+    };
+
     return (
         <div
             className={
@@ -87,6 +161,17 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                     })}
                 </div>
                 <div className="flex items-center gap-3">
+                    {/* Nút thanh toán chỉ hiển thị khi đơn hàng chờ thanh toán */}
+                    {order.status === "PENDING_PAYMENT" && (
+                        <Button
+                            onClick={() => setShowPaymentModal(true)}
+                            className="bg-blue-600 text-white hover:bg-blue-700 text-sm font-normal"
+                            size="sm"
+                        >
+                            <CreditCardIcon className="w-4 h-4 mr-1" />
+                            Thanh toán ngay
+                        </Button>
+                    )}
                     <Link
                         to={`/order-detail/${order.id}`}
                         className={
@@ -254,13 +339,114 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                     </div>
                     <div className={"text-xl font-bold"}>
                         Tổng:{" "}
-                        {order.finalAmount.toLocaleString("vi-VN", {
+                        {order.finalTotal.toLocaleString("vi-VN", {
                             style: "currency",
                             currency: "VND",
                         })}
                     </div>
                 </div>
             </div>
+
+            {/* Dialog thanh toán */}
+            <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Chọn phương thức thanh toán</DialogTitle>
+                        <DialogDescription>
+                            Chọn phương thức thanh toán cho đơn hàng #{order.orderNumber || order.id}
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                        {/* Thông tin đơn hàng */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <h4 className="font-medium mb-2">Thông tin đơn hàng</h4>
+                            <p className="text-sm text-gray-600 mb-1">
+                                Mã đơn hàng: #{order.orderNumber || order.id}
+                            </p>
+                            <p className="text-sm text-gray-600 mb-1">
+                                Tổng tiền: {order.finalTotal.toLocaleString("vi-VN", {
+                                    style: "currency",
+                                    currency: "VND",
+                                })}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                                Địa chỉ giao hàng: {formatAddress(order.shippingAddress)}
+                            </p>
+                        </div>
+
+                        {/* Phương thức thanh toán */}
+                        <div className="space-y-3">
+                            <h4 className="font-medium">Phương thức thanh toán</h4>
+                            
+                            <div className="space-y-2">
+                                <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value="vnpay"
+                                        checked={selectedPaymentMethod === "vnpay"}
+                                        onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                                        className="form-radio"
+                                    />
+                                    <div className="flex items-center space-x-2">
+                                        <img 
+                                            src="/vnpay-logo.png" 
+                                            alt="VNPay" 
+                                            className="w-8 h-8"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                            }}
+                                        />
+                                        <span className="font-medium">VNPay</span>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value="paypal"
+                                        checked={selectedPaymentMethod === "paypal"}
+                                        onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                                        className="form-radio"
+                                    />
+                                    <div className="flex items-center space-x-2">
+                                        <img 
+                                            src="/paypal-logo.png" 
+                                            alt="PayPal" 
+                                            className="w-8 h-8"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                            }}
+                                        />
+                                        <span className="font-medium">PayPal</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="flex space-x-3 pt-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowPaymentModal(false)}
+                                className="flex-1"
+                                disabled={isProcessingPayment}
+                            >
+                                Hủy
+                            </Button>
+                            <Button
+                                onClick={() => handlePayment(selectedPaymentMethod)}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                disabled={isProcessingPayment}
+                            >
+                                {isProcessingPayment ? "Đang xử lý..." : "Thanh toán"}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

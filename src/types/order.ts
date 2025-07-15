@@ -20,6 +20,7 @@ export interface ApiOrderHistory {
     createdAt: string;
     paymentType: string;
     status: string;
+    finalTotal: number;
     orderDetails: ApiOrderDetail[];
     shippingTrackingCode?: string;
 }
@@ -80,7 +81,7 @@ export interface OrderHistory {
     totalAmount: number;
     shippingFee: number;
     discountAmount?: number;
-    finalAmount: number;
+    finalTotal: number;
     paymentMethod: string;
     paymentStatus?: string;
     shippingAddress:
@@ -203,7 +204,7 @@ export function transformApiOrderToOrderHistory(
         status: apiOrder.status,
         totalAmount,
         shippingFee: 0, // API không trả về, mặc định 0
-        finalAmount: totalAmount,
+        finalTotal: apiOrder.finalTotal,
         paymentMethod: apiOrder.paymentType,
         shippingAddress: "Địa chỉ giao hàng", // API không trả về, dùng placeholder
         items,

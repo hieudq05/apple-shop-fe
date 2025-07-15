@@ -1,10 +1,18 @@
-import {privateAPI, publicAPI} from '../utils/axios';
-import type {ApiResponse, MetadataResponse} from '../types/api';
+import { description } from "./../components/chart-area-interactive";
+import { privateAPI, publicAPI } from "../utils/axios";
+import type { ApiResponse, MetadataResponse } from "../types/api";
 
 export interface Category {
     id: number | null;
     name: string;
+    description: string;
     image: string;
+}
+
+export interface CategoryRequest {
+    name: string;
+    description?: string;
+    image?: string; // Optional image file for new categories
 }
 
 /**
@@ -14,10 +22,12 @@ export interface Category {
 export const fetchCategories = async (): Promise<Category[]> => {
     try {
         // Sử dụng publicAPI vì đây là thông tin không yêu cầu quyền admin
-        const response = await publicAPI.get<ApiResponse<Category[]>>('/categories');
-        return response;
+        const response = await publicAPI.get<ApiResponse<Category[]>>(
+            "/categories"
+        );
+        return response.data;
     } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error("Error fetching categories:", error);
         throw error;
     }
 };
@@ -28,14 +38,14 @@ export const fetchCategories = async (): Promise<Category[]> => {
  * @param size Number of items per page
  * @returns Promise with paginated categories and metadata
  */
-export const fetchAdminCategories = async (params): Promise<{}> => {
+export const fetchAdminCategories = async (params?): Promise<{}> => {
     try {
         // Sử dụng privateAPI vì đây là thông tin yêu cầu quyền admin
-        return await privateAPI.get<ApiResponse<Category[]>>('/categories', {
-            params
+        return await privateAPI.get<ApiResponse<Category[]>>("/categories", {
+            params,
         });
     } catch (error) {
-        console.error('Error fetching admin categories:', error);
+        console.error("Error fetching admin categories:", error);
         throw error;
     }
 };
@@ -46,26 +56,36 @@ export const fetchAdminCategories = async (params): Promise<{}> => {
  * @param imageFile Image file for the category
  * @returns Promise with the created category
  */
-export const createCategory = async (category: { name: string, id: null }, imageFile: File): Promise<Category> => {
+export const createCategory = async (
+    category: CategoryRequest,
+    imageFile: File
+): Promise<Category> => {
     try {
         const formData = new FormData();
-        formData.append('name', category.name);
-        formData.append('image', imageFile);
-        // id là null khi tạo mới category
-        formData.append('categoryData', JSON.stringify({id: null, name: category.name}));
 
-        const response = await privateAPI.post<ApiResponse<Category>>('/categories', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+        formData.append(
+            "category",
+            new Blob([JSON.stringify(category)], { type: "application/json" })
+        );
+
+        formData.append("image", imageFile ? imageFile : new File([], ""));
+
+        const response = await privateAPI.post<ApiResponse<Category>>(
+            "/categories",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             }
-        });
+        );
 
         if (!response.data.data) {
-            throw new Error('No category data returned from server');
+            throw new Error("No category data returned from server");
         }
         return response.data.data;
     } catch (error) {
-        console.error('Error creating category:', error);
+        console.error("Error creating category:", error);
         throw error;
     }
 };
@@ -76,34 +96,37 @@ export const createCategory = async (category: { name: string, id: null }, image
  * @param imageFile Optional image file if updating the image
  * @returns Promise with the updated category
  */
-export const updateCategory = async (category: Category, imageFile?: File): Promise<Category> => {
+export const updateCategory = async (
+    category: CategoryRequest,
+    categoryId: number,
+    imageFile?: File
+): Promise<Category> => {
     try {
         const formData = new FormData();
-        formData.append('name', category.name);
 
-        // Chỉ thêm ảnh nếu có cung cấp
-        if (imageFile) {
-            formData.append('image', imageFile);
-        }
+        formData.append(
+            "category",
+            new Blob([JSON.stringify(category)], { type: "application/json" })
+        );
 
-        // Đảm bảo id được truyền cho category đã tồn tại
-        formData.append('categoryData', JSON.stringify({
-            id: category.id,
-            name: category.name
-        }));
+        formData.append("image", imageFile ? imageFile : new File([], ""));
 
-        const response = await privateAPI.put<ApiResponse<Category>>(`/categories/${category.id}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+        const response = await privateAPI.put<ApiResponse<Category>>(
+            `/categories/${categoryId}`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             }
-        });
+        );
 
-        if (!response.data.data) {
-            throw new Error('No category data returned from server');
+        if (response.success === false) {
+            throw new Error("No category data returned from server");
         }
-        return response.data.data;
+        return response;
     } catch (error) {
-        console.error('Error updating category:', error);
+        console.error("Error updating category:", error);
         throw error;
     }
 };
@@ -115,9 +138,11 @@ export const updateCategory = async (category: Category, imageFile?: File): Prom
  */
 export const getCategoryById = async (id: number): Promise<Category> => {
     try {
-        const response = await publicAPI.get<ApiResponse<Category>>(`/categories/${id}`);
+        const response = await publicAPI.get<ApiResponse<Category>>(
+            `/categories/${id}`
+        );
         if (!response.success) {
-            throw new Error('Category not found');
+            throw new Error("Category not found");
         }
         return response;
     } catch (error) {
