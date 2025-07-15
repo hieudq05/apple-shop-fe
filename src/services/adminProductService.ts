@@ -1,3 +1,4 @@
+import { description } from "./../components/chart-area-interactive";
 // Admin Product service for admin product operations
 import { privateAPI } from "../utils/axios";
 import type { ApiResponse } from "../types/api";
@@ -11,12 +12,13 @@ export interface AdminProduct {
     category: {
         id: number;
         name: string;
-        slug?: string;
+        image: string;
     };
     features?: Array<{
         id: number;
         name: string;
-        value: string;
+        description: string;
+        image?: string;
     }>;
     stocks: Array<{
         id: number;
@@ -28,6 +30,11 @@ export interface AdminProduct {
         instanceProperties?: Array<{
             id: number;
             name: string;
+        }>;
+        productPhotos: Array<{
+            id: number;
+            imageUrl: string;
+            alt: string;
         }>;
         quantity: number;
         price: number;
@@ -157,13 +164,17 @@ class ProductDataNormalizer {
     /**
      * Fetch and cache category data
      */
-    private async fetchCategoryData(categoryId: number): Promise<CompleteCategory> {
+    private async fetchCategoryData(
+        categoryId: number
+    ): Promise<CompleteCategory> {
         if (this.categoryCache.has(categoryId)) {
             return this.categoryCache.get(categoryId)!;
         }
 
         try {
-            const response = await privateAPI.get<ApiResponse<CompleteCategory>>(`/categories/${categoryId}`);
+            const response = await privateAPI.get<
+                ApiResponse<CompleteCategory>
+            >(`/categories/${categoryId}`);
             const category = response.data.data;
             this.categoryCache.set(categoryId, category);
             return category;
@@ -183,7 +194,9 @@ class ProductDataNormalizer {
         }
 
         try {
-            const response = await privateAPI.get<ApiResponse<CompleteColor>>(`/colors/${colorId}`);
+            const response = await privateAPI.get<ApiResponse<CompleteColor>>(
+                `/colors/${colorId}`
+            );
             const color = response.data.data;
             this.colorCache.set(colorId, color);
             return color;
@@ -197,13 +210,17 @@ class ProductDataNormalizer {
     /**
      * Fetch and cache feature data
      */
-    private async fetchFeatureData(featureId: number): Promise<CompleteFeature> {
+    private async fetchFeatureData(
+        featureId: number
+    ): Promise<CompleteFeature> {
         if (this.featureCache.has(featureId)) {
             return this.featureCache.get(featureId)!;
         }
 
         try {
-            const response = await privateAPI.get<ApiResponse<CompleteFeature>>(`/features/${featureId}`);
+            const response = await privateAPI.get<ApiResponse<CompleteFeature>>(
+                `/features/${featureId}`
+            );
             const feature = response.data.data;
             this.featureCache.set(featureId, feature);
             return feature;
@@ -217,7 +234,10 @@ class ProductDataNormalizer {
     /**
      * Normalize category data
      */
-    private async normalizeCategory(category: any, categoryId?: number): Promise<CompleteCategory> {
+    private async normalizeCategory(
+        category: any,
+        categoryId?: number
+    ): Promise<CompleteCategory> {
         if (!category || !category.id) {
             if (categoryId) {
                 return await this.fetchCategoryData(categoryId);
@@ -230,7 +250,7 @@ class ProductDataNormalizer {
             const completeCategory = await this.fetchCategoryData(category.id);
             return {
                 ...category,
-                ...completeCategory
+                ...completeCategory,
             };
         }
 
@@ -240,7 +260,9 @@ class ProductDataNormalizer {
     /**
      * Normalize features data
      */
-    private async normalizeFeatures(features: any[]): Promise<CompleteFeature[]> {
+    private async normalizeFeatures(
+        features: any[]
+    ): Promise<CompleteFeature[]> {
         if (!features || !Array.isArray(features)) {
             return [];
         }
@@ -253,10 +275,12 @@ class ProductDataNormalizer {
 
                 // If feature data is incomplete, fetch complete data
                 if (!feature.description || !feature.image) {
-                    const completeFeature = await this.fetchFeatureData(feature.id);
+                    const completeFeature = await this.fetchFeatureData(
+                        feature.id
+                    );
                     return {
                         ...feature,
-                        ...completeFeature
+                        ...completeFeature,
                     };
                 }
 
@@ -280,7 +304,7 @@ class ProductDataNormalizer {
             const completeColor = await this.fetchColorData(color.id);
             return {
                 ...color,
-                ...completeColor
+                ...completeColor,
             };
         }
 
@@ -311,7 +335,7 @@ class ProductDataNormalizer {
                     quantity: stock.quantity || 0,
                     price: stock.price || 0,
                     productPhotos: stock.productPhotos || [],
-                    photos: stock.photos || []
+                    photos: stock.photos || [],
                 };
             })
         );
@@ -322,26 +346,36 @@ class ProductDataNormalizer {
     /**
      * Main normalization function
      */
-    async normalizeProductData(productData: any, categoryId?: number): Promise<CompleteProductData> {
+    async normalizeProductData(
+        productData: any,
+        categoryId?: number
+    ): Promise<CompleteProductData> {
         try {
             // Normalize category
-            const normalizedCategory = await this.normalizeCategory(productData.category, categoryId);
+            const normalizedCategory = await this.normalizeCategory(
+                productData.category,
+                categoryId
+            );
 
             // Normalize features
-            const normalizedFeatures = await this.normalizeFeatures(productData.features);
+            const normalizedFeatures = await this.normalizeFeatures(
+                productData.features
+            );
 
             // Normalize stocks
-            const normalizedStocks = await this.normalizeStocks(productData.stocks);
+            const normalizedStocks = await this.normalizeStocks(
+                productData.stocks
+            );
 
             return {
                 id: productData.id,
-                name: productData.name || '',
-                title: productData.title || productData.name || '',
-                description: productData.description || '',
+                name: productData.name || "",
+                title: productData.title || productData.name || "",
+                description: productData.description || "",
                 category: normalizedCategory,
                 features: normalizedFeatures,
                 stocks: normalizedStocks,
-                isActive: productData.isActive ?? true
+                isActive: productData.isActive ?? true,
             };
         } catch (error) {
             console.error("Error normalizing product data:", error);
@@ -410,7 +444,7 @@ export class AdminProductService {
             const formData = new FormData();
 
             // Add product data as JSON string
-            formData.append('product', JSON.stringify(productData));
+            formData.append("product", JSON.stringify(productData));
 
             // Add image files with their placeholder keys
             Object.entries(imageFiles).forEach(([placeholder, file]) => {
@@ -424,7 +458,7 @@ export class AdminProductService {
                 formData,
                 {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        "Content-Type": "multipart/form-data",
                     },
                 }
             );
@@ -447,7 +481,7 @@ export class AdminProductService {
                 productData,
                 {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
+                        "Content-Type": "multipart/form-data",
                     },
                 }
             );
@@ -473,30 +507,32 @@ export class AdminProductService {
             const formData = new FormData();
 
             // Add product as JSON string - this matches @RequestPart("product") String productJson
-            formData.append('product', JSON.stringify(productData));
+            formData.append("product", JSON.stringify(productData));
 
             // Add photo deletions as separate RequestPart - backend expects @RequestPart("productPhotoDeletions") Integer[]
             // We need to send this as a JSON string that can be parsed to Integer array
-            const deletionsBlob = new Blob([JSON.stringify(photoDeletionIds)], { type: 'application/json' });
-            formData.append('productPhotoDeletions', deletionsBlob);
+            const deletionsBlob = new Blob([JSON.stringify(photoDeletionIds)], {
+                type: "application/json",
+            });
+            formData.append("productPhotoDeletions", deletionsBlob);
 
             // Add new image files with their placeholder keys - these go to @RequestParam Map<String, MultipartFile> files
             Object.entries(newImageFiles).forEach(([placeholder, file]) => {
                 formData.append(placeholder, file);
             });
 
-            console.log('Product data sent to API:', productData);
+            console.log("Product data sent to API:", productData);
 
             const response = await privateAPI.put<ApiResponse<AdminProduct>>(
                 `/products/${categoryId}/${productId}`,
                 formData,
                 {
                     headers: {
-                        'Content-Type': "multipart/form-data",
+                        "Content-Type": "multipart/form-data",
                     },
                 }
             );
-            return response.data;
+            return response;
         } catch (error) {
             console.error("Error updating product:", error);
             throw error;

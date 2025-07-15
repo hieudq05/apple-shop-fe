@@ -145,16 +145,16 @@ const SimpleEditProductPage: React.FC = () => {
                             name: product.name,
                             description: product.description || "",
                             category: {
-                                id: product.category?.id || 0,
-                                name: product.category?.name || null,
-                                image: null,
+                                id: product.category.id,
+                                name: product.category.name,
+                                image: product.category.image,
                             },
                             features:
                                 product.features?.map((f) => ({
                                     id: f.id,
-                                    name: null,
-                                    description: null,
-                                    image: null,
+                                    name: f.name,
+                                    description: f.description,
+                                    image: f.image,
                                 })) || [],
                             stocks:
                                 product.stocks?.map((stock) => ({
@@ -166,14 +166,11 @@ const SimpleEditProductPage: React.FC = () => {
                                     },
                                     quantity: stock.quantity,
                                     price: stock.price,
-                                    productPhotos: (stock.photos || []).map(
-                                        (photo, index) => ({
-                                            id: undefined, // photos are strings, no ID
-                                            imageUrl:
-                                                typeof photo === "string"
-                                                    ? photo
-                                                    : "",
-                                            alt: `Product image ${index + 1}`,
+                                    productPhotos: stock.productPhotos.map(
+                                        (photo) => ({
+                                            id: photo.id,
+                                            imageUrl: photo.imageUrl,
+                                            alt: photo.alt,
                                         })
                                     ),
                                     instanceProperties:
@@ -203,23 +200,20 @@ const SimpleEditProductPage: React.FC = () => {
         try {
             setSaving(true);
 
-            // Prepare form data for multipart request
-            const formDataToSend = new FormData();
-
-            // Add product JSON data
+            // Prepare product data structure
             const productData = {
                 name: formData.name,
                 description: formData.description,
                 category: {
                     id: formData.category.id,
-                    name: null,
-                    image: null,
+                    name: formData.category.name,
+                    image: formData.category.image,
                 },
                 features: formData.features.map((f) => ({
                     id: f.id,
-                    name: null,
-                    description: null,
-                    image: null,
+                    name: f.name,
+                    description: f.description,
+                    image: f.image,
                 })),
                 stocks: formData.stocks.map((stock) => ({
                     id: stock.id,
@@ -244,32 +238,16 @@ const SimpleEditProductPage: React.FC = () => {
                 })),
             };
 
-            formDataToSend.append("product", JSON.stringify(productData));
-
-            // Add file uploads
-            Object.entries(fileUploads).forEach(([key, file]) => {
-                formDataToSend.append(key, file);
-            });
-
-            // Add photo deletions
-            formDataToSend.append(
-                "productPhotoDeletions",
-                JSON.stringify(photosToDelete)
+            // Use the productService updateProduct method
+            const response = await productService.updateProduct(
+                parseInt(id!),
+                parseInt(categoryId!),
+                productData,
+                fileUploads,
+                photosToDelete
             );
 
-            // Send request
-            const response = await fetch(
-                `http://localhost:8080/api/v1/admin/products/${categoryId}/${id}`,
-                {
-                    method: "PUT",
-                    body: formDataToSend,
-                    headers: {
-                        Authorization: `${localStorage.getItem("token")}`,
-                    },
-                }
-            );
-
-            if (response.ok) {
+            if (response.success) {
                 navigate("/admin/products");
             } else {
                 throw new Error("Failed to update product");
@@ -495,23 +473,37 @@ const SimpleEditProductPage: React.FC = () => {
                             <Select
                                 value={formData.category.id.toString()}
                                 onValueChange={(value) => {
-                                    const category = Array.isArray(categories)
-                                        ? categories.find(
-                                              (c) =>
-                                                  c.id &&
-                                                  c.id.toString() === value
-                                          )
-                                        : null;
-                                    if (category && category.id !== null) {
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            category: {
-                                                id: category.id!,
-                                                name: category.name,
-                                                image: null,
-                                            },
-                                        }));
-                                    }
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        category: {
+                                            id: parseInt(value),
+                                            name: categories.find(
+                                                (c) =>
+                                                    c.id?.toString() === value
+                                            )?.name,
+                                            image: categories.find(
+                                                (c) =>
+                                                    c.id?.toString() === value
+                                            )?.image,
+                                        },
+                                    }));
+                                    // const category = Array.isArray(categories)
+                                    //     ? categories.find(
+                                    //           (c) =>
+                                    //               c.id &&
+                                    //               c.id.toString() === value
+                                    //       )
+                                    //     : null;
+                                    // if (category && category.id !== null) {
+                                    //     setFormData((prev) => ({
+                                    //         ...prev,
+                                    //         category: {
+                                    //             id: category.id!,
+                                    //             name: category.name,
+                                    //             image: null,
+                                    //         },
+                                    //     }));
+                                    // }
                                 }}
                             >
                                 <SelectTrigger>
