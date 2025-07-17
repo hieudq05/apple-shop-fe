@@ -276,7 +276,7 @@ const CategoryManagementPage: React.FC = () => {
     };
 
     const filteredCategories = categories.filter((category) =>
-        category.name.toLowerCase().includes(searchTerm.toLowerCase())
+        category?.name?.toLowerCase().includes(searchTerm?.toLowerCase())
     );
 
     // Pagination calculations

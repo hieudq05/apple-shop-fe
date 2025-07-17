@@ -3,7 +3,9 @@ import { ArrowUpRightIcon, CreditCardIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import type { OrderHistory } from "../types/order";
 import { ORDER_STATUS_MAP, PAYMENT_METHOD_MAP } from "../types/order";
-import paymentService, { type CreatePaymentRequest } from "../services/paymentService";
+import paymentService, {
+    type CreatePaymentRequest,
+} from "../services/paymentService";
 import {
     Dialog,
     DialogContent,
@@ -28,7 +30,8 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
         {}
     );
     const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("vnpay");
+    const [selectedPaymentMethod, setSelectedPaymentMethod] =
+        useState<string>("vnpay");
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     const toggleItemExpand = (itemIndex: number) => {
@@ -79,47 +82,16 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
 
     const handlePayment = async (paymentMethod: string) => {
         setIsProcessingPayment(true);
-        
+
         try {
-            // Prepare payment data from order information
-            const shippingAddress = order.shippingAddress;
-            let paymentData: CreatePaymentRequest;
-
-            if (typeof shippingAddress === 'string') {
-                // If shipping address is just a string, we need basic info
-                paymentData = {
-                    firstName: "Khách",
-                    lastName: "Hàng",
-                    email: "customer@example.com", // You might need to get this from user context
-                    phone: "0123456789", // You might need to get this from user context
-                    address: shippingAddress,
-                    ward: 1, // Default values - you might need to handle this better
-                    district: 1,
-                    province: 1,
-                    productPromotionCode: null,
-                    shippingPromotionCode: null,
-                };
-            } else {
-                // If shipping address is an object with detailed info
-                paymentData = {
-                    firstName: shippingAddress.fullName?.split(' ')[0] || "Khách",
-                    lastName: shippingAddress.fullName?.split(' ').slice(1).join(' ') || "Hàng",
-                    email: "customer@example.com", // You might need to get this from user context
-                    phone: shippingAddress.phone || "0123456789",
-                    address: shippingAddress.address,
-                    ward: parseInt(shippingAddress.ward || "1"),
-                    district: parseInt(shippingAddress.district || "1"),
-                    province: parseInt(shippingAddress.province || "1"),
-                    productPromotionCode: null,
-                    shippingPromotionCode: null,
-                };
-            }
-
             let paymentResponse;
             if (paymentMethod === "vnpay") {
-                paymentResponse = await paymentService.createVNPayPayment(paymentData);
+                paymentResponse =
+                    await paymentService.createVNPayPaymentForOrder(order.id);
             } else if (paymentMethod === "paypal") {
-                paymentResponse = await paymentService.createPayPalPayment(paymentData);
+                paymentResponse = await paymentService.createPayPalPaymentForOrder(
+                    order.id
+                );
             } else {
                 alert("Phương thức thanh toán không hỗ trợ");
                 return;
@@ -353,52 +325,68 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                     <DialogHeader>
                         <DialogTitle>Chọn phương thức thanh toán</DialogTitle>
                         <DialogDescription>
-                            Chọn phương thức thanh toán cho đơn hàng #{order.orderNumber || order.id}
+                            Chọn phương thức thanh toán cho đơn hàng #
+                            {order.orderNumber || order.id}
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="space-y-4">
                         {/* Thông tin đơn hàng */}
                         <div className="bg-gray-50 p-4 rounded-lg">
-                            <h4 className="font-medium mb-2">Thông tin đơn hàng</h4>
+                            <h4 className="font-medium mb-2">
+                                Thông tin đơn hàng
+                            </h4>
                             <p className="text-sm text-gray-600 mb-1">
                                 Mã đơn hàng: #{order.orderNumber || order.id}
                             </p>
                             <p className="text-sm text-gray-600 mb-1">
-                                Tổng tiền: {order.finalTotal.toLocaleString("vi-VN", {
+                                Tổng tiền:{" "}
+                                {order.finalTotal.toLocaleString("vi-VN", {
                                     style: "currency",
                                     currency: "VND",
                                 })}
                             </p>
                             <p className="text-sm text-gray-600">
-                                Địa chỉ giao hàng: {formatAddress(order.shippingAddress)}
+                                Địa chỉ giao hàng:{" "}
+                                {formatAddress(order.shippingAddress)}
                             </p>
                         </div>
 
                         {/* Phương thức thanh toán */}
                         <div className="space-y-3">
-                            <h4 className="font-medium">Phương thức thanh toán</h4>
-                            
+                            <h4 className="font-medium">
+                                Phương thức thanh toán
+                            </h4>
+
                             <div className="space-y-2">
                                 <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                                     <input
                                         type="radio"
                                         name="paymentMethod"
                                         value="vnpay"
-                                        checked={selectedPaymentMethod === "vnpay"}
-                                        onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                                        checked={
+                                            selectedPaymentMethod === "vnpay"
+                                        }
+                                        onChange={(e) =>
+                                            setSelectedPaymentMethod(
+                                                e.target.value
+                                            )
+                                        }
                                         className="form-radio"
                                     />
                                     <div className="flex items-center space-x-2">
-                                        <img 
-                                            src="/vnpay-logo.png" 
-                                            alt="VNPay" 
+                                        <img
+                                            src="/vnpay-logo.png"
+                                            alt="VNPay"
                                             className="w-8 h-8"
                                             onError={(e) => {
-                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.style.display =
+                                                    "none";
                                             }}
                                         />
-                                        <span className="font-medium">VNPay</span>
+                                        <span className="font-medium">
+                                            VNPay
+                                        </span>
                                     </div>
                                 </label>
 
@@ -407,20 +395,29 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                         type="radio"
                                         name="paymentMethod"
                                         value="paypal"
-                                        checked={selectedPaymentMethod === "paypal"}
-                                        onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                                        checked={
+                                            selectedPaymentMethod === "paypal"
+                                        }
+                                        onChange={(e) =>
+                                            setSelectedPaymentMethod(
+                                                e.target.value
+                                            )
+                                        }
                                         className="form-radio"
                                     />
                                     <div className="flex items-center space-x-2">
-                                        <img 
-                                            src="/paypal-logo.png" 
-                                            alt="PayPal" 
+                                        <img
+                                            src="/paypal-logo.png"
+                                            alt="PayPal"
                                             className="w-8 h-8"
                                             onError={(e) => {
-                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.style.display =
+                                                    "none";
                                             }}
                                         />
-                                        <span className="font-medium">PayPal</span>
+                                        <span className="font-medium">
+                                            PayPal
+                                        </span>
                                     </div>
                                 </label>
                             </div>
@@ -437,11 +434,15 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                 Hủy
                             </Button>
                             <Button
-                                onClick={() => handlePayment(selectedPaymentMethod)}
+                                onClick={() =>
+                                    handlePayment(selectedPaymentMethod)
+                                }
                                 className="flex-1 bg-blue-600 hover:bg-blue-700"
                                 disabled={isProcessingPayment}
                             >
-                                {isProcessingPayment ? "Đang xử lý..." : "Thanh toán"}
+                                {isProcessingPayment
+                                    ? "Đang xử lý..."
+                                    : "Thanh toán"}
                             </Button>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ import {
 } from "@heroicons/react/24/outline";
 import React, { useEffect } from "react";
 import AccountInfo from "../components/AccountInfo.tsx";
+import UserReviews from "../components/UserReviews.tsx";
 import type { MyInfo } from "@/services/userService.ts";
 import userService from "@/services/userService.ts";
 
@@ -25,8 +26,13 @@ const ProfilePage: React.FC = () => {
         setMyInfo(updatedInfo);
     };
 
-    const callBackUpdateUserInfo = (updatedInfo: MyInfo) => {
-        setMyInfo(updatedInfo);
+    const callBackUpdateUserInfo = (updatedInfo: Partial<MyInfo>) => {
+        if (myInfo) {
+            setMyInfo({
+                ...myInfo,
+                ...updatedInfo,
+            });
+        }
     };
 
     useEffect(() => {
@@ -67,6 +73,12 @@ const ProfilePage: React.FC = () => {
                     callBack={callBackUpdateUserInfo}
                 />
             )}
+
+            {/* User Reviews Section */}
+            <div className="container mx-auto py-8">
+                <UserReviews />
+            </div>
+
             <div
                 className={
                     "grid lg:grid-cols-2 grid-cols-1 gap-6 container mx-auto py-12"

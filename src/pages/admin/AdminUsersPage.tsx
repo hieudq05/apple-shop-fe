@@ -98,10 +98,7 @@ const AdminUsersPage: React.FC = () => {
 
         try {
             setToggleLoading(userId);
-            const response = await userService.toggleUserStatus(
-                userId,
-                newStatus
-            );
+            const response = await userService.toggleUserStatus(userId);
 
             if (response.success) {
                 // Update local state

@@ -40,6 +40,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { getUserData } from "@/utils/storage";
 
 // Schema for user data validation
 export const userSchema = z.object({
@@ -266,13 +267,17 @@ export function UserDataTable({
                                 <Eye className="mr-2 h-4 w-4 text-black" />
                                 Xem chi tiết
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="text-end"
-                                onClick={() => onToggleStatus?.(user.id)}
-                            >
-                                <Lock className="mr-2 h-4 w-4 text-red-600" />
-                                <span className="text-red-600">Khoá</span>
-                            </DropdownMenuItem>
+                            {user.email !== getUserData().email ? (
+                                <DropdownMenuItem
+                                    className="text-end"
+                                    onClick={() => onToggleStatus?.(user.id)}
+                                >
+                                    <Lock className="mr-2 h-4 w-4 text-red-600" />
+                                    <span className="text-red-600">Khoá</span>
+                                </DropdownMenuItem>
+                            ) : (
+                                ""
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 );

@@ -219,7 +219,7 @@ const OrderSearchForm: React.FC<OrderSearchFormProps> = ({
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                             <Label htmlFor="shippingTrackingCode">
                                 Mã vận đơn
                             </Label>
@@ -234,7 +234,7 @@ const OrderSearchForm: React.FC<OrderSearchFormProps> = ({
                                     )
                                 }
                             />
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Advanced search - expandable */}

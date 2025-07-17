@@ -1,13 +1,19 @@
 import React, {
     createContext,
     type ReactNode,
-    useContext,
     useEffect,
     useState,
 } from "react";
-import { clearAllStorage, getAccessToken, setUserData } from "../utils/storage";
+import {
+    clearAllStorage,
+    getAccessToken,
+    setUserData,
+    setAccessToken,
+    setRefreshToken,
+} from "../utils/storage";
 import { getUserFromToken, isTokenExpired } from "../utils/jwt";
 import authService from "../services/authService";
+import { tokenRefreshService } from "../utils/tokenRefresh";
 
 interface User {
     email: string;
@@ -18,7 +24,7 @@ interface User {
     roles: Array<{ authority: string }>;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
     user: User | null;
     token: string | null;
     login: (accessToken: string, refreshToken: string) => void;
@@ -31,7 +37,9 @@ interface AuthContextType {
     isAuthLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+    undefined
+);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     children,
@@ -49,6 +57,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                     setUser(userData);
                     setToken(accessToken);
                     setUserData(userData);
+
+                    // Initialize token refresh service
+                    tokenRefreshService.init();
                 } else {
                     clearAllStorage();
                 }
@@ -61,19 +72,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         } finally {
             setIsAuthLoading(false);
         }
+
+        // Cleanup token refresh service on unmount
+        return () => {
+            tokenRefreshService.destroy();
+        };
     }, []);
 
     const login = (accessToken: string, refreshToken: string) => {
         const userData = getUserFromToken(accessToken);
         if (userData) {
+            // Set tokens in storage
+            setAccessToken(accessToken);
+            setRefreshToken(refreshToken);
+
+            // Set user data in state and storage
             setUser(userData);
             setToken(accessToken);
             setUserData(userData);
+
+            // Initialize token refresh service after successful login
+            tokenRefreshService.init();
         }
     };
 
     const logout = async () => {
         try {
+            // Destroy token refresh service first
+            tokenRefreshService.destroy();
+
             // Call logout API
             await authService.logout();
         } catch (error) {
@@ -113,12 +140,4 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             {children}
         </AuthContext.Provider>
     );
-};
-
-export const useAuth = (): AuthContextType => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
 };

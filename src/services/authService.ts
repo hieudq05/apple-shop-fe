@@ -100,6 +100,35 @@ const AuthService = {
         }
     },
 
+    refreshToken: async (): Promise<
+        ApiResponse<{ accessToken: string; refreshToken: string }>
+    > => {
+        try {
+            const refreshToken = getRefreshToken();
+            if (!refreshToken) {
+                throw new Error("No refresh token available");
+            }
+
+            console.log("🔄 AuthService: Refreshing token...");
+            const response = await axiosInstance.post("/auth/refresh-token", {
+                refreshToken: refreshToken,
+            });
+
+            console.log("✅ AuthService: Token refresh successful");
+            return response.data;
+        } catch (error: any) {
+            console.error("❌ AuthService: Token refresh failed:", error);
+            return {
+                success: false,
+                message:
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    "Token refresh failed",
+                data: undefined,
+            };
+        }
+    },
+
     // getCurrentUser: () => {
     //     // Logic to get user from localStorage or context
     // }

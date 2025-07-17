@@ -542,12 +542,12 @@ export class AdminProductService {
     /**
      * Delete product
      */
-    async deleteProduct(productId: number): Promise<ApiResponse<void>> {
+    async deleteProduct(productId: number, categoryId: number): Promise<ApiResponse<void>> {
         try {
             const response = await privateAPI.delete<ApiResponse<void>>(
-                `/products/${productId}`
+                `/products/${categoryId}/${productId}`
             );
-            return response.data;
+            return response;
         } catch (error) {
             console.error("Error deleting product:", error);
             throw error;

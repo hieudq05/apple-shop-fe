@@ -26,12 +26,15 @@ import {
     TableRow,
 } from "../../components/ui/table";
 import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "../../components/ui/carousel";
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProductDetail {
     id: number;
@@ -95,6 +98,8 @@ const ProductDetailPage: React.FC = () => {
     const [product, setProduct] = useState<ProductDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         fetchProductDetail();
@@ -112,10 +117,16 @@ const ProductDetailPage: React.FC = () => {
                 parseInt(id)
             );
             if (response.success && response.data) {
-                console.log("Product detail fetched successfully:", response.data);
+                console.log(
+                    "Product detail fetched successfully:",
+                    response.data
+                );
                 setProduct(response.data);
             } else {
-                console.error("Error fetching product detail:", response.message);
+                console.error(
+                    "Error fetching product detail:",
+                    response.message
+                );
             }
         } catch (error) {
             console.error("Error fetching product detail:", error);
@@ -125,17 +136,24 @@ const ProductDetailPage: React.FC = () => {
     };
 
     const handleDeleteProduct = async () => {
-        if (window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-            try {
-                // Replace with actual API call
-                console.log("Deleting product:", id);
-                alert("Sản phẩm đã được xóa thành công!");
+        setIsDeleting(true);
+        try {
+            if (!product) return;
+            const response = await adminProductService.deleteProduct(
+                product.id,
+                product.category.id
+            );
+            if (response.success) {
+                console.log("Product deleted successfully");
                 navigate("/admin/products");
-            } catch (error) {
-                console.error("Error deleting product:", error);
-                alert("Có lỗi xảy ra khi xóa sản phẩm!");
+            } else {
+                console.error("Error deleting product:", response.message);
             }
+        } catch (error) {
+            console.error("Error deleting product:", error);
         }
+        setIsDeleting(false);
+        setIsDialogOpen(false);
     };
 
     const formatCurrency = (amount: number) => {
@@ -235,11 +253,7 @@ const ProductDetailPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-2">
-                    <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                    >
+                    <Button asChild variant="outline" size="sm">
                         <Link
                             to={`/admin/products/${product.category.id}/${product.id}/edit`}
                         >
@@ -248,7 +262,7 @@ const ProductDetailPage: React.FC = () => {
                         </Link>
                     </Button>
                     <Button
-                        onClick={handleDeleteProduct}
+                        onClick={() => setIsDialogOpen(true)}
                         variant="destructive"
                         size="sm"
                     >
@@ -330,7 +344,9 @@ const ProductDetailPage: React.FC = () => {
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Tên sản phẩm
                                     </label>
-                                    <p className="text-gray-900">{product.name}</p>
+                                    <p className="text-gray-900">
+                                        {product.name}
+                                    </p>
                                 </div>
 
                                 <div>
@@ -422,24 +438,34 @@ const ProductDetailPage: React.FC = () => {
                                                         className="w-4 h-4 rounded-full border border-gray-300"
                                                         style={{
                                                             backgroundColor:
-                                                                stock.color?.hexCode,
+                                                                stock.color
+                                                                    ?.hexCode,
                                                         }}
                                                     />
-                                                    <span>{stock.color?.name}</span>
+                                                    <span>
+                                                        {stock.color?.name}
+                                                    </span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                {stock.instanceProperties?.length > 0 ? (
+                                                {stock.instanceProperties
+                                                    ?.length > 0 ? (
                                                     <div className="flex flex-wrap gap-1">
-                                                        {stock.instanceProperties.map((property) => (
-                                                            <Badge
-                                                                key={property.id}
-                                                                variant="outline"
-                                                                className="text-xs"
-                                                            >
-                                                                {property.name}
-                                                            </Badge>
-                                                        ))}
+                                                        {stock.instanceProperties.map(
+                                                            (property) => (
+                                                                <Badge
+                                                                    key={
+                                                                        property.id
+                                                                    }
+                                                                    variant="outline"
+                                                                    className="text-xs"
+                                                                >
+                                                                    {
+                                                                        property.name
+                                                                    }
+                                                                </Badge>
+                                                            )
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <span className="text-gray-500">
@@ -462,12 +488,16 @@ const ProductDetailPage: React.FC = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <span className="font-medium">
-                                                    {formatCurrency(stock.price)}
+                                                    {formatCurrency(
+                                                        stock.price
+                                                    )}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant="outline">
-                                                    {stock.productPhotos?.length || 0} ảnh
+                                                    {stock.productPhotos
+                                                        ?.length || 0}{" "}
+                                                    ảnh
                                                 </Badge>
                                             </TableCell>
                                         </TableRow>
@@ -483,7 +513,8 @@ const ProductDetailPage: React.FC = () => {
                             <CardHeader>
                                 <CardTitle>Tính năng sản phẩm</CardTitle>
                                 <CardDescription>
-                                    {product.features.length} tính năng được cấu hình
+                                    {product.features.length} tính năng được cấu
+                                    hình
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -529,7 +560,8 @@ const ProductDetailPage: React.FC = () => {
                                     </span>
                                     <div className="mt-1">
                                         <p className="text-gray-900">
-                                            {product.createdBy?.firstName} {product.createdBy?.lastName}
+                                            {product.createdBy?.firstName}{" "}
+                                            {product.createdBy?.lastName}
                                         </p>
                                         <p className="text-gray-500 text-xs">
                                             {product.createdBy?.email}
@@ -542,7 +574,8 @@ const ProductDetailPage: React.FC = () => {
                                     </span>
                                     <div className="mt-1">
                                         <p className="text-gray-900">
-                                            {product.updatedBy?.firstName} {product.updatedBy?.lastName}
+                                            {product.updatedBy?.firstName}{" "}
+                                            {product.updatedBy?.lastName}
                                         </p>
                                         <p className="text-gray-500 text-xs">
                                             {product.updatedBy?.email}
@@ -570,6 +603,28 @@ const ProductDetailPage: React.FC = () => {
                     </Card>
                 </div>
             </div>
+            {/* Dialog */}
+            <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Xóa sản phẩm</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Bạn có chắc chắn muốn xóa sản phẩm "{product.name}"?
+                            Hành động này không thể hoàn tác.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteProduct}
+                            className="bg-destructive text-white hover:bg-destructive/90"
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? "Đang xóa..." : "Xóa"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

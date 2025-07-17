@@ -487,23 +487,6 @@ const SimpleEditProductPage: React.FC = () => {
                                             )?.image,
                                         },
                                     }));
-                                    // const category = Array.isArray(categories)
-                                    //     ? categories.find(
-                                    //           (c) =>
-                                    //               c.id &&
-                                    //               c.id.toString() === value
-                                    //       )
-                                    //     : null;
-                                    // if (category && category.id !== null) {
-                                    //     setFormData((prev) => ({
-                                    //         ...prev,
-                                    //         category: {
-                                    //             id: category.id!,
-                                    //             name: category.name,
-                                    //             image: null,
-                                    //         },
-                                    //     }));
-                                    // }
                                 }}
                             >
                                 <SelectTrigger>
@@ -584,9 +567,10 @@ const SimpleEditProductPage: React.FC = () => {
                                                     ];
                                                     updatedFeatures[index] = {
                                                         id: selectedFeature.id,
-                                                        name: null,
-                                                        description: null,
-                                                        image: null,
+                                                        name: selectedFeature.name,
+                                                        description:
+                                                            selectedFeature.description,
+                                                        image: selectedFeature.image,
                                                     };
                                                     setFormData((prev) => ({
                                                         ...prev,

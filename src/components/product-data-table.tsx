@@ -12,11 +12,11 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { Trash2, MoreHorizontal, ImageIcon, Edit, Eye } from "lucide-react";
+import { Trash2, MoreHorizontal, Edit, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -72,9 +72,9 @@ export type Product = z.infer<typeof productSchema>;
 
 interface ProductDataTableProps {
     data: Product[];
-    onEdit?: (productId: number, categoryId: number) => void;
-    onDelete?: (productId: number, productName: string) => void;
-    onView?: (productId: number, categoryId: number) => void;
+    onEdit?: (productId: number, categoryId: number) => string;
+    onDelete?: (productId: number, productName: string, categoryId: number) => void;
+    onView?: (productId: number, categoryId: number) => string;
 }
 
 export function ProductDataTable({
@@ -223,7 +223,9 @@ export function ProductDataTable({
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="text-end"
-                                onClick={() => onEdit?.(product.id, product.categoryId)}
+                                onClick={() =>
+                                    onEdit?.(product.id, product.categoryId)
+                                }
                             >
                                 <Edit className="mr-2 h-4 w-4 text-black" />
                                 Chỉnh sửa
@@ -231,7 +233,7 @@ export function ProductDataTable({
                             <DropdownMenuItem
                                 className="text-end"
                                 onClick={() =>
-                                    onDelete?.(product.id, product.name)
+                                    onDelete?.(product.id, product.name, product.categoryId)
                                 }
                             >
                                 <Trash2 className="mr-2 h-4 w-4 text-red-600" />

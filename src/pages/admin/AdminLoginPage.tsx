@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { setAccessToken, setRefreshToken } from "../../utils/storage";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate, Navigate } from "react-router-dom";
 
 const AdminLoginPage: React.FC = () => {

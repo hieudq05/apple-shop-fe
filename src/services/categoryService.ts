@@ -25,7 +25,7 @@ export const fetchCategories = async (): Promise<Category[]> => {
         const response = await publicAPI.get<ApiResponse<Category[]>>(
             "/categories"
         );
-        return response.data;
+        return response;
     } catch (error) {
         console.error("Error fetching categories:", error);
         throw error;
@@ -80,10 +80,10 @@ export const createCategory = async (
             }
         );
 
-        if (!response.data.data) {
+        if (!response.success) {
             throw new Error("No category data returned from server");
         }
-        return response.data.data;
+        return response;
     } catch (error) {
         console.error("Error creating category:", error);
         throw error;

@@ -284,13 +284,12 @@ const userService = {
 
     // Toggle user status (enable/disable)
     toggleUserStatus: async (
-        id: number,
-        enabled: boolean
+        id: number
     ): Promise<{ success: boolean; message: string; data: User }> => {
         try {
-            const response = await privateAPI.patch(`/users/${id}/status`, {
-                enabled,
-            });
+            const response = await privateAPI.put(
+                `/users/${id}/toggle-enabled`
+            );
             return response;
         } catch (error) {
             console.error("Error toggling user status:", error);

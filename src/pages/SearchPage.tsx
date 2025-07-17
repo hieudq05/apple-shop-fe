@@ -58,7 +58,8 @@ const SearchPage: React.FC = () => {
 
     const sortOptions = [
         { value: "name", label: "Tên sản phẩm" },
-        { value: "price", label: "Giá" },
+        { value: "createdbyname", label: "Ngày mở bán" },
+        { value: "quantity", label: "Giá" },
         { value: "createdAt", label: "Mới nhất" },
         { value: "updatedAt", label: "Cập nhật gần đây" },
     ];

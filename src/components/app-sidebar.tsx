@@ -11,6 +11,7 @@ import {
     Home,
     Search,
     HelpCircle,
+    Star,
 } from "lucide-react";
 
 import { NavDocuments } from "@/components/nav-documents";
@@ -26,7 +27,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuthContext";
 
 const data = {
     navMain: [
@@ -55,6 +56,11 @@ const data = {
             title: "Thống kê",
             url: "/admin/analytics",
             icon: BarChart3,
+        },
+        {
+            title: "Đánh giá",
+            url: "/admin/reviews",
+            icon: Star,
         },
     ],
     navManagement: [
@@ -126,8 +132,6 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { user, isAdmin } = useAuth();
-
-    console.log(isAdmin, user);
 
     // Filter items based on user permissions
     const filteredNavMain = data.navMain.filter(

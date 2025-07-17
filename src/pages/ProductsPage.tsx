@@ -224,7 +224,7 @@ const ProductsPage: React.FC = () => {
                             name: product.name,
                             description: product.description,
                             stocks: product.stocks,
-                            category: category?.name || "",
+                            category: category?.id || "",
                         }))
                     )
                 );
@@ -274,7 +274,7 @@ const ProductsPage: React.FC = () => {
                     </div>
                     <div
                         className={
-                            "grid grid-cols-2 lg:gap-24 xl:grid-cols-4 lg:grid-cols-3 gap-10 mb-12"
+                            "grid grid-cols-1 sm:grid-cols-2 lg:gap-24 xl:grid-cols-4 lg:grid-cols-3 gap-10 mb-12"
                         }
                     >
                         {products.map((product) => (

@@ -89,6 +89,7 @@ const AdminProductsPage: React.FC = () => {
         isOpen: boolean;
         productId: number | null;
         productName: string;
+        categoryId?: number;
         isDeleting: boolean;
     }>({
         isOpen: false,
@@ -120,74 +121,69 @@ const AdminProductsPage: React.FC = () => {
         error: null,
     });
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setProductsState((prev) => ({
-                    ...prev,
-                    loading: true,
-                    error: null,
-                }));
-                console.log("Fetching with useState...");
+    const fetchProducts = async () => {
+        try {
+            setProductsState((prev) => ({
+                ...prev,
+                loading: true,
+                error: null,
+            }));
+            console.log("Fetching with useState...");
 
-                const params = {
-                    page: metadata.currentPage,
-                    size: metadata.pageSize,
-                    search: debouncedSearchTerm || undefined,
-                    categoryId:
-                        selectedCategory && selectedCategory !== "all"
-                            ? parseInt(selectedCategory)
-                            : undefined,
+            const params = {
+                page: metadata.currentPage,
+                size: metadata.pageSize,
+                search: debouncedSearchTerm || undefined,
+                categoryId:
+                    selectedCategory && selectedCategory !== "all"
+                        ? parseInt(selectedCategory)
+                        : undefined,
+            };
+
+            const response = await adminProductService.getAdminProducts(params);
+            console.log("useState response:", response);
+
+            if (response.success && response.data) {
+                const mappedProducts = response.data.map(transformToProduct);
+
+                const result = {
+                    products: mappedProducts,
+                    meta: response.meta || {
+                        currentPage: 0,
+                        pageSize: mappedProducts.length,
+                        totalElements: mappedProducts.length,
+                        totalPage: 1,
+                    },
                 };
 
-                const response = await adminProductService.getAdminProducts(
-                    params
-                );
-                console.log("useState response:", response);
-
-                if (response.success && response.data) {
-                    const mappedProducts =
-                        response.data.map(transformToProduct);
-
-                    const result = {
-                        products: mappedProducts,
-                        meta: response.meta || {
-                            currentPage: 0,
-                            pageSize: mappedProducts.length,
-                            totalElements: mappedProducts.length,
-                            totalPage: 1,
-                        },
-                    };
-
-                    console.log("useState result:", result);
-                    setProductsState({
-                        data: result,
-                        loading: false,
-                        error: null,
-                    });
-                    setMetadata(
-                        response.meta || {
-                            currentPage: 0,
-                            pageSize: 10,
-                            totalElements: 0,
-                            totalPage: 0,
-                        }
-                    );
-                } else {
-                    throw new Error(
-                        response.message || "Failed to fetch products"
-                    );
-                }
-            } catch (error) {
-                console.error("useState error:", error);
-                setProductsState((prev) => ({
-                    ...prev,
+                console.log("useState result:", result);
+                setProductsState({
+                    data: result,
                     loading: false,
-                    error,
-                }));
+                    error: null,
+                });
+                setMetadata(
+                    response.meta || {
+                        currentPage: 0,
+                        pageSize: 10,
+                        totalElements: 0,
+                        totalPage: 0,
+                    }
+                );
+            } else {
+                throw new Error(response.message || "Failed to fetch products");
             }
-        };
+        } catch (error) {
+            console.error("useState error:", error);
+            setProductsState((prev) => ({
+                ...prev,
+                loading: false,
+                error,
+            }));
+        }
+    };
 
+    useEffect(() => {
         fetchProducts();
     }, [metadata.currentPage, debouncedSearchTerm, selectedCategory]);
 
@@ -196,11 +192,16 @@ const AdminProductsPage: React.FC = () => {
     const isLoading = productsState.loading;
     const isErrorProducts = !!productsState.error;
 
-    const openDeleteDialog = (productId: number, productName: string) => {
+    const openDeleteDialog = (
+        productId: number,
+        productName: string,
+        categoryId: number
+    ) => {
         setDeleteDialog({
             isOpen: true,
             productId,
             productName,
+            categoryId,
             isDeleting: false,
         });
     };
@@ -216,11 +217,16 @@ const AdminProductsPage: React.FC = () => {
 
     const deleteMutation = useMutation({
         mutationFn: (productId: number) =>
-            adminProductService.deleteProduct(productId),
+            adminProductService.deleteProduct(
+                productId,
+                productsData?.products.find((p) => p.id === productId)
+                    ?.categoryId || 0
+            ),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["adminProducts"] });
             closeDeleteDialog();
             // Refetch products after successful deletion
+            fetchProducts();
             setMetadata((prev) => ({ ...prev, currentPage: 0 }));
 
             toast.success("Xóa sản phẩm thành công", {
@@ -357,16 +363,10 @@ const AdminProductsPage: React.FC = () => {
                                 data={productsData.products}
                                 // Navigate to product view by react-router-dom
                                 onView={(productId, categoryId) =>
-                                    window.open(
-                                        `/admin/products/${categoryId}/${productId}`,
-                                        "_blank"
-                                    )
+                                    (window.location.href = `/admin/products/${categoryId}/${productId}`)
                                 }
                                 onEdit={(productId, categoryId) =>
-                                    window.open(
-                                        `/admin/products/${categoryId}/${productId}/edit`,
-                                        "_blank"
-                                    )
+                                    (window.location.href = `/admin/products/${categoryId}/${productId}/edit`)
                                 }
                                 onDelete={openDeleteDialog}
                             />

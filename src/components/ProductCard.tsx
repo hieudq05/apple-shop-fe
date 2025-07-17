@@ -62,7 +62,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }, [stocks]);
 
     return (
-        <div className="bg-transparent flex flex-col space-y-6" key={id}>
+        <div className="bg-transparent flex flex-col space-y-6 h-full" key={id}>
             <Carousel className="w-full aspect-[9/12] relative hover:scale-[1.03] transition-transform duration-300">
                 <CarouselContent className="w-full h-full">
                     {allPhotos.length > 0 ? (
@@ -115,9 +115,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     ></div>
                 ))}
             </div>
-            <div className={"flex flex-col items-center"}>
+            <div className={"flex flex-col items-center h-full"}>
                 <h2 className="text-xl font-medium">{name}</h2>
-                <p className="mb-8 text-lg">{description}</p>
+                <p className="mb-8 text-lg text-center h-full">{description}</p>
                 <div className="text-center">
                     {stocks && stocks.length > 0
                         ? `Từ ${Math.min(

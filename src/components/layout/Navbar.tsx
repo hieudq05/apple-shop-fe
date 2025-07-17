@@ -15,11 +15,10 @@ import {
     MenuItems,
     Transition,
 } from "@headlessui/react";
-import { useCart } from "../../contexts/CartContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/hooks/useAuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchCategories } from "@/services/categoryService";
-import { User } from "lucide-react";
 
 const navbarParams = [
     {
@@ -161,7 +160,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         const fetchNavbarCategories = async () => {
             try {
                 const response = await fetchCategories();
-                setCategories(response);
+                setCategories(response.data);
             } catch (error) {
                 console.error("Error fetching categories:", error);
             }

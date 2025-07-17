@@ -1,16 +1,9 @@
-import {
-    IconCreditCard,
-    IconDotsVertical,
-    IconLogout,
-    IconNotification,
-    IconUserCircle,
-} from "@tabler/icons-react";
+import { IconDotsVertical, IconLogout } from "@tabler/icons-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -22,7 +15,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthContext.tsx";
+import { useAuth } from "@/hooks/useAuthContext";
 
 export function NavUser({
     user,

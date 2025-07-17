@@ -40,6 +40,7 @@ import OrderDetailTestComponent from "../components/debug/OrderDetailTestCompone
 import NotFoundPage from "../pages/NotFoundPage";
 import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
+import AdminReviewsPage from "@/pages/admin/AdminReviewsPage.tsx";
 
 export const routesConfig: RouteObject[] = [
     // User routes with MainLayout (only for ROLE_USER)
@@ -232,6 +233,14 @@ export const routesConfig: RouteObject[] = [
                     </ProtectedRoute>
                 ),
             },
+            {
+                path: "reviews",
+                element: (
+                    <ProtectedRoute requireAdmin={true}>
+                        <AdminReviewsPage />
+                    </ProtectedRoute>
+                ),
+            }
         ],
     },
     // 404 catch-all route

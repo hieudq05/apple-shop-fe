@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import {
     PlusIcon,
@@ -10,6 +10,8 @@ import {
     UserIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
+    FunnelIcon,
+    XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,10 +27,12 @@ import {
 import promotionService, {
     type Promotion,
     type PromotionParams,
+    type PromotionSearchParams,
     type CreatePromotionData,
 } from "../../services/promotionService";
 import { useDebounce } from "../../hooks/useDebounce";
 import { Check, Copy } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface PromotionForm {
     name: string;
@@ -50,7 +54,7 @@ const PromotionManagementPage: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [totalElements, setTotalElements] = useState(0);
-    const [pageSize] = useState(10);
+    const [pageSize] = useState(6);
     const [showForm, setShowForm] = useState(false);
     const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(
         null
@@ -80,6 +84,11 @@ const PromotionManagementPage: React.FC = () => {
         isDeleting: false,
     });
     const [error, setError] = useState<string | null>(null);
+    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+    const [searchFilters, setSearchFilters] = useState<PromotionSearchParams>(
+        {}
+    );
+    const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
     // Debounce search term to avoid too many API calls
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -89,28 +98,54 @@ const PromotionManagementPage: React.FC = () => {
         setCurrentPage(0);
     }, [debouncedSearchTerm]);
 
-    useEffect(() => {
-        fetchPromotions();
-    }, [currentPage, debouncedSearchTerm]);
-
-    const fetchPromotions = async () => {
+    const fetchPromotions = useCallback(async () => {
         try {
             setIsLoading(true);
             setError(null);
 
-            const params: PromotionParams = {
-                page: currentPage,
-                size: pageSize,
-            };
+            // Check if we have advanced search filters
+            const hasFilters = Object.keys(searchFilters).some(
+                (key) =>
+                    searchFilters[key as keyof PromotionSearchParams] !==
+                        undefined &&
+                    searchFilters[key as keyof PromotionSearchParams] !== ""
+            );
 
-            if (debouncedSearchTerm) params.search = debouncedSearchTerm;
+            if (hasFilters || !debouncedSearchTerm) {
+                // Use advanced search API
+                const searchParams: PromotionSearchParams = {
+                    ...searchFilters,
+                    page: currentPage,
+                    size: pageSize,
+                };
 
-            const response = await promotionService.getPromotions(params);
+                if (debouncedSearchTerm) {
+                    searchParams.keyword = debouncedSearchTerm;
+                }
 
-            if (response.success) {
-                setPromotions(response.data);
-                setTotalPages(response.meta.totalPage);
-                setTotalElements(response.meta.totalElements);
+                const response = await promotionService.searchPromotions(
+                    searchParams
+                );
+                if (response.success) {
+                    setPromotions(response.data);
+                    setTotalPages(response.meta.totalPage);
+                    setTotalElements(response.meta.totalElements);
+                }
+            } else {
+                // Use simple search API (fallback)
+                const params: PromotionParams = {
+                    page: currentPage,
+                    size: pageSize,
+                };
+
+                if (debouncedSearchTerm) params.search = debouncedSearchTerm;
+
+                const response = await promotionService.getPromotions(params);
+                if (response.success) {
+                    setPromotions(response.data);
+                    setTotalPages(response.meta.totalPage);
+                    setTotalElements(response.meta.totalElements);
+                }
             }
         } catch (error) {
             console.error("Error fetching promotions:", error);
@@ -119,6 +154,29 @@ const PromotionManagementPage: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
+    }, [currentPage, pageSize, debouncedSearchTerm, searchFilters]);
+
+    useEffect(() => {
+        fetchPromotions();
+    }, [fetchPromotions]);
+
+    const handleAdvancedSearch = (filters: PromotionSearchParams) => {
+        setSearchFilters(filters);
+        setCurrentPage(0);
+
+        // Check if there are active filters
+        const hasFilters = Object.keys(filters).some(
+            (key) =>
+                filters[key as keyof PromotionSearchParams] !== undefined &&
+                filters[key as keyof PromotionSearchParams] !== ""
+        );
+        setHasActiveFilters(hasFilters);
+    };
+
+    const clearAdvancedSearch = () => {
+        setSearchFilters({});
+        setHasActiveFilters(false);
+        setCurrentPage(0);
     };
 
     const generateCode = (name: string) => {
@@ -167,8 +225,8 @@ const PromotionManagementPage: React.FC = () => {
             minOrderValue: promotion.minOrderValue || 0,
             maxDiscountAmount: promotion.maxDiscountAmount || 0,
             usageLimit: promotion.usageLimit || 0,
-            startDate: promotion.startDate.split("T")[0],
-            endDate: promotion.endDate.split("T")[0],
+            startDate: promotion.startDate,
+            endDate: promotion.endDate,
             isActive: promotion.isActive,
         });
         setShowForm(true);
@@ -200,8 +258,8 @@ const PromotionManagementPage: React.FC = () => {
                 minOrderValue: formData.minOrderValue || undefined,
                 maxDiscountAmount: formData.maxDiscountAmount || undefined,
                 usageLimit: formData.usageLimit,
-                startDate: formData.startDate + "T00:00:00",
-                endDate: formData.endDate + "T23:59:59",
+                startDate: formData.startDate,
+                endDate: formData.endDate,
                 isActive: formData.isActive,
             };
 
@@ -211,11 +269,15 @@ const PromotionManagementPage: React.FC = () => {
                     submitData
                 );
                 if (response.success) {
-                    // Update local state with the response data
+                    // Update local state with the form data
+                    const updatedPromotion = {
+                        ...editingPromotion,
+                        ...submitData,
+                    };
                     setPromotions((prev) =>
                         prev.map((promotion) =>
                             promotion.id === editingPromotion.id
-                                ? { ...response.data }
+                                ? { ...updatedPromotion }
                                 : promotion
                         )
                     );
@@ -396,8 +458,10 @@ const PromotionManagementPage: React.FC = () => {
 
     const filteredPromotions = promotions.filter(
         (promotion) =>
-            promotion.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            promotion.code.toLowerCase().includes(searchTerm.toLowerCase())
+            promotion?.name
+                ?.toLowerCase()
+                .includes(searchTerm?.toLowerCase()) ||
+            promotion?.code?.toLowerCase().includes(searchTerm?.toLowerCase())
     );
 
     if (isLoading) {
@@ -450,7 +514,7 @@ const PromotionManagementPage: React.FC = () => {
             <div className="flex items-center space-x-4">
                 <div className="relative flex-1 max-w-md">
                     <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
+                    <Input
                         type="text"
                         placeholder="Tìm kiếm khuyến mãi..."
                         value={searchTerm}
@@ -458,6 +522,30 @@ const PromotionManagementPage: React.FC = () => {
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
+                <Button
+                    onClick={() => setShowAdvancedSearch(true)}
+                    variant="outline"
+                    className="flex items-center space-x-2"
+                >
+                    <FunnelIcon className="w-4 h-4" />
+                    <span>Bộ lọc</span>
+                    {hasActiveFilters && (
+                        <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                            Đang lọc
+                        </span>
+                    )}
+                </Button>
+                {hasActiveFilters && (
+                    <Button
+                        onClick={clearAdvancedSearch}
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-600 hover:text-gray-900"
+                    >
+                        <XMarkIcon className="w-4 h-4 mr-1" />
+                        Xóa bộ lọc
+                    </Button>
+                )}
             </div>
 
             {/* Promotions Table */}
@@ -1057,7 +1145,438 @@ const PromotionManagementPage: React.FC = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Advanced Search Dialog */}
+            <Dialog
+                open={showAdvancedSearch}
+                onOpenChange={setShowAdvancedSearch}
+            >
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Bộ lọc nâng cao</DialogTitle>
+                        <DialogDescription>
+                            Sử dụng các tiêu chí dưới đây để tìm kiếm khuyến mãi
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <AdvancedSearchForm
+                        initialFilters={searchFilters}
+                        onSearch={handleAdvancedSearch}
+                        onClose={() => setShowAdvancedSearch(false)}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
+    );
+};
+
+// Advanced Search Form Component
+const AdvancedSearchForm: React.FC<{
+    initialFilters: PromotionSearchParams;
+    onSearch: (filters: PromotionSearchParams) => void;
+    onClose: () => void;
+}> = ({ initialFilters, onSearch, onClose }) => {
+    const [filters, setFilters] =
+        useState<PromotionSearchParams>(initialFilters);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSearch(filters);
+        onClose();
+    };
+
+    const clearFilters = () => {
+        setFilters({});
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Search */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Từ khóa
+                    </label>
+                    <input
+                        type="text"
+                        value={filters.keyword || ""}
+                        onChange={(e) =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                keyword: e.target.value,
+                            }))
+                        }
+                        placeholder="Tìm theo tên hoặc mã"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        ID
+                    </label>
+                    <input
+                        type="number"
+                        value={filters.id || ""}
+                        onChange={(e) =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                id: e.target.value
+                                    ? parseInt(e.target.value)
+                                    : undefined,
+                            }))
+                        }
+                        placeholder="ID khuyến mãi"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Mã chính xác
+                    </label>
+                    <input
+                        type="text"
+                        value={filters.code || ""}
+                        onChange={(e) =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                code: e.target.value,
+                            }))
+                        }
+                        placeholder="Mã khuyến mãi"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
+                    />
+                </div>
+            </div>
+
+            {/* Type and Status */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Loại khuyến mãi
+                    </label>
+                    <select
+                        value={filters.promotionType || ""}
+                        onChange={(e) =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                promotionType: e.target.value as
+                                    | "PERCENTAGE"
+                                    | "FIXED_AMOUNT"
+                                    | "SHIPPING_DISCOUNT"
+                                    | undefined,
+                            }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Tất cả</option>
+                        <option value="PERCENTAGE">Phần trăm</option>
+                        <option value="FIXED_AMOUNT">Số tiền cố định</option>
+                        <option value="SHIPPING_DISCOUNT">
+                            Miễn phí vận chuyển
+                        </option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Trạng thái
+                    </label>
+                    <select
+                        value={
+                            filters.isActive !== undefined
+                                ? filters.isActive.toString()
+                                : ""
+                        }
+                        onChange={(e) =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                isActive:
+                                    e.target.value === ""
+                                        ? undefined
+                                        : e.target.value === "true",
+                            }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Tất cả</option>
+                        <option value="true">Đang hoạt động</option>
+                        <option value="false">Không hoạt động</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Áp dụng cụ thể
+                    </label>
+                    <select
+                        value={
+                            filters.applyOn !== undefined
+                                ? filters.applyOn.toString()
+                                : ""
+                        }
+                        onChange={(e) =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                applyOn:
+                                    e.target.value === ""
+                                        ? undefined
+                                        : e.target.value === "true",
+                            }))
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Tất cả</option>
+                        <option value="true">Có áp dụng cụ thể</option>
+                        <option value="false">Không áp dụng cụ thể</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Date Ranges */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Thời gian</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Ngày bắt đầu từ
+                        </label>
+                        <input
+                            type="datetime-local"
+                            value={filters.startDateFrom || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    startDateFrom: e.target.value,
+                                }))
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Ngày bắt đầu đến
+                        </label>
+                        <input
+                            type="datetime-local"
+                            value={filters.startDateTo || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    startDateTo: e.target.value,
+                                }))
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Ngày kết thúc từ
+                        </label>
+                        <input
+                            type="datetime-local"
+                            value={filters.endDateFrom || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    endDateFrom: e.target.value,
+                                }))
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Ngày kết thúc đến
+                        </label>
+                        <input
+                            type="datetime-local"
+                            value={filters.endDateTo || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    endDateTo: e.target.value,
+                                }))
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Value Ranges */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Giá trị</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Giá trị từ
+                        </label>
+                        <input
+                            type="number"
+                            value={filters.valueFrom || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    valueFrom: e.target.value
+                                        ? parseFloat(e.target.value)
+                                        : undefined,
+                                }))
+                            }
+                            placeholder="Giá trị tối thiểu"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Giá trị đến
+                        </label>
+                        <input
+                            type="number"
+                            value={filters.valueTo || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    valueTo: e.target.value
+                                        ? parseFloat(e.target.value)
+                                        : undefined,
+                                }))
+                            }
+                            placeholder="Giá trị tối đa"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Đơn hàng tối thiểu từ
+                        </label>
+                        <input
+                            type="number"
+                            value={filters.minOrderValueFrom || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    minOrderValueFrom: e.target.value
+                                        ? parseFloat(e.target.value)
+                                        : undefined,
+                                }))
+                            }
+                            placeholder="Giá trị đơn hàng tối thiểu"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Đơn hàng tối thiểu đến
+                        </label>
+                        <input
+                            type="number"
+                            value={filters.minOrderValueTo || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    minOrderValueTo: e.target.value
+                                        ? parseFloat(e.target.value)
+                                        : undefined,
+                                }))
+                            }
+                            placeholder="Giá trị đơn hàng tối đa"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Usage Limits */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Sử dụng</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Giới hạn từ
+                        </label>
+                        <input
+                            type="number"
+                            value={filters.usageLimitFrom || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    usageLimitFrom: e.target.value
+                                        ? parseInt(e.target.value)
+                                        : undefined,
+                                }))
+                            }
+                            placeholder="Giới hạn sử dụng tối thiểu"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Giới hạn đến
+                        </label>
+                        <input
+                            type="number"
+                            value={filters.usageLimitTo || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    usageLimitTo: e.target.value
+                                        ? parseInt(e.target.value)
+                                        : undefined,
+                                }))
+                            }
+                            placeholder="Giới hạn sử dụng tối đa"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Đã sử dụng từ
+                        </label>
+                        <input
+                            type="number"
+                            value={filters.usageCountFrom || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    usageCountFrom: e.target.value
+                                        ? parseInt(e.target.value)
+                                        : undefined,
+                                }))
+                            }
+                            placeholder="Số lần sử dụng tối thiểu"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Đã sử dụng đến
+                        </label>
+                        <input
+                            type="number"
+                            value={filters.usageCountTo || ""}
+                            onChange={(e) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    usageCountTo: e.target.value
+                                        ? parseInt(e.target.value)
+                                        : undefined,
+                                }))
+                            }
+                            placeholder="Số lần sử dụng tối đa"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <DialogFooter className="space-x-2">
+                <Button type="button" variant="outline" onClick={clearFilters}>
+                    Xóa bộ lọc
+                </Button>
+                <Button type="button" variant="ghost" onClick={onClose}>
+                    Hủy
+                </Button>
+                <Button type="submit">Áp dụng bộ lọc</Button>
+            </DialogFooter>
+        </form>
     );
 };
 

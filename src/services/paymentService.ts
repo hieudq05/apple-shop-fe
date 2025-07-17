@@ -67,6 +67,20 @@ const paymentService = {
         }
     },
 
+    createVNPayPaymentForOrder: async (
+        orderId: number
+    ): Promise<CreatePaymentResponse> => {
+        try {
+            const response = await userRoleAPI.post(
+                `/payments/vnpay/create-payment-v1/order/${orderId}`
+            );
+            return response;
+        } catch (error) {
+            console.error("Error creating VNPay payment for order:", error);
+            throw error;
+        }
+    },
+
     // Create PayPal payment URL
     createPayPalPayment: async (
         data: CreatePaymentRequest
@@ -79,6 +93,20 @@ const paymentService = {
             return response;
         } catch (error) {
             console.error("Error creating PayPal payment:", error);
+            throw error;
+        }
+    },
+
+    createPayPalPaymentForOrder: async (
+        orderId: number
+    ): Promise<CreatePaymentResponse> => {
+        try {
+            const response = await userRoleAPI.post(
+                `/payments/paypal/create-payment-v1/order/${orderId}`
+            );
+            return response;
+        } catch (error) {
+            console.error("Error creating PayPal payment for order:", error);
             throw error;
         }
     },

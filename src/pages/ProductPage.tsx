@@ -2,6 +2,18 @@ import React, { useState, useEffect, useCallback } from "react";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import productService from "@/services/productService";
 import { cartApiService } from "../services/cartApiService";
+import ProductReviews from "@/components/ProductReviews";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { AlertCircle } from "lucide-react";
 
 // Define a more flexible stock interface to handle API responses
 interface ApiStock {
@@ -117,55 +129,6 @@ export interface ProductProps {
     stocks: ProductStock[];
 }
 
-const productData: ProductProps = {
-    id: 1,
-    name: "iPhone 15 Pro",
-    description: "Một iPhone cực đỉnh.",
-    stocks: [
-        {
-            id: 1,
-            color: { id: 1, name: "Silver", hexCode: "#C0C0C0" },
-            imageUrl:
-                "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-deserttitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94Nm1neGR3bXRIczEyZHc4WTk0RkR4VEY3eHJKR1hDaEJCS2hmc2czazlldHlSTUMybCtXNXZpclhWeFpYZUcvRk80dEcwRGlZdHZNUlUyQVJ1QXFtSFFsOE8xQ2Rxc3QzeElocmgrcU1DbFJn&traceId=1",
-            price: 24990000,
-            instanceProperty: [
-                { id: 1, name: "128GB", price: 20000000 },
-                { id: 2, name: "256GB", price: 22000000 },
-                { id: 3, name: "512GB", price: 24000000 },
-                { id: 4, name: "1TB", price: 26000000 },
-            ],
-            quantity: 10,
-        },
-        {
-            id: 2,
-            color: { id: 2, name: "Space Black", hexCode: "#000000" },
-            imageUrl:
-                "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-naturaltitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94NVJrY0tZVVQzOFFrQ2FwbFZZamEzeEpOZTBYalh5Vk90cEc1K2wwRzFGejRMeXJHUnUva2huMjl4akFHOXNwVjA0YXFmK3VWSWZuRE9oVEFyUFR0T2hWSm5HQVhUeDlTTVJFSzVnTlpqdUV3&traceId=1",
-            price: 25990000,
-            instanceProperty: [
-                { id: 1, name: "128GB", price: 20000000 },
-                { id: 2, name: "256GB", price: 22000000 },
-                { id: 3, name: "512GB", price: 24000000 },
-                { id: 4, name: "1TB", price: 26000000 },
-            ],
-            quantity: 10,
-        },
-        {
-            id: 3,
-            color: { id: 3, name: "Gold", hexCode: "#FFD700" },
-            imageUrl:
-                "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-pro-finish-select-202409-6-3inch-whitetitanium?wid=5120&hei=2880&fmt=webp&qlt=70&.v=eUdsd0dIb3VUOXdtWkY0VFUwVE8vbEdkZHNlSjBQRklnaFB2d3I5MW94NkppVHhtRktGckFBd2ZPSmpuTHdJcWlCQmV2WTA2cncybDF2YzFnKzI0S2prMCtUNWwzYWR0UVU3TWVsbEdUeXZka3Q2dVFYV2lxTm4wNXBJcGZoM1QzVmtFSHJkUURvdVZmQktGTnNPd1Z3&traceId=1",
-            price: 26990000,
-            instanceProperty: [
-                { id: 1, name: "128GB", price: 20000000 },
-                { id: 2, name: "256GB", price: 22000000 },
-                { id: 3, name: "512GB", price: 24000000 },
-            ],
-            quantity: 10,
-        },
-    ],
-};
-
 const ProductPage: React.FC = () => {
     // Get product ID from end path URL
     const pathParts = window.location.pathname.split("/");
@@ -200,6 +163,8 @@ const ProductPage: React.FC = () => {
     const selectedStock = product?.stocks
         ? product.stocks[selectedIndex]
         : null;
+    const [isDialogErrorOpen, setIsDialogErrorOpen] = useState(false);
+    const [errorWhenAddingToCart, setErrorWhenAddingToCart] = useState("");
     const [selectedStockId, setSelectedStockId] = useState<number | null>(null);
     const [addedToCart, setAddedToCart] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -220,28 +185,39 @@ const ProductPage: React.FC = () => {
             setIsAddingToCart(true);
 
             // Add to cart using API
-            await cartApiService.addToCart({
+            const response = await cartApiService.addToCart({
                 productId: product.id,
                 stockId: actualSelectedStock.id,
                 quantity: 1,
             });
 
-            // Show success message
-            setAddedToCart(true);
+            if (response.success) {
+                // Show success message
+                setAddedToCart(true);
 
-            // Hide message after 3 seconds
-            setTimeout(() => {
-                setAddedToCart(false);
-            }, 3000);
+                // Hide message after 3 seconds
+                setTimeout(() => {
+                    setAddedToCart(false);
+                }, 3000);
 
-            // Redirect to cart after 1 second
-            setTimeout(() => {
-                window.location.href = "/cart";
-            }, 1000);
+                // Redirect to cart after 1 second
+                setTimeout(() => {
+                    window.location.href = "/cart";
+                }, 1000);
+            } else {
+                // Show error dialog
+                setIsDialogErrorOpen(true);
+                setErrorWhenAddingToCart(
+                    response.msg || "Không thể thêm vào giỏ hàng"
+                );
+            }
         } catch (error) {
+            setIsDialogErrorOpen(true);
+            setErrorWhenAddingToCart(
+                error.response.data.error.message ||
+                    "Không thể thêm vào giỏ hàng"
+            );
             console.error("Error adding to cart:", error);
-            // You could show an error message here
-            alert("Có lỗi xảy ra khi thêm vào giỏ hàng. Vui lòng thử lại.");
         } finally {
             setIsAddingToCart(false);
         }
@@ -485,7 +461,7 @@ const ProductPage: React.FC = () => {
                 >
                     <div className={"flex flex-col space-y-12"}>
                         <div className={"text-4xl font-semibold"}>
-                            {product?.name || productData.name} mới của bạn.
+                            {product?.name} mới của bạn.
                             <br />
                             <span className={"text-gray-500"}>
                                 Theo cách bạn muốn.
@@ -517,7 +493,7 @@ const ProductPage: React.FC = () => {
                     >
                         <div className={"flex flex-col gap-1"}>
                             <div>
-                                {product?.name || productData.name}{" "}
+                                {product?.name}{" "}
                                 {(() => {
                                     const actualSelectedStock = selectedStockId
                                         ? selectedStock?.allStocks?.find(
@@ -614,6 +590,37 @@ const ProductPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Product Reviews Section */}
+            {product && (
+                <div className="mt-16">
+                    <ProductReviews
+                        productId={product.id}
+                        productName={product.name}
+                    />
+                </div>
+            )}
+
+            <AlertDialog
+                open={isDialogErrorOpen}
+                onOpenChange={setIsDialogErrorOpen}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                            <AlertCircle className="size-5" />
+                            Lỗi khi thêm vào giỏ hàng
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {errorWhenAddingToCart ||
+                                "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại sau."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Đóng</AlertDialogCancel>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };
