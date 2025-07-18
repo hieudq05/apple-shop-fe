@@ -9,11 +9,8 @@ export interface AdminProduct {
     name: string;
     title: string;
     description?: string;
-    category: {
-        id: number;
-        name: string;
-        image: string;
-    };
+    categoryId: number;
+    categoryName: string;
     features?: Array<{
         id: number;
         name: string;
@@ -22,11 +19,9 @@ export interface AdminProduct {
     }>;
     stocks: Array<{
         id: number;
-        color: {
-            id: number;
-            name: string;
-            hex: string;
-        };
+        colorId: number;
+        colorName: string;
+        colorHexCode: string;
         instanceProperties?: Array<{
             id: number;
             name: string;
@@ -54,6 +49,66 @@ export interface AdminProductsParams {
     size?: number;
     search?: string;
     categoryId?: number;
+    sortBy?: string;
+    sortDirection?: "asc" | "desc";
+}
+
+export interface ProductSearchParams {
+    // Quantity filtering
+    minQuantity?: number;
+    maxQuantity?: number;
+
+    // Date range filtering
+    createdAfter?: string; // ISO date string
+    createdBefore?: string; // ISO date string
+    updatedAfter?: string; // ISO date string
+    updatedBefore?: string; // ISO date string
+
+    // Creator filtering
+    createdById?: number;
+    createdByEmail?: string;
+
+    // Status filtering
+    isDeleted?: boolean;
+
+    // Advanced filters for future expansion
+    promotionIds?: number[];
+
+    name?: string;
+    description?: string;
+
+    // Category filtering
+    categoryId?: number[];
+    categoryName?: string[];
+
+    // Feature filtering
+    featureIds?: number[];
+    featureNames?: string[];
+
+    // Color filtering
+    colorIds?: number[];
+    colorNames?: string[];
+
+    // Price range filtering
+    minPrice?: number;
+    maxPrice?: number;
+
+    // Instance properties filtering
+    instancePropertyIds?: number[];
+    instancePropertyNames?: string[];
+
+    // Full-text search
+    searchKeyword?: string; // Will search across name, description
+
+    // Advanced filters for future expansion
+    hasReviews?: boolean;
+    minRating?: number;
+    maxRating?: number;
+    inStock?: boolean; // Products with quantity > 0
+
+    // Pagination
+    page?: number;
+    size?: number;
     sortBy?: string;
     sortDirection?: "asc" | "desc";
 }
@@ -415,6 +470,24 @@ export class AdminProductService {
     }
 
     /**
+     * Search products with advanced filters
+     */
+    async searchProducts(
+        searchParams: ProductSearchParams = {}
+    ): Promise<ApiResponse<AdminProduct[]>> {
+        try {
+            const response = await privateAPI.post<ApiResponse<AdminProduct[]>>(
+                "/products/search",
+                searchParams
+            );
+            return response;
+        } catch (error) {
+            console.error("Error searching products:", error);
+            throw error;
+        }
+    }
+
+    /**
      * Get product by ID for admin
      */
     async getAdminProductById(
@@ -542,7 +615,10 @@ export class AdminProductService {
     /**
      * Delete product
      */
-    async deleteProduct(productId: number, categoryId: number): Promise<ApiResponse<void>> {
+    async deleteProduct(
+        productId: number,
+        categoryId: number
+    ): Promise<ApiResponse<void>> {
         try {
             const response = await privateAPI.delete<ApiResponse<void>>(
                 `/products/${categoryId}/${productId}`

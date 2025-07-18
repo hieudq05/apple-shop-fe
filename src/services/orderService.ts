@@ -66,6 +66,35 @@ export interface CreateOrderRequest {
     note?: string;
 }
 
+export interface CreateAdminOrderRequest {
+    createdByUserId: number;
+    status:
+        | "PENDING_PAYMENT"
+        | "CONFIRMED"
+        | "PROCESSING"
+        | "SHIPPED"
+        | "DELIVERED"
+        | "CANCELLED";
+    paymentType: "VNPAY" | "MOMO" | "CASH" | "BANK_TRANSFER";
+    customInfo: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+        address: string;
+        ward: string;
+        district: string;
+        province: string;
+    };
+    orderDetails: Array<{
+        stockId: number;
+        quantity: number;
+    }>;
+    shippingFee: number;
+    productPromotionCode?: string;
+    shippingPromotionCode?: string;
+}
+
 export interface OrdersParams extends PaginationParams {
     status?: string;
     paymentStatus?: string;
@@ -347,6 +376,24 @@ class OrderService {
             return response.data || response; // Handle both cases
         } catch (error) {
             console.error("Error fetching admin order details:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Create order for admin/staff
+     */
+    async createAdminOrder(
+        orderData: CreateAdminOrderRequest
+    ): Promise<ApiResponse<Order>> {
+        try {
+            const response = await privateAPI.post<ApiResponse<Order>>(
+                "/orders/v1",
+                orderData
+            );
+            return response;
+        } catch (error) {
+            console.error("Error creating admin order:", error);
             throw error;
         }
     }

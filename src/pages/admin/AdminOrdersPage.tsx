@@ -5,6 +5,7 @@ import {
     ChevronLeft,
     ChevronRight,
     RefreshCw,
+    Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -356,6 +357,15 @@ const AdminOrdersPage: React.FC = () => {
                                 hàng
                             </CardDescription>
                         </div>
+                        <Button
+                            onClick={() =>
+                                (window.location.href = "/admin/create/order")
+                            }
+                            className="bg-blue-600 hover:bg-blue-700"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Tạo đơn hàng mới
+                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent>

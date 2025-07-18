@@ -41,6 +41,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
 import AdminReviewsPage from "@/pages/admin/AdminReviewsPage.tsx";
+import CreateOrderPage from "@/pages/admin/CreateOrderPage.tsx";
 
 export const routesConfig: RouteObject[] = [
     // User routes with MainLayout (only for ROLE_USER)
@@ -174,6 +175,10 @@ export const routesConfig: RouteObject[] = [
                 element: <AdminOrdersPage />,
             },
             {
+                path: "create/order",
+                element: <CreateOrderPage />,
+            },
+            {
                 path: "test-api",
                 element: <TestApiPage />,
             },
@@ -240,7 +245,7 @@ export const routesConfig: RouteObject[] = [
                         <AdminReviewsPage />
                     </ProtectedRoute>
                 ),
-            }
+            },
         ],
     },
     // 404 catch-all route

@@ -200,26 +200,41 @@ export function OrderDataTable({
             cell: ({ row }) => {
                 const order = row.original;
                 return (
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage
-                                className="object-cover"
-                                src={order.createdBy.image || ""}
-                                alt={order.customerName}
-                            />
-                            <AvatarFallback>
-                                {order.customerName.charAt(0)}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <div className="font-medium text-sm">
-                                {order.customerName}
+                    <>
+                        {order.createdBy !== null ? (
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                    <AvatarImage
+                                        className="object-cover"
+                                        src={order.createdBy.image || ""}
+                                        alt={order.customerName}
+                                    />
+                                    <AvatarFallback>
+                                        {order.customerName.charAt(0)}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <div className="font-medium text-sm">
+                                        {order.customerName}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        ID: {order.createdBy.id}
+                                    </p>
+                                </div>
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                                ID: {order.createdBy.id}
-                            </p>
-                        </div>
-                    </div>
+                        ) : (
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                    <AvatarFallback>U</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Chưa có thông tin người tạo
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 );
             },
         },

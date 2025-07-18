@@ -16,6 +16,7 @@ import authService from "../services/authService";
 import { tokenRefreshService } from "../utils/tokenRefresh";
 
 interface User {
+    id: number;
     email: string;
     firstName?: string;
     lastName?: string;

@@ -32,11 +32,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import adminProductService, {
     type AdminProduct,
+    type ProductSearchParams,
 } from "../../services/adminProductService";
 import {
     ProductDataTable,
     type Product,
 } from "@/components/product-data-table";
+import AdvancedProductSearch from "@/components/AdvancedProductSearch";
 
 import type { MetadataResponse } from "@/types/api.ts";
 
@@ -60,10 +62,10 @@ const transformToProduct = (adminProduct: AdminProduct): Product => {
                 quantity: stock.quantity,
                 price: stock.price,
                 productPhotos:
-                    stock.photos?.map((photo, index) => ({
-                        id: index,
-                        imageUrl: photo,
-                        alt: `${adminProduct.name} - ${stock.color.name}`,
+                    stock.productPhotos?.map((photo) => ({
+                        id: photo.id,
+                        imageUrl: photo.imageUrl,
+                        alt: photo.alt,
                     })) || [],
             })) || [],
         features:
@@ -79,6 +81,7 @@ const AdminProductsPage: React.FC = () => {
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
+    const [useAdvancedSearch, setUseAdvancedSearch] = useState(false);
     const [metadata, setMetadata] = useState<MetadataResponse>({
         currentPage: 0,
         pageSize: 10,
@@ -114,7 +117,7 @@ const AdminProductsPage: React.FC = () => {
     const [productsState, setProductsState] = useState<{
         data: { products: Product[]; meta: MetadataResponse } | null;
         loading: boolean;
-        error: any;
+        error: unknown;
     }>({
         data: null,
         loading: true,
@@ -133,15 +136,9 @@ const AdminProductsPage: React.FC = () => {
             const params = {
                 page: metadata.currentPage,
                 size: metadata.pageSize,
-                search: debouncedSearchTerm || undefined,
-                categoryId:
-                    selectedCategory && selectedCategory !== "all"
-                        ? parseInt(selectedCategory)
-                        : undefined,
             };
 
             const response = await adminProductService.getAdminProducts(params);
-            console.log("useState response:", response);
 
             if (response.success && response.data) {
                 const mappedProducts = response.data.map(transformToProduct);
@@ -156,7 +153,6 @@ const AdminProductsPage: React.FC = () => {
                     },
                 };
 
-                console.log("useState result:", result);
                 setProductsState({
                     data: result,
                     loading: false,
@@ -186,6 +182,70 @@ const AdminProductsPage: React.FC = () => {
     useEffect(() => {
         fetchProducts();
     }, [metadata.currentPage, debouncedSearchTerm, selectedCategory]);
+
+    // Advanced search function
+    const handleAdvancedSearch = async (searchParams: ProductSearchParams) => {
+        try {
+            setProductsState((prev) => ({
+                ...prev,
+                loading: true,
+                error: null,
+            }));
+
+            const response = await adminProductService.searchProducts(
+                searchParams
+            );
+
+            if (response.success && response.data) {
+                const mappedProducts = response.data.map(transformToProduct);
+                setProductsState({
+                    data: {
+                        products: mappedProducts,
+                        meta: {
+                            currentPage: searchParams.page || 0,
+                            pageSize: searchParams.size || 10,
+                            totalElements:
+                                response.meta?.totalElements ||
+                                mappedProducts.length,
+                            totalPage: Math.ceil(
+                                (response.meta?.totalElements ||
+                                    mappedProducts.length) /
+                                    (searchParams.size || 10)
+                            ),
+                        },
+                    },
+                    loading: false,
+                    error: null,
+                });
+
+                setMetadata({
+                    currentPage: searchParams.page || 0,
+                    pageSize: searchParams.size || 10,
+                    totalElements:
+                        response.meta?.totalElements || mappedProducts.length,
+                    totalPage: Math.ceil(
+                        (response.meta?.totalElements ||
+                            mappedProducts.length) / (searchParams.size || 10)
+                    ),
+                });
+            }
+        } catch (error) {
+            console.error("Advanced search error:", error);
+            setProductsState((prev) => ({
+                ...prev,
+                loading: false,
+                error,
+            }));
+        }
+    };
+
+    // Reset search function
+    const handleResetSearch = () => {
+        setSearchTerm("");
+        setSelectedCategory("");
+        setMetadata((prev) => ({ ...prev, currentPage: 0 }));
+        fetchProducts();
+    };
 
     // Use useState data instead of useQuery
     const productsData = productsState.data;
@@ -282,41 +342,13 @@ const AdminProductsPage: React.FC = () => {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {/* Filters */}
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="relative flex-1">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Tìm kiếm sản phẩm..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-                        <div className="relative">
-                            <Select
-                                value={selectedCategory || undefined}
-                                onValueChange={(value) =>
-                                    setSelectedCategory(value || "")
-                                }
-                            >
-                                <SelectTrigger className="w-48">
-                                    <SelectValue placeholder="Tất cả danh mục" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">
-                                        Tất cả danh mục
-                                    </SelectItem>
-                                    <SelectItem value="1">iPhone</SelectItem>
-                                    <SelectItem value="2">Mac</SelectItem>
-                                    <SelectItem value="3">iPad</SelectItem>
-                                    <SelectItem value="4">
-                                        Apple Watch
-                                    </SelectItem>
-                                    <SelectItem value="5">AirPods</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                    {/* Advanced Search */}
+                    <div>
+                        <AdvancedProductSearch
+                            onSearch={handleAdvancedSearch}
+                            onReset={handleResetSearch}
+                            loading={isLoading}
+                        />
                     </div>
                 </CardContent>
             </Card>
