@@ -1,4 +1,4 @@
-import { userRoleAPI } from "../utils/axios";
+import { userRoleAPI, privateAPI } from "../utils/axios";
 
 export interface CreatePaymentRequest {
     firstName: string;
@@ -169,6 +169,36 @@ const paymentService = {
             return response;
         } catch (error) {
             console.error("Error creating PayPal payment for order:", error);
+            throw error;
+        }
+    },
+
+    // Create VNPay payment URL for admin (using privateAPI)
+    createAdminVNPayPaymentUrl: async (
+        orderId: number
+    ): Promise<CreatePaymentResponse> => {
+        try {
+            const response = await privateAPI.post(
+                `/payments/vnpay/payment-url?orderId=${orderId}`
+            );
+            return response;
+        } catch (error) {
+            console.error("Error creating admin VNPay payment URL:", error);
+            throw error;
+        }
+    },
+
+    // Create PayPal payment URL for admin (using privateAPI)
+    createAdminPayPalPaymentUrl: async (
+        orderId: number
+    ): Promise<CreatePaymentResponse> => {
+        try {
+            const response = await privateAPI.post(
+                `/payments/paypal/payment-url?orderId=${orderId}`
+            );
+            return response;
+        } catch (error) {
+            console.error("Error creating admin PayPal payment URL:", error);
             throw error;
         }
     },

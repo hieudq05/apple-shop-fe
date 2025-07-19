@@ -1,5 +1,5 @@
 // Review service
-import { privateAPI, publicAPI } from "../utils/axios";
+import { privateAPI, publicAPI, userRoleAPI } from "../utils/axios";
 import type { ApiResponse, PaginationParams } from "../types/api";
 import type {
     Review,
@@ -204,12 +204,12 @@ const reviewService = {
             if (params?.size)
                 queryParams.append("size", params.size.toString());
 
-            const response = await privateAPI.get<{
+            const response = await userRoleAPI.get<{
                 reviews: Review[];
                 totalPages: number;
                 totalElements: number;
-            }>(`/reviews/user?${queryParams.toString()}`);
-            return response.data;
+            }>(`/reviews/my?${queryParams.toString()}`);
+            return response;
         } catch (error) {
             console.error("Error fetching user reviews:", error);
             return {

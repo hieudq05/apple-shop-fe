@@ -111,7 +111,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
     return (
         <div className="space-y-6">
             {/* Write Review Section */}
-            {canWriteReview && (
+            {/* {canWriteReview && (
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-center">
@@ -128,7 +128,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                         </div>
                     </CardContent>
                 </Card>
-            )}
+            )} */}
 
             {/* Reviews List */}
             <Card>
@@ -137,7 +137,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                         <CardTitle>
                             Đánh giá ({reviews.length || 0})
                         </CardTitle>
-                        <div className="flex items-center space-x-2">
+                        {/* <div className="flex items-center space-x-2">
                             <Filter className="w-4 h-4" />
                             <Select
                                 value={ratingFilter}
@@ -155,7 +155,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                                     <SelectItem value="1">1 sao</SelectItem>
                                 </SelectContent>
                             </Select>
-                        </div>
+                        </div> */}
                     </div>
                 </CardHeader>
                 <CardContent>

@@ -30,6 +30,8 @@ const OrderDetailPage: React.FC = () => {
     const [selectedPaymentMethod, setSelectedPaymentMethod] =
         useState<string>("vnpay");
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [paymentUrl, setPaymentUrl] = useState("");
+    const [showPaymentUrl, setShowPaymentUrl] = useState(false);
 
     useEffect(() => {
         if (orderId) {
@@ -118,8 +120,10 @@ const OrderDetailPage: React.FC = () => {
             }
 
             if (paymentResponse.success && paymentResponse.data.paymentUrl) {
-                // Redirect to payment URL
-                window.location.href = paymentResponse.data.paymentUrl;
+                // Show payment URL and QR code instead of redirecting
+                setPaymentUrl(paymentResponse.data.paymentUrl);
+                setShowPaymentModal(false);
+                setShowPaymentUrl(true);
             } else {
                 alert(paymentResponse.msg || "Không thể tạo URL thanh toán");
             }
@@ -128,7 +132,6 @@ const OrderDetailPage: React.FC = () => {
             alert("Có lỗi xảy ra khi tạo thanh toán");
         } finally {
             setIsProcessingPayment(false);
-            setShowPaymentModal(false);
         }
     };
 
@@ -663,6 +666,76 @@ const OrderDetailPage: React.FC = () => {
                                 disabled={cancelling}
                             >
                                 {cancelling ? "Đang hủy..." : "Xác nhận hủy"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Payment URL Dialog */}
+                <Dialog open={showPaymentUrl} onOpenChange={setShowPaymentUrl}>
+                    <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                            <DialogTitle>Thanh toán đơn hàng</DialogTitle>
+                            <DialogDescription>
+                                Sử dụng QR code hoặc URL để thanh toán
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            {/* QR Code */}
+                            <div className="flex justify-center">
+                                <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                                        paymentUrl
+                                    )}`}
+                                    alt="QR Code thanh toán"
+                                    className="border rounded"
+                                />
+                            </div>
+
+                            {/* Payment URL */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Đường dẫn thanh toán:
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={paymentUrl}
+                                        readOnly
+                                        className="flex-1 px-3 py-2 border rounded-md bg-gray-50"
+                                    />
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(
+                                                paymentUrl
+                                            );
+                                            alert(
+                                                "Đã sao chép URL thanh toán!"
+                                            );
+                                        }}
+                                    >
+                                        Sao chép
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowPaymentUrl(false)}
+                            >
+                                Đóng
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    window.open(paymentUrl, "_blank");
+                                }}
+                            >
+                                Thanh toán ngay
                             </Button>
                         </DialogFooter>
                     </DialogContent>

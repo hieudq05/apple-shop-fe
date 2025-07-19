@@ -310,11 +310,6 @@ const AdminProductsPage: React.FC = () => {
         if (deleteDialog.productId) {
             setDeleteDialog((prev) => ({ ...prev, isDeleting: true }));
 
-            toast.loading("Đang xóa sản phẩm...", {
-                description: "Vui lòng đợi trong giây lát",
-                duration: Infinity, // Will be dismissed when mutation completes
-            });
-
             deleteMutation.mutate(deleteDialog.productId);
         }
     };

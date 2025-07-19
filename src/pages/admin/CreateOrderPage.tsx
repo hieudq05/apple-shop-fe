@@ -667,7 +667,7 @@ const CreateOrderPage: React.FC = () => {
             console.error("Error creating order:", error);
             const errorMessage =
                 error instanceof Error
-                    ? error.message
+                    ? error.response.data.error.message
                     : "Có lỗi xảy ra khi tạo đơn hàng";
             toast.error(errorMessage);
         } finally {
@@ -1036,14 +1036,11 @@ const CreateOrderPage: React.FC = () => {
                                         <SelectItem value="VNPAY">
                                             VNPAY
                                         </SelectItem>
-                                        <SelectItem value="MOMO">
+                                        <SelectItem value="PAYPAL">
+                                            PayPal
+                                        </SelectItem>
+                                        <SelectItem value="MOMO" disabled>
                                             MOMO
-                                        </SelectItem>
-                                        <SelectItem value="CASH">
-                                            Tiền mặt
-                                        </SelectItem>
-                                        <SelectItem value="BANK_TRANSFER">
-                                            Chuyển khoản
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>

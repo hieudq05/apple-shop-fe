@@ -57,3 +57,36 @@ export const createInstance = async (instance: { name: string, description?: str
         throw error;
     }
 };
+
+/**
+ * Update an existing instance
+ * @param instance Instance data with existing id
+ * @returns Promise with the updated instance
+ */
+export const updateInstance = async (instance: Instance): Promise<Instance> => {
+    try {
+        const response = await privateAPI.put<ApiResponse<Instance>>(`/instances/${instance.id}`, {
+            id: instance.id,
+            name: instance.name,
+            description: instance.description || ''
+        });
+        return response.data.data as Instance;
+    } catch (error) {
+        console.error('Error updating instance:', error);
+        throw error;
+    }
+};
+
+/**
+ * Delete an instance
+ * @param id Instance ID to delete
+ * @returns Promise with success message
+ */
+export const deleteInstance = async (id: number): Promise<void> => {
+    try {
+        await privateAPI.delete(`/instances/${id}`);
+    } catch (error) {
+        console.error('Error deleting instance:', error);
+        throw error;
+    }
+};

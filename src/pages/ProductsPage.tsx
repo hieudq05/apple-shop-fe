@@ -256,14 +256,10 @@ const ProductsPage: React.FC = () => {
                         {category?.name}
                     </div>
                 </div>
-                <div
-                    className={"container h-[35rem] mx-auto rounded-3xl my-6"}
-                    style={{
-                        backgroundImage: `url(${category?.image})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                    }}
-                ></div>
+                <img
+                    src={category?.image}
+                    className={"container h-[35rem] mx-auto rounded-3xl my-6 object-cover object-center"}
+                ></img>
                 <div className={"container mx-auto py-24"}>
                     <div
                         className={

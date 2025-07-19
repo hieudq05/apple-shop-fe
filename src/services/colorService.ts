@@ -57,3 +57,36 @@ export const createColor = async (color: { name: string, hexCode: string, id: nu
         throw error;
     }
 };
+
+/**
+ * Update an existing color
+ * @param color Color data with existing id
+ * @returns Promise with the updated color
+ */
+export const updateColor = async (color: Color): Promise<Color> => {
+    try {
+        const response = await privateAPI.put<ApiResponse<Color>>(`/colors/${color.id}`, {
+            id: color.id,
+            name: color.name,
+            hexCode: color.hexCode
+        });
+        return response.data.data as Color;
+    } catch (error) {
+        console.error('Error updating color:', error);
+        throw error;
+    }
+};
+
+/**
+ * Delete a color
+ * @param id Color ID to delete
+ * @returns Promise with success message
+ */
+export const deleteColor = async (id: number): Promise<void> => {
+    try {
+        await privateAPI.delete(`/colors/${id}`);
+    } catch (error) {
+        console.error('Error deleting color:', error);
+        throw error;
+    }
+};

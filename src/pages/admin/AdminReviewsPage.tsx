@@ -230,12 +230,6 @@ const AdminReviewsPage: React.FC = () => {
                 <h2 className="text-3xl font-bold tracking-tight">
                     Quản lý đánh giá
                 </h2>
-                <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-2" />
-                        Xuất dữ liệu
-                    </Button>
-                </div>
             </div>
 
             {/* Statistics Cards */}

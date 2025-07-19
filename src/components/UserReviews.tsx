@@ -57,14 +57,11 @@ const UserReviews: React.FC = () => {
 
                 if (response.success && response.data) {
                     if (page === 1) {
-                        setReviews(response.data.reviews);
+                        setReviews(response.data);
                     } else {
-                        setReviews((prev) => [
-                            ...prev,
-                            ...response.data!.reviews,
-                        ]);
+                        setReviews((prev) => [...prev, ...response.data]);
                     }
-                    setHasMoreReviews(page < response.data.totalPages);
+                    setHasMoreReviews(page < response.meta?.totalPages);
                     setCurrentPage(page);
                 }
             } catch (error) {
@@ -187,10 +184,7 @@ const UserReviews: React.FC = () => {
 
     const getTabCounts = () => {
         return {
-            ALL: reviews.length,
-            PENDING: reviews.filter((r) => r.status === "PENDING").length,
-            APPROVED: reviews.filter((r) => r.status === "APPROVED").length,
-            REJECTED: reviews.filter((r) => r.status === "REJECTED").length,
+            ALL: reviews?.length,
         };
     };
 
@@ -215,19 +209,6 @@ const UserReviews: React.FC = () => {
                     <CardTitle>Đánh giá của tôi</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {/* Search */}
-                    <div className="mb-6">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <Input
-                                placeholder="Tìm kiếm theo tên sản phẩm hoặc nội dung đánh giá..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                    </div>
-
                     {/* Tabs */}
                     <Tabs
                         value={activeTab}
@@ -235,18 +216,9 @@ const UserReviews: React.FC = () => {
                             setActiveTab(value as ReviewStatus)
                         }
                     >
-                        <TabsList className="grid w-full grid-cols-4">
+                        <TabsList className="grid w-full grid-cols-1">
                             <TabsTrigger value="ALL">
                                 Tất cả ({tabCounts.ALL})
-                            </TabsTrigger>
-                            <TabsTrigger value="PENDING">
-                                Đang chờ ({tabCounts.PENDING})
-                            </TabsTrigger>
-                            <TabsTrigger value="APPROVED">
-                                Đã duyệt ({tabCounts.APPROVED})
-                            </TabsTrigger>
-                            <TabsTrigger value="REJECTED">
-                                Bị từ chối ({tabCounts.REJECTED})
                             </TabsTrigger>
                         </TabsList>
 
@@ -269,7 +241,7 @@ const UserReviews: React.FC = () => {
                                         </div>
                                     ))}
                                 </div>
-                            ) : filteredReviews.length === 0 ? (
+                            ) : filteredReviews?.length === 0 ? (
                                 <div className="text-center py-8">
                                     <p className="text-gray-500">
                                         {searchTerm
@@ -281,31 +253,39 @@ const UserReviews: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {filteredReviews.map((review) => (
+                                    {filteredReviews?.map((review) => (
                                         <div
                                             key={review.id}
                                             className="border rounded-lg p-4 space-y-4"
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div className="flex space-x-4">
-                                                    <img
-                                                        src={
-                                                            review.product
-                                                                .image ||
-                                                            "/placeholder-product.jpg"
-                                                        }
-                                                        alt={
-                                                            review.product.name
-                                                        }
-                                                        className="w-16 h-16 object-cover rounded"
-                                                    />
                                                     <div className="flex-1">
                                                         <h4 className="font-medium">
-                                                            {
-                                                                review.product
-                                                                    .name
-                                                            }
+                                                            {review.productName}{" "}
                                                         </h4>
+                                                        <div>
+                                                            {
+                                                                review.stock
+                                                                    .color.name
+                                                            }{" "}
+                                                            •{" "}
+                                                            {review.stock?.instanceProperties.map(
+                                                                (prop) => {
+                                                                    return (
+                                                                        <span
+                                                                            key={
+                                                                                prop.id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                prop.name
+                                                                            }{" "}
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                            )}
+                                                        </div>
                                                         <div className="flex items-center space-x-2 mt-1">
                                                             <StarRating
                                                                 rating={
@@ -325,70 +305,62 @@ const UserReviews: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                {review.status ===
-                                                    "PENDING" && (
-                                                    <div className="flex space-x-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleEditReview(
-                                                                    review
-                                                                )
-                                                            }
+                                                <div className="flex space-x-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            handleEditReview(
+                                                                review
+                                                            )
+                                                        }
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger
+                                                            asChild
                                                         >
-                                                            <Edit className="w-4 h-4" />
-                                                        </Button>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger
-                                                                asChild
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
                                                             >
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>
+                                                                    Xóa đánh giá
+                                                                </AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Bạn có chắc
+                                                                    chắn muốn
+                                                                    xóa đánh giá
+                                                                    này không?
+                                                                    Hành động
+                                                                    này không
+                                                                    thể hoàn
+                                                                    tác.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>
+                                                                    Hủy
+                                                                </AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() =>
+                                                                        handleDeleteReview(
+                                                                            review.id
+                                                                        )
+                                                                    }
                                                                 >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>
-                                                                        Xóa đánh
-                                                                        giá
-                                                                    </AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Bạn có
-                                                                        chắc
-                                                                        chắn
-                                                                        muốn xóa
-                                                                        đánh giá
-                                                                        này
-                                                                        không?
-                                                                        Hành
-                                                                        động này
-                                                                        không
-                                                                        thể hoàn
-                                                                        tác.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>
-                                                                        Hủy
-                                                                    </AlertDialogCancel>
-                                                                    <AlertDialogAction
-                                                                        onClick={() =>
-                                                                            handleDeleteReview(
-                                                                                review.id
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        Xóa
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </div>
-                                                )}
+                                                                    Xóa
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
                                             </div>
 
                                             <div className="space-y-2">
@@ -439,8 +411,8 @@ const UserReviews: React.FC = () => {
             <ReviewFormDialog
                 open={showEditDialog}
                 onOpenChange={setShowEditDialog}
-                productId={editingReview?.product.id || 0}
-                productName={editingReview?.product.name || ""}
+                productId={editingReview?.productId || 0}
+                productName={editingReview?.productName || ""}
                 review={editingReview || undefined}
                 onSuccess={handleReviewUpdated}
             />

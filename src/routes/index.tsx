@@ -241,7 +241,7 @@ export const routesConfig: RouteObject[] = [
             {
                 path: "reviews",
                 element: (
-                    <ProtectedRoute requireAdmin={true}>
+                    <ProtectedRoute requireAdminOrStaff={true}>
                         <AdminReviewsPage />
                     </ProtectedRoute>
                 ),

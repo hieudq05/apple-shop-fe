@@ -67,6 +67,7 @@ import {
     type Instance,
 } from "@/services/instanceService.ts";
 import adminProductService from "@/services/adminProductService.ts";
+import { set } from "zod";
 
 interface ProductPhoto {
     imageUrl: string;
@@ -1066,19 +1067,6 @@ const CreateProductPage: React.FC = () => {
             colorErrors.push({
                 field: "newColor",
                 message: "Mã hex không hợp lệ (ví dụ: #FF0000)",
-            });
-        }
-
-        // Kiểm tra trùng lặp
-        if (
-            predefinedColors.some(
-                (color) =>
-                    color.name.toLowerCase() === newColor.name.toLowerCase()
-            )
-        ) {
-            colorErrors.push({
-                field: "newColor",
-                message: "Tên màu đã tồn tại",
             });
         }
 
@@ -3307,11 +3295,13 @@ const CreateProductPage: React.FC = () => {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="color-hex">Mã hex *</Label>
-                                <Input
+                                <input
+                                    type="color"
                                     id="color-hex"
                                     placeholder="#000000"
                                     value={newColor.hexCode}
                                     onChange={(e) =>
+                                        // get color hex code from input
                                         setNewColor((prev) => ({
                                             ...prev,
                                             hexCode: e.target.value,

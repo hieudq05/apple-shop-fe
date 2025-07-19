@@ -2,19 +2,31 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
     ArrowLeftIcon,
-    TruckIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    ClockIcon,
     UserIcon,
     MapPinIcon,
     CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import orderService from "../../services/orderService";
+import paymentService from "../../services/paymentService";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MoreHorizontal, Truck } from "lucide-react";
+import {
+    Clock,
+    MoreHorizontal,
+    QrCode,
+    ExternalLink,
+    Copy,
+} from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // Interface based on real API data structure
 interface OrderDetail {
@@ -91,6 +103,15 @@ const OrderDetailPage: React.FC = () => {
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    // Payment URL states
+    const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+    const [paymentUrl, setPaymentUrl] = useState<string>("");
+    const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] =
+        useState<string>("vnpay");
+    const [showPaymentMethodDialog, setShowPaymentMethodDialog] =
+        useState(false);
 
     useEffect(() => {
         fetchOrderDetail();
@@ -304,6 +325,56 @@ const OrderDetailPage: React.FC = () => {
             });
         } finally {
             setIsUpdating(false);
+        }
+    };
+
+    // Create payment URL for order
+    const handleCreatePaymentUrl = async (paymentMethod: string) => {
+        if (!order || !id) return;
+
+        try {
+            setIsCreatingPayment(true);
+            let response;
+
+            if (paymentMethod === "vnpay") {
+                response = await paymentService.createAdminVNPayPaymentUrl(
+                    parseInt(id)
+                );
+            } else if (paymentMethod === "paypal") {
+                response = await paymentService.createAdminPayPalPaymentUrl(
+                    parseInt(id)
+                );
+            } else {
+                toast.error("Phương thức thanh toán không hỗ trợ");
+                return;
+            }
+
+            if (response.success && response.data.paymentUrl) {
+                setPaymentUrl(response.data.paymentUrl);
+                setShowPaymentMethodDialog(false);
+                setShowPaymentDialog(true);
+                toast.success("Tạo đường dẫn thanh toán thành công!");
+            } else {
+                toast.error("Không thể tạo đường dẫn thanh toán");
+            }
+        } catch (error) {
+            console.error("Error creating payment URL:", error);
+            toast.error("Có lỗi xảy ra khi tạo đường dẫn thanh toán");
+        } finally {
+            setIsCreatingPayment(false);
+        }
+    };
+
+    // Handle payment method selection
+    const handlePaymentMethodSelection = () => {
+        setShowPaymentMethodDialog(true);
+    };
+
+    // Copy payment URL to clipboard
+    const handleCopyPaymentUrl = () => {
+        if (paymentUrl) {
+            navigator.clipboard.writeText(paymentUrl);
+            toast.success("Đã sao chép đường dẫn thanh toán!");
         }
     };
 
@@ -598,6 +669,24 @@ const OrderDetailPage: React.FC = () => {
                         </Button>
                     )}
 
+                    {order.status === "PENDING_PAYMENT" && (
+                        <Button
+                            onClick={handlePaymentMethodSelection}
+                            disabled={isCreatingPayment}
+                            variant="outline"
+                            className="rounded-full"
+                        >
+                            {isCreatingPayment ? (
+                                "Đang tạo..."
+                            ) : (
+                                <>
+                                    <QrCode className="h-4 w-4 mr-2" />
+                                    Tạo thanh toán
+                                </>
+                            )}
+                        </Button>
+                    )}
+
                     {order.status !== "CANCELLED" &&
                         order.status !== "DELIVERED" && (
                             <Button
@@ -848,6 +937,160 @@ const OrderDetailPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Payment Method Selection Dialog */}
+            <Dialog
+                open={showPaymentMethodDialog}
+                onOpenChange={setShowPaymentMethodDialog}
+            >
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Chọn phương thức thanh toán</DialogTitle>
+                        <DialogDescription>
+                            Vui lòng chọn phương thức thanh toán để tạo đường
+                            dẫn cho đơn hàng #{order?.id}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        <div className="space-y-3">
+                            <Label className="text-sm font-medium">
+                                Phương thức thanh toán
+                            </Label>
+                            <div className="space-y-2">
+                                <label className="flex items-center space-x-3 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        value="vnpay"
+                                        checked={
+                                            selectedPaymentMethod === "vnpay"
+                                        }
+                                        onChange={(e) =>
+                                            setSelectedPaymentMethod(
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-4 h-4 text-blue-600"
+                                    />
+                                    <span>VNPay</span>
+                                </label>
+                                <label className="flex items-center space-x-3 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        value="paypal"
+                                        checked={
+                                            selectedPaymentMethod === "paypal"
+                                        }
+                                        onChange={(e) =>
+                                            setSelectedPaymentMethod(
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-4 h-4 text-blue-600"
+                                    />
+                                    <span>PayPal</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowPaymentMethodDialog(false)}
+                            disabled={isCreatingPayment}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            onClick={() =>
+                                handleCreatePaymentUrl(selectedPaymentMethod)
+                            }
+                            disabled={isCreatingPayment}
+                        >
+                            {isCreatingPayment
+                                ? "Đang tạo..."
+                                : "Tạo đường dẫn thanh toán"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Payment URL Dialog */}
+            <Dialog
+                open={showPaymentDialog}
+                onOpenChange={setShowPaymentDialog}
+            >
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Đường dẫn thanh toán</DialogTitle>
+                        <DialogDescription>
+                            Gửi đường dẫn này cho khách hàng để thanh toán đơn
+                            hàng #{order?.id}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div>
+                            <Label htmlFor="paymentUrl">
+                                Đường dẫn thanh toán
+                            </Label>
+                            <div className="flex gap-2 mt-2">
+                                <Input
+                                    id="paymentUrl"
+                                    value={paymentUrl}
+                                    readOnly
+                                    className="font-mono text-sm"
+                                />
+                                <Button
+                                    onClick={handleCopyPaymentUrl}
+                                    variant="outline"
+                                    size="sm"
+                                >
+                                    <Copy className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-center">
+                            <div className="p-4 bg-white border rounded-lg">
+                                <div className="text-center text-sm text-gray-600 mb-2">
+                                    Mã QR thanh toán
+                                </div>
+                                <div className="flex justify-center">
+                                    <img
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                                            paymentUrl
+                                        )}`}
+                                        alt="QR Code thanh toán"
+                                        className="w-48 h-48"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-4">
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={() =>
+                                        window.open(paymentUrl, "_blank")
+                                    }
+                                    variant="outline"
+                                    size="sm"
+                                >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    Mở liên kết
+                                </Button>
+                            </div>
+                            <Button
+                                onClick={() => setShowPaymentDialog(false)}
+                                variant="outline"
+                            >
+                                Đóng
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
