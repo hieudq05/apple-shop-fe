@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {MagnifyingGlassIcon, ShoppingBagIcon} from "@heroicons/react/24/outline";
 import {Menu, MenuButton, MenuItems, Transition} from "@headlessui/react";
+import { fetchCategories } from '@/services/categoryService';
 
 const navbarParams = [
     {

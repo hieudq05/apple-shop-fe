@@ -1,5 +1,14 @@
-import React from "react";
-import {PencilIcon} from "@heroicons/react/24/outline";
+import React, { useState } from "react";
+import { PencilIcon } from "@heroicons/react/24/outline";
+import userService, {
+    type MyInfo,
+    type UpdateMyInfoData,
+    type ChangePasswordData,
+} from "@/services/userService";
+import EditUserInfoDialog from "./EditUserInfoDialog";
+import ChangePasswordDialog from "./ChangePasswordDialog";
+import ShippingAddressDialog from "./ShippingAddressDialog";
+import EditAvatarDialog from "./EditAvatarDialog";
 
 export interface AccountInfoProps {
     id: string;
@@ -15,79 +24,222 @@ export interface AccountInfoProps {
     avatarUrl?: string;
 }
 
-const defaultAccountInfo: AccountInfoProps = {
-    id: "1",
-    firstName: "Nguyễn",
-    lastName: "Hiếu",
-    email: "hieu@gmail.com",
-    phone: "0123456789",
-    address: "123 Đường ABC",
-    ward: "Phường 1",
-    district: "Quận 1",
-    province: "TP.HCM",
-    country: "Việt Nam",
-    avatarUrl: "https://i.pinimg.com/736x/27/e2/3b/27e23ba70944306a687162bae3ca09d8.jpg"
+interface AccountInfoComponentProps extends MyInfo {
+    onUserInfoUpdate?: (updatedInfo: MyInfo) => void;
+    callBack?: (updatedInfo: UpdateMyInfoData) => void;
 }
 
-const AccountInfo: React.FC = () => {
+const AccountInfo: React.FC<AccountInfoComponentProps> = ({
+    email,
+    image,
+    firstName,
+    lastName,
+    phone,
+    id,
+    birth,
+    onUserInfoUpdate,
+    callBack,
+}) => {
+    // State để quản lý dữ liệu hiển thị local
+    const [displayInfo, setDisplayInfo] = useState<MyInfo>({
+        email,
+        image,
+        firstName,
+        lastName,
+        phone,
+        birth,
+        id,
+    });
+
+    const handleUpdateUserInfo = async (updatedInfo: UpdateMyInfoData) => {
+        try {
+            const response = await userService.updateMyInfo(updatedInfo);
+            if (response.success) {
+                // Cập nhật dữ liệu hiển thị local
+                setDisplayInfo((prev) => ({
+                    ...prev,
+                    ...updatedInfo,
+                    // Đảm bảo các field bắt buộc không bị undefined
+                    firstName: updatedInfo.firstName || prev.firstName,
+                    lastName: updatedInfo.lastName || prev.lastName,
+                    phone: updatedInfo.phone || prev.phone,
+                    birth: updatedInfo.birth || prev.birth,
+                    image: updatedInfo.image || prev.image,
+                }));
+
+                // Gọi callback để cập nhật data ở parent component
+                if (onUserInfoUpdate && response.data) {
+                    onUserInfoUpdate(response.data);
+                }
+
+                // Gọi callback bổ sung nếu có
+                if (callBack) {
+                    callBack(updatedInfo);
+                }
+            } else {
+                // Throw error with response message if update failed
+                throw new Error(response.message || "Cập nhật thất bại");
+            }
+        } catch (error) {
+            console.error("Error updating user info:", error);
+            throw error; // Re-throw để dialog có thể catch và hiển thị error
+        }
+    };
+
+    const handleChangePassword = async (passwordData: ChangePasswordData) => {
+        try {
+            const response = await userService.changePassword(passwordData);
+            if (response.success) {
+                console.log("Mật khẩu đã được thay đổi thành công!");
+                // Có thể thêm thông báo thành công ở đây
+            } else {
+                throw new Error(response.message || "Đổi mật khẩu thất bại");
+            }
+        } catch (error) {
+            console.error("Error changing password:", error);
+            throw error; // Re-throw để dialog có thể catch và hiển thị error
+        }
+    };
+
+    const handleAvatarUpdate = async (
+        imageFile: File | null,
+        updatedInfo: UpdateMyInfoData
+    ) => {
+        if (!imageFile) {
+            throw new Error("Vui lòng chọn ảnh!");
+        }
+
+        try {
+            // Sử dụng updateMyInfo với imageFile để cập nhật ảnh
+            const response = await userService.updateMyInfo(
+                updatedInfo,
+                imageFile
+            );
+            if (response.success) {
+                console.log("Ảnh đã được cập nhật thành công!");
+
+                // Cập nhật dữ liệu hiển thị local
+                setDisplayInfo((prev) => ({
+                    ...prev,
+                    image: response.data.image,
+                }));
+
+                // Gọi callback để cập nhật data ở parent component
+                if (onUserInfoUpdate) {
+                    onUserInfoUpdate(response.data);
+                }
+            } else {
+                throw new Error(response.message || "Cập nhật ảnh thất bại");
+            }
+        } catch (error) {
+            console.error("Error updating avatar:", error);
+            throw error; // Re-throw để dialog có thể catch và hiển thị error
+        }
+    };
+
+    const currentUserInfo: MyInfo = displayInfo;
+
     return (
         <div className={"container mx-auto py-12 space-y-10"}>
             <h1 className={"text-4xl py-6 font-semibold"}>Cài đặt tài khoản</h1>
             <div className={"grid lg:grid-cols-5 gap-6 text-lg grid-cols-2"}>
-                <h2 className={"text-xl font-semibold col-span-2 lg:col-span-1"}>Thông tin cá nhân</h2>
+                <h2
+                    className={"text-xl font-semibold col-span-2 lg:col-span-1"}
+                >
+                    Thông tin cá nhân
+                </h2>
                 <div className={"lg:col-span-2 space-y-2"}>
                     <p className={"font-semibold"}>Ảnh hồ sơ</p>
                     <div className={"relative w-fit"}>
-                        <img src={defaultAccountInfo.avatarUrl || "https://via.placeholder.com/150"} alt={"Avatar"}
-                             className={"size-32 rounded-full"}/>
-                        <button
-                            className={"absolute w-fit bottom-0 right-0 p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}>
-                            <PencilIcon className={"size-5"}/>
-                        </button>
+                        <img
+                            src={
+                                displayInfo.image ||
+                                "https://via.placeholder.com/150x150/gray/white?text=User"
+                            }
+                            alt={"Avatar"}
+                            className={
+                                "size-32 rounded-full object-cover object-center"
+                            }
+                            onError={(e) => {
+                                e.currentTarget.src =
+                                    "https://via.placeholder.com/150x150/gray/white?text=User";
+                            }}
+                        />
+                        <EditAvatarDialog
+                            currentImage={displayInfo.image}
+                            onSave={handleAvatarUpdate}
+                            currentInfo={currentUserInfo}
+                        >
+                            <button
+                                type="button"
+                                className={
+                                    "absolute w-fit bottom-0 right-0 p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                }
+                            >
+                                <PencilIcon className={"size-5"} />
+                            </button>
+                        </EditAvatarDialog>
                     </div>
                 </div>
                 <div className={"lg:col-span-2 space-y-1"}>
                     <p className={"font-semibold"}>Thông tin tài khoản</p>
-                    <p>{defaultAccountInfo.firstName} {defaultAccountInfo.lastName}</p>
-                    <p>{defaultAccountInfo.email}</p>
-                    <p>{defaultAccountInfo.phone}</p>
-                    <button
-                        className={"text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"}>
-                        <span>Chỉnh sửa thông tin</span>
-                    </button>
-                    <button
-                        className={"block text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"}>
-                        <span>Đổi mật khẩu</span>
-                    </button>
+                    <p>
+                        {displayInfo.firstName} {displayInfo.lastName}
+                    </p>
+                    <p>
+                        {/* format: "dd-MM-yyyy", */}
+                        {displayInfo.birth
+                            ? new Date(displayInfo.birth).toLocaleDateString(
+                                  "vi-VN"
+                              )
+                            : ""}
+                    </p>
+                    <p>{displayInfo.email}</p>
+                    <p>{displayInfo.phone}</p>
+                    <EditUserInfoDialog
+                        userInfo={currentUserInfo}
+                        onSave={handleUpdateUserInfo}
+                    >
+                        <button
+                            className={
+                                "text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
+                            }
+                        >
+                            <span>Chỉnh sửa thông tin</span>
+                        </button>
+                    </EditUserInfoDialog>
+                    <ChangePasswordDialog onSave={handleChangePassword}>
+                        <button
+                            className={
+                                "block text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
+                            }
+                        >
+                            <span>Đổi mật khẩu</span>
+                        </button>
+                    </ChangePasswordDialog>
                 </div>
             </div>
             <div className={"grid lg:grid-cols-5 gap-6 text-lg grid-cols-2"}>
-                <h2 className={"text-xl font-semibold lg:col-span-1 col-span-2"}>Vận chuyển</h2>
+                <h2
+                    className={"text-xl font-semibold lg:col-span-1 col-span-2"}
+                >
+                    Vận chuyển
+                </h2>
                 <div className={"lg:col-span-2 space-y-1"}>
                     <p className={"font-semibold"}>Địa chỉ giao hàng</p>
-                    <p>{defaultAccountInfo.firstName}</p>
-                    <p>{defaultAccountInfo.lastName}</p>
-                    <p>{defaultAccountInfo.address},</p>
-                    <p>{defaultAccountInfo.ward},</p>
-                    <p>{defaultAccountInfo.district},</p>
-                    <p>{defaultAccountInfo.province},</p>
-                    <p>{defaultAccountInfo.country}</p>
-                    <button
-                        className={"text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"}>
-                        <span>Chỉnh sửa</span>
-                    </button>
-                </div>
-                <div className={"lg:col-span-2 space-y-1"}>
-                    <p className={"font-semibold"}>Thông tin liên hệ</p>
-                    <p>{defaultAccountInfo.email}</p>
-                    <p>{defaultAccountInfo.phone}</p>
-                    <button
-                        className={"text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"}>
-                        <span>Chỉnh sửa</span>
-                    </button>
+                    <p>Bạn có địa chỉ giao hàng đã lưu</p>
+                    <ShippingAddressDialog>
+                        <button
+                            className={
+                                "text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
+                            }
+                        >
+                            <span>Quản lý</span>
+                        </button>
+                    </ShippingAddressDialog>
                 </div>
             </div>
         </div>
     );
-}
+};
 export default AccountInfo;

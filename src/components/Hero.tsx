@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export interface GradientColor {
     from: string;
@@ -12,43 +12,57 @@ export interface HeroParams {
     darkText: boolean;
     position?: string;
     gradient?: GradientColor;
+    linkTo: string;
 }
 
 const Hero: React.FC<HeroParams> = ({
-                                        title,
-                                        subtitle,
-                                        imageUrl,
-                                        darkText,
-                                        position = 'start', // Default position is 'start'
-                                        gradient,
-                                    }) => {
+    title,
+    subtitle,
+    imageUrl,
+    darkText,
+    position = "start", // Default position is 'start'
+    gradient,
+    linkTo,
+}) => {
     return (
-        <section className={`"relative h-[42rem] py-12 overflow-hidden flex items-${position} justify-center`}
-                 style={{
-                     backgroundImage: `url(${imageUrl})`,
-                     backgroundSize: 'cover',
-                     backgroundPosition: 'center'
-                 }}>
+        <section
+            className={`"relative h-[42rem] py-12 overflow-hidden flex items-${position} justify-center`}
+            style={{
+                backgroundImage: `url(${imageUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+            }}
+        >
             <div className={`container flex flex-col`}>
                 <div className="text-center z-10 mx-auto">
-                    <div className={(darkText ? "text-black" : "text-white")}>
-                        <h1 className={"text-[3.5rem] font-semibold mb-2"}
+                    <div className={darkText ? "text-black" : "text-white"}>
+                        <h1
+                            className={"text-[3.5rem] font-semibold mb-2"}
                             style={
-                                gradient ? {
-                                    background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent'
-                                } : {}
+                                gradient
+                                    ? {
+                                          background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
+                                          WebkitBackgroundClip: "text",
+                                          WebkitTextFillColor: "transparent",
+                                      }
+                                    : {}
                             }
-                        >{title}</h1>
+                        >
+                            {title}
+                        </h1>
                         <p className="text-2xl mb-4">{subtitle}</p>
                     </div>
                     <div className="flex justify-center space-x-6">
-                        <a href="#" className="text-white text-base bg-blue-600 px-5 py-2 rounded-full">
+                        <a
+                            href="#"
+                            className="text-white text-base bg-blue-600 px-5 py-2 rounded-full"
+                        >
                             Tìm hiểu thêm
                         </a>
-                        <a href="#"
-                           className="text-blue-600 text-base px-5 py-2 border rounded-full border-blue-600 hover:bg-blue-600 hover:text-white transition-colors">
+                        <a
+                            href={linkTo}
+                            className="text-blue-600 text-base px-5 py-2 border rounded-full border-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                        >
                             Mua
                         </a>
                     </div>
