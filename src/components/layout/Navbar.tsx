@@ -252,7 +252,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                     <div className="hidden xl:flex items-center py-0 h-[44px] w-full px-36">
                         <Link
                             to="/"
-                            className="text-left h-[44px] flex-1 text-xs h-full flex items-center"
+                            className="text-left h-[44px] flex-1 text-xs flex items-center"
                         >
                             Trang chủ
                         </Link>
@@ -389,6 +389,12 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                 </Menu>
                             );
                         })}
+                        <Link
+                            to="/blog"
+                            className="justify-center h-[44px] flex-1 text-xs flex items-center"
+                        >
+                            Blog
+                        </Link>
                     </div>
 
                     <div className="flex items-center space-x-12">

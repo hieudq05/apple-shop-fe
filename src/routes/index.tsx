@@ -75,7 +75,7 @@ export const routesConfig: RouteObject[] = [
                 element: <BlogPage />,
             },
             {
-                path: "blog/:slug",
+                path: "blog/:id",
                 element: <BlogPostPage />,
             },
         ],

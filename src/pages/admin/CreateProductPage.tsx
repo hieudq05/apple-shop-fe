@@ -1371,7 +1371,7 @@ const CreateProductPage: React.FC = () => {
                                 {currentStep === 1 &&
                                     "Thêm các tính năng nổi bật của sản phẩm"}
                                 {currentStep === 2 &&
-                                    "Thiết lập các phiên bản màu sắc và kho hàng"}
+                                    "Thiết lập các phiên bản màu sắc và kho hàng. Một màu có thể được sử dụng nhiều lần với các thuộc tính khác nhau"}
                                 {currentStep === 3 &&
                                     "Xem lại thông tin và hoàn tất việc tạo sản phẩm"}
                             </CardDescription>
@@ -2061,14 +2061,7 @@ const CreateProductPage: React.FC = () => {
                                                             );
                                                     }
 
-                                                    if (
-                                                        selectedColor &&
-                                                        !formData.stocks.some(
-                                                            (s) =>
-                                                                s.color.name ===
-                                                                selectedColor.name
-                                                        )
-                                                    ) {
+                                                    if (selectedColor) {
                                                         setFormData((prev) => ({
                                                             ...prev,
                                                             stocks: [
@@ -2152,7 +2145,9 @@ const CreateProductPage: React.FC = () => {
                                                 <p className="text-muted-foreground mb-4">
                                                     Thêm các phiên bản màu sắc
                                                     với giá và số lượng tương
-                                                    ứng
+                                                    ứng. Một màu có thể được sử
+                                                    dụng nhiều lần với các thuộc
+                                                    tính khác nhau
                                                 </p>
                                                 <Button
                                                     variant="outline"
