@@ -91,7 +91,7 @@ const EditUserInfoDialog: React.FC<EditUserInfoDialogProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[475px]">
                 <DialogHeader>
                     <DialogTitle>Chỉnh sửa thông tin cá nhân</DialogTitle>
                     <DialogDescription>

@@ -114,7 +114,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[475px]">
                 <DialogHeader>
                     <DialogTitle>Đổi mật khẩu</DialogTitle>
                     <DialogDescription>

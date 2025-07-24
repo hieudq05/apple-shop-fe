@@ -36,7 +36,7 @@ export function NavMain({
                         <SidebarMenuButton
                             asChild
                             tooltip="Tạo sản phẩm mới"
-                            className="bg-blue-500 h-10 px-4 w-fit rounded-xl text-primary-foreground hover:bg-blue-600 hover:text-primary-foreground active:bg-blue-400 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+                            className="bg-blue-500 h-10 px-4 w-fit rounded-xl text-white hover:text-white hover:bg-blue-600 transition active:bg-blue-400 active:text-primary-foreground min-w-8 duration-100 ease-linear"
                         >
                             <Link to="/admin/products/create">
                                 <SquarePlus />
@@ -46,7 +46,7 @@ export function NavMain({
                         <SidebarMenuButton
                             asChild
                             tooltip="Tạo sản phẩm mới"
-                            className="bg-blue-500 h-10 w-fit px-3 rounded-xl text-primary-foreground hover:bg-blue-600 hover:text-primary-foreground active:bg-blue-400 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+                            className="bg-blue-500 h-10 w-fit px-3 rounded-xl text-white hover:text-white hover:bg-blue-600 transition active:bg-blue-400 active:text-primary-foreground min-w-8 duration-100 ease-linear"
                         >
                             <Link to="/admin/create/order">
                                 <PackagePlus />

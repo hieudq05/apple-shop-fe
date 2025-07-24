@@ -28,6 +28,7 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuthContext";
+import {ModeToggle} from "@/components/mode-toggle.tsx";
 
 const data = {
     navMain: [

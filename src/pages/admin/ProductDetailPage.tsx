@@ -35,6 +35,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {Clock} from "lucide-react";
 
 interface ProductDetail {
     id: number;
@@ -212,10 +213,10 @@ const ProductDetailPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="text-center">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h2 className="text-xl font-semibold text-foreground mb-2">
                         Không tìm thấy sản phẩm
                     </h2>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-muted-foreground mb-4">
                         Sản phẩm có thể đã bị xóa hoặc không tồn tại.
                     </p>
                     <Button
@@ -241,14 +242,13 @@ const ProductDetailPage: React.FC = () => {
                         variant="ghost"
                         size="sm"
                     >
-                        <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                        Quay lại
+                        <ArrowLeftIcon className="w-4 h-4" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-foreground">
                             {product.name}
                         </h1>
-                        <p className="text-gray-600">ID: {product.id}</p>
+                        <p className="text-muted-foreground">ID: {product.id}</p>
                     </div>
                 </div>
 
@@ -275,17 +275,11 @@ const ProductDetailPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Product Images */}
                 <div className="lg:col-span-1">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <PhotoIcon className="w-5 h-5 mr-2" />
-                                Hình ảnh sản phẩm
-                            </CardTitle>
-                        </CardHeader>
+                    <Card className={"rounded-3xl"}>
                         <CardContent>
                             {allPhotos.length > 0 ? (
                                 <div>
-                                    <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
+                                    <div className="aspect-square rounded-xl overflow-hidden mb-4">
                                         <img
                                             src={allPhotos[selectedImageIndex]}
                                             alt={product.name}
@@ -318,10 +312,10 @@ const ProductDetailPage: React.FC = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                                <div className="aspect-square bg-foreground/5 rounded-lg flex items-center justify-center">
                                     <div className="text-center">
-                                        <EyeIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                        <p className="text-gray-500">
+                                        <EyeIcon className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                                        <p className="text-muted-foreground">
                                             Chưa có hình ảnh
                                         </p>
                                     </div>
@@ -334,35 +328,35 @@ const ProductDetailPage: React.FC = () => {
                 {/* Product Information */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Basic Info */}
-                    <Card>
+                    <Card className={"rounded-3xl"}>
                         <CardHeader>
                             <CardTitle>Thông tin cơ bản</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                                         Tên sản phẩm
                                     </label>
-                                    <p className="text-gray-900">
+                                    <p className="text-foreground">
                                         {product.name}
                                     </p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                                         Danh mục
                                     </label>
-                                    <Badge variant="secondary">
+                                    <Badge variant="outline">
                                         {product.category.name}
                                     </Badge>
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                                         Mô tả
                                     </label>
-                                    <p className="text-gray-600">
+                                    <p className="text-foreground">
                                         {product.description}
                                     </p>
                                 </div>
@@ -371,41 +365,41 @@ const ProductDetailPage: React.FC = () => {
                     </Card>
 
                     {/* Statistics */}
-                    <Card>
+                    <Card className={"rounded-3xl"}>
                         <CardHeader>
                             <CardTitle>Thống kê bán hàng</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">
+                                <div className="text-center p-4 bg-foreground/5 border rounded-2xl">
+                                    <div className="text-2xl font-bold text-foreground">
                                         {getTotalStock()}
                                     </div>
-                                    <div className="text-sm text-gray-600">
+                                    <div className="text-sm text-muted-foreground">
                                         Tổng tồn kho
                                     </div>
                                 </div>
-                                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">
+                                <div className="text-center p-4 bg-foreground/5 border rounded-2xl">
+                                    <div className="text-2xl font-bold text-foreground">
                                         {product.stocks.length}
                                     </div>
-                                    <div className="text-sm text-gray-600">
+                                    <div className="text-sm text-muted-foreground">
                                         Phiên bản
                                     </div>
                                 </div>
-                                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">
+                                <div className="text-center p-4 bg-foreground/5 border rounded-2xl">
+                                    <div className="text-2xl font-bold text-foreground">
                                         {product.features?.length || 0}
                                     </div>
-                                    <div className="text-sm text-gray-600">
+                                    <div className="text-sm text-muted-foreground">
                                         Tính năng
                                     </div>
                                 </div>
-                                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">
+                                <div className="text-center p-4 bg-foreground/5 border rounded-2xl">
+                                    <div className="text-2xl font-bold text-foreground">
                                         {allPhotos.length}
                                     </div>
-                                    <div className="text-sm text-gray-600">
+                                    <div className="text-sm text-muted-foreground">
                                         Hình ảnh
                                     </div>
                                 </div>
@@ -414,7 +408,7 @@ const ProductDetailPage: React.FC = () => {
                     </Card>
 
                     {/* Stock Information */}
-                    <Card>
+                    <Card className={"rounded-3xl"}>
                         <CardHeader>
                             <CardTitle>Thông tin kho hàng</CardTitle>
                         </CardHeader>
@@ -431,7 +425,7 @@ const ProductDetailPage: React.FC = () => {
                                 </TableHeader>
                                 <TableBody>
                                     {product.stocks.map((stock) => (
-                                        <TableRow key={stock.id}>
+                                        <TableRow className={"h-18"} key={stock.id}>
                                             <TableCell>
                                                 <div className="flex items-center space-x-2">
                                                     <div
@@ -509,7 +503,7 @@ const ProductDetailPage: React.FC = () => {
 
                     {/* Features */}
                     {product.features && product.features.length > 0 && (
-                        <Card>
+                        <Card className={"rounded-3xl"}>
                             <CardHeader>
                                 <CardTitle>Tính năng sản phẩm</CardTitle>
                                 <CardDescription>
@@ -522,7 +516,7 @@ const ProductDetailPage: React.FC = () => {
                                     {product.features.map((feature) => (
                                         <div
                                             key={feature.id}
-                                            className="flex items-start p-3 bg-gray-50 rounded-lg"
+                                            className="flex items-start p-3 bg-foreground/5 hover:outline transition rounded-xl"
                                         >
                                             <img
                                                 src={feature.image}
@@ -530,13 +524,13 @@ const ProductDetailPage: React.FC = () => {
                                                 className="w-16 h-16 object-cover rounded-md mr-4 flex-shrink-0"
                                             />
                                             <div className="flex-1">
-                                                <h4 className="font-medium text-gray-700 mb-1">
+                                                <h4 className="font-medium text-foreground mb-1">
                                                     {feature.name}
                                                 </h4>
-                                                <p className="text-gray-600 text-sm">
+                                                <p className="text-muted-foreground text-sm">
                                                     {feature.description}
                                                 </p>
-                                                <p className="text-xs text-gray-400 mt-1">
+                                                <p className="text-xs text-muted-foreground/50 mt-1">
                                                     ID: {feature.id}
                                                 </p>
                                             </div>
@@ -548,55 +542,67 @@ const ProductDetailPage: React.FC = () => {
                     )}
 
                     {/* System Info */}
-                    <Card>
+                    <Card className={"rounded-3xl"}>
                         <CardHeader>
                             <CardTitle>Thông tin hệ thống</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <span className="font-medium text-gray-700">
+                                    <span className="text-muted-foreground text-xs">
                                         Người tạo:
                                     </span>
-                                    <div className="mt-1">
-                                        <p className="text-gray-900">
-                                            {product.createdBy?.firstName}{" "}
-                                            {product.createdBy?.lastName}
-                                        </p>
-                                        <p className="text-gray-500 text-xs">
-                                            {product.createdBy?.email}
-                                        </p>
+                                    <div className="mt-1 flex gap-2 items-center">
+                                        <img src={product.createdBy?.image} alt="" className={"size-10 rounded-full object-cover"}/>
+                                        <div>
+                                            <p className="text-foreground">
+                                                {product.createdBy?.firstName}{" "}
+                                                {product.createdBy?.lastName}
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                                {product.createdBy?.email}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="font-medium text-gray-700">
+                                    <span className="text-muted-foreground text-xs">
                                         Người cập nhật:
                                     </span>
-                                    <div className="mt-1">
-                                        <p className="text-gray-900">
-                                            {product.updatedBy?.firstName}{" "}
-                                            {product.updatedBy?.lastName}
-                                        </p>
-                                        <p className="text-gray-500 text-xs">
-                                            {product.updatedBy?.email}
+                                    <div className="mt-1 flex gap-2 items-center">
+                                        <img src={product.updatedBy?.image} alt="" className={"size-10 rounded-full object-cover"}/>
+                                        <div>
+                                            <p className="text-foreground">
+                                                {product.updatedBy?.firstName}{" "}
+                                                {product.updatedBy?.lastName}
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                                {product.updatedBy?.email}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span className="text-muted-foreground text-xs">
+                                        Ngày tạo:
+                                    </span>
+                                    <div className={"flex gap-2 items-center"}>
+                                        <Clock className={"size-4 mt-1 text-muted-foreground"}/>
+                                        <p className="text-foreground mt-1">
+                                            {formatDate(product.createdAt)}
                                         </p>
                                     </div>
                                 </div>
                                 <div>
-                                    <span className="font-medium text-gray-700">
-                                        Ngày tạo:
-                                    </span>
-                                    <p className="text-gray-600 mt-1">
-                                        {formatDate(product.createdAt)}
-                                    </p>
-                                </div>
-                                <div>
-                                    <span className="font-medium text-gray-700">
+                                    <span className="text-muted-foreground text-xs">
                                         Cập nhật lần cuối:
                                     </span>
-                                    <p className="text-gray-600 mt-1">
-                                        {formatDate(product.updatedAt)}
-                                    </p>
+                                    <div className={"flex gap-2 items-center"}>
+                                        <Clock className={"size-4 mt-1 text-muted-foreground"}/>
+                                        <p className="text-foreground mt-1">
+                                            {formatDate(product.updatedAt)}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>

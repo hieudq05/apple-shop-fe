@@ -2,8 +2,9 @@ import React, {useState} from 'react';
 import {ArrowUpRightIcon, ChevronRightIcon, ExclamationCircleIcon} from "@heroicons/react/24/outline";
 import axios from "axios";
 import {GoogleLogin} from "@react-oauth/google";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import type {RegisterRequest, ApiResponse, OtpResponse} from '../types/api';
+import {Home} from "lucide-react";
 
 const RegisterPage: React.FC = () => {
     const navigate = useNavigate();
@@ -102,13 +103,13 @@ const RegisterPage: React.FC = () => {
 
     return (
         <>
-            <div className={"max-w-7xl mx-auto container text-black"}>
-                <div aria-label={"Title"} className={"md:text-5xl text-3xl font-semibold text-start md:py-12 py-6"}>
+            <div className={"mx-auto container  px-20 max-w-7xl w-[40rem] lg:w-[50rem]"}>
+                <div aria-label={"Title"} className={"md:text-5xl text-3xl font-semibold text-center md:py-12 py-6"}>
                     Tạo tài khoản Apple Store của bạn.
                 </div>
                 <div className={"flex w-full h-fit space-x-12"}>
                     <div className={"flex-1 size-full flex flex-col space-y-12"}>
-                        <div className={"text-2xl font-semibold text-gray-700"}>Đăng ký tài khoản mới</div>
+                        <div className={"text-2xl font-semibold text-center text-muted-foreground"}>Đăng ký tài khoản mới</div>
                         <GoogleLogin onSuccess={handleGoogleRegister} onError={handleError}/>
                         <div className={"flex items-center"}>
                             <hr className={"border-gray-300 w-full"}/>
@@ -116,11 +117,11 @@ const RegisterPage: React.FC = () => {
                             <hr className={"border-gray-300 w-full"}/>
                         </div>
                         {errors.length > 0 && (
-                            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-5 flex gap-2">
-                                <ExclamationCircleIcon className="h-5 w-5 text-red-400"/>
+                            <div className="bg-foreground/5 border rounded-xl px-4 py-5 flex gap-2">
+                                <ExclamationCircleIcon className="h-5 w-5 text-destructive"/>
                                 <div>
                                     {errors.map((error, index) => (
-                                        <p key={index} className="text-red-600 text-sm">{error}</p>
+                                        <p key={index} className="text-destructive text-sm">{error}</p>
                                     ))}
                                 </div>
                             </div>
@@ -130,7 +131,7 @@ const RegisterPage: React.FC = () => {
                             <div className="flex">
                                 <div className={"relative flex-1"} id={"firstName-container"}>
                                     <label htmlFor={"firstName"}
-                                           className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                           className={"absolute left-4 top-2 text-xs text-muted-foreground"}>
                                         Họ
                                     </label>
                                     <input
@@ -143,12 +144,12 @@ const RegisterPage: React.FC = () => {
                                         onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                                         onFocus={() => document.getElementById("firstName-container")?.classList.add("z-10")}
                                         onBlur={() => document.getElementById("firstName-container")?.classList.remove("z-10")}
-                                        className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-br-none rounded-tr-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                        className={"w-full text-lg px-4 pb-3 pt-6 border rounded-xl rounded-br-none rounded-tr-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                     />
                                 </div>
                                 <div className={"relative flex-1 top-0 left-[-1px] z-0"} id={"lastName-container"}>
                                     <label htmlFor={"lastName"}
-                                           className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                           className={"absolute left-4 top-2 text-xs text-muted-foreground"}>
                                         Tên
                                     </label>
                                     <input
@@ -161,14 +162,14 @@ const RegisterPage: React.FC = () => {
                                         onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                                         onFocus={() => document.getElementById("lastName-container")?.classList.add("z-10")}
                                         onBlur={() => document.getElementById("lastName-container")?.classList.remove("z-10")}
-                                        className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-bl-none rounded-ss-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                        className={"w-full text-lg px-4 pb-3 pt-6 border border-s-0 rounded-xl rounded-bl-none rounded-ss-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                     />
                                 </div>
                             </div>
 
                             {/* Birth Date */}
                             <div className={"relative top-[-1px] z-0"} id={"birth-container"}>
-                                <label htmlFor={"birth"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                <label htmlFor={"birth"} className={"absolute left-4 top-2 text-xs text-muted-foreground"}>
                                     Ngày sinh
                                 </label>
                                 <input
@@ -180,13 +181,13 @@ const RegisterPage: React.FC = () => {
                                     onChange={(e) => setFormData({...formData, birth: e.target.value})}
                                     onFocus={() => document.getElementById("birth-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("birth-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
 
                             {/* Email */}
                             <div className={"relative top-[-1px] z-0"} id={"email-container"}>
-                                <label htmlFor={"email"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                <label htmlFor={"email"} className={"absolute left-4 top-2 text-xs text-muted-foreground"}>
                                     Email
                                 </label>
                                 <input
@@ -199,13 +200,13 @@ const RegisterPage: React.FC = () => {
                                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                                     onFocus={() => document.getElementById("email-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("email-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
 
                             {/* Phone */}
                             <div className={"relative top-[-1px] z-0"} id={"phone-container"}>
-                                <label htmlFor={"phone"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                <label htmlFor={"phone"} className={"absolute left-4 top-2 text-xs text-muted-foreground"}>
                                     Số điện thoại
                                 </label>
                                 <input
@@ -218,13 +219,13 @@ const RegisterPage: React.FC = () => {
                                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                                     onFocus={() => document.getElementById("phone-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("phone-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
 
                             {/* Password */}
                             <div className={"relative top-[-1px] z-0"} id={"password-container"}>
-                                <label htmlFor={"password"} className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                <label htmlFor={"password"} className={"absolute left-4 top-2 text-xs text-muted-foreground"}>
                                     Mật khẩu
                                 </label>
                                 <input
@@ -237,14 +238,14 @@ const RegisterPage: React.FC = () => {
                                     onChange={(e) => setFormData({...formData, password: e.target.value})}
                                     onFocus={() => document.getElementById("password-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("password-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
 
                             {/* Confirm Password */}
                             <div className={"relative top-[-1px] z-0"} id={"confirmPassword-container"}>
                                 <label htmlFor={"confirmPassword"}
-                                       className={"absolute left-4 top-2 text-xs text-gray-500"}>
+                                       className={"absolute left-4 top-2 text-xs text-muted-foreground"}>
                                     Xác nhận mật khẩu
                                 </label>
                                 <input
@@ -257,7 +258,7 @@ const RegisterPage: React.FC = () => {
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     onFocus={() => document.getElementById("confirmPassword-container")?.classList.add("z-10")}
                                     onBlur={() => document.getElementById("confirmPassword-container")?.classList.remove("z-10")}
-                                    className={"w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
+                                    className={"w-full text-lg px-4 pb-3 pt-6 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"}
                                 />
                             </div>
                             <button
@@ -269,7 +270,7 @@ const RegisterPage: React.FC = () => {
                                 <ChevronRightIcon className={"size-5 text-white"}/>
                             </button>
                         </form>
-                        <div className={"flex flex-col space-y-2 items-center"}>
+                        <div className={"flex flex-col gap-4 items-center pb-24"}>
                             <div className={"flex items-center gap-1"}>
                                 <span className={"text-gray-500 text-sm"}>Bạn đã có tài khoản Apple? </span>
                                 <a href={"/login"}
@@ -278,13 +279,11 @@ const RegisterPage: React.FC = () => {
                                     <ArrowUpRightIcon className={"size-3"}/>
                                 </a>
                             </div>
+                            <Link to={'/'}
+                                  className={"size-16 bg-transparent transition hover:bg-muted border flex items-center justify-center rounded-full"}>
+                                <Home className={"w-6 h-6 text-foreground"}/>
+                            </Link>
                         </div>
-                    </div>
-                    <div className={"flex-1 size-[35rem] rounded-2xl"} style={{
-                        backgroundImage: "url('https://www.apple.com/v/home/ce/images/promos/iphone-15-pro/promo_iphone15pro_avail__c70xiphx7fau_large_2x.jpg')",
-                        backgroundSize: "cover",
-                        backgroundPosition: "center"
-                    }}>
                     </div>
                 </div>
             </div>

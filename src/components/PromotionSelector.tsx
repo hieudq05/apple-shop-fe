@@ -265,7 +265,7 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
                                 ? "outline"
                                 : "default"
                         }
-                        className="w-full"
+                        className="w-full bg-foreground"
                         disabled={disabled}
                     >
                         <Tag className="mr-2 h-4 w-4" />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {
     Dialog,
     DialogContent,
@@ -23,9 +23,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import userService, { type MyShippingAddress } from "@/services/userService";
+import {Button} from "@/components/ui/button";
+import {Badge} from "@/components/ui/badge";
+import userService, {type MyShippingAddress} from "@/services/userService";
 import EditAddressDialog from "./EditAddressDialog";
 import CreateAddressDialog from "./CreateAddressDialog";
 
@@ -79,8 +79,8 @@ interface ShippingAddressDialogProps {
 }
 
 const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
-    children,
-}) => {
+                                                                         children,
+                                                                     }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [addresses, setAddresses] = useState<MyShippingAddress[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -300,8 +300,8 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
 
     // Component to display formatted address
     const AddressDisplay: React.FC<{ address: MyShippingAddress }> = ({
-        address,
-    }) => {
+                                                                          address,
+                                                                      }) => {
         const [formattedAddress, setFormattedAddress] = useState<string>(
             "Đang tải địa chỉ..."
         );
@@ -510,7 +510,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                             addresses.map((address) => (
                                 <div
                                     key={address.id}
-                                    className="border rounded-lg p-4 space-y-3 hover:bg-gray-50 transition-colors"
+                                    className="border rounded-lg p-4 space-y-3 hover:bg-muted transition-colors"
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
@@ -529,40 +529,31 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                                                 )}
                                             </div>
 
-                                            <div className="space-y-2 text-gray-700">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-blue-500 text-sm">
-                                                        📧
-                                                    </span>
+                                            <div className="flex flex-col gap-1 text-muted-foreground">
+                                                <div>
                                                     <span className="text-sm">
                                                         {address.email}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-green-500 text-sm">
-                                                        📱
-                                                    </span>
+                                                <div>
                                                     <span className="text-sm">
                                                         {address.phone}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-start gap-3">
-                                                    <span className="text-red-500 text-sm mt-0.5">
-                                                        📍
-                                                    </span>
+                                                <div>
                                                     <AddressDisplay
                                                         address={address}
                                                     />
                                                 </div>
                                             </div>
 
-                                            <div className="mt-3 pt-3 border-t border-gray-100">
-                                                <div className="grid grid-cols-2 gap-4 text-xs text-gray-500">
+                                            <div className="mt-3 pt-3 border-t">
+                                                <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
                                                     <div>
                                                         <span className="font-medium">
                                                             Tạo:
                                                         </span>
-                                                        <br />
+                                                        <br/>
                                                         {formatDate(
                                                             address.createdAt
                                                         )}
@@ -571,7 +562,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                                                         <span className="font-medium">
                                                             Cập nhật:
                                                         </span>
-                                                        <br />
+                                                        <br/>
                                                         {formatDate(
                                                             address.updatedAt
                                                         )}
@@ -584,7 +575,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button
-                                                        variant="ghost"
+                                                        variant="outline"
                                                         size="sm"
                                                         className="h-8 w-8 p-0"
                                                     >
@@ -690,7 +681,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                             ))
                         )}
 
-                        <div className="flex justify-center pt-4 border-t border-gray-100">
+                        <div className="flex justify-center pt-4 border-t">
                             <Button
                                 className="bg-blue-600 hover:bg-blue-700 text-white"
                                 onClick={handleOpenCreateDialog}

@@ -80,12 +80,14 @@ interface AdvancedProductSearchProps {
     onSearch: (params: ProductSearchParams) => void;
     onReset: () => void;
     loading?: boolean;
+    setSearchParams: (params: ProductSearchParams) => void;
 }
 
 const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
     onSearch,
     onReset,
     loading = false,
+    setSearchParams: setSearchParams1,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchParams, setSearchParams] = useState<ProductSearchParams>({
@@ -93,6 +95,7 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
         size: 10,
         sortBy: "createdAt",
         sortDirection: "desc",
+        searchKeyword: "",
     });
 
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -113,9 +116,10 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
             filters.push("Xếp hạng");
         if (searchParams.createdAfter || searchParams.createdBefore)
             filters.push("Ngày tạo");
-        if (searchParams.isDeleted !== undefined) filters.push("Trạng thái");
+        if (searchParams.isDeleted !== undefined) filters.push("Thùng rác");
 
         setActiveFilters(filters);
+        setSearchParams1(searchParams);
     }, [searchParams]);
 
     const handleInputChange = (
@@ -566,7 +570,7 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <Label htmlFor="isDeleted">
-                                                    Bao gồm sản phẩm đã xóa
+                                                    Sản phẩm đã xóa
                                                 </Label>
                                                 <Switch
                                                     id="isDeleted"

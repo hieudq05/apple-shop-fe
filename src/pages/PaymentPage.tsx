@@ -790,7 +790,7 @@ const PaymentPage: React.FC = () => {
 
     return (
         <div>
-            <h1 className="bg-gray-100 text-base py-5 font-semibold">
+            <h1 className="bg-muted text-base py-5 font-semibold">
                 <div className={"container mx-auto"}>Thanh toán</div>
             </h1>
             <div className="container mx-auto py-12 px-4 space-y-12">
@@ -849,8 +849,8 @@ const PaymentPage: React.FC = () => {
                                                         alt={item.productName}
                                                         className="w-[10rem] object-cover aspect-[8/10] rounded-xl"
                                                     />
-                                                    <div>
-                                                        <p className="text-sm font-medium">
+                                                    <div className={"flex-col flex gap-1"}>
+                                                        <p className="font-medium">
                                                             {item.productName}{" "}
                                                             {item.instances
                                                                 .map(
@@ -862,11 +862,11 @@ const PaymentPage: React.FC = () => {
                                                                 .join(" ")}{" "}
                                                             {item.color.name}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-muted-foreground">
                                                             Số lượng:{" "}
                                                             {item.quantity}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-muted-foreground">
                                                             Giá:{" "}
                                                             {item.price.toLocaleString(
                                                                 "vi-VN",
@@ -889,7 +889,7 @@ const PaymentPage: React.FC = () => {
                                         </h3>
                                         <button
                                             className={
-                                                "bg-gray-50 rounded-xl border border-blue-500 text-start flex md:flex-row flex-col md:items-center items-start justify-between p-4 w-full hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                                "bg-foreground/5 rounded-xl border border-blue-500 text-start flex md:flex-row flex-col md:items-center items-start justify-between p-4 w-full transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                             }
                                         >
                                             <div>
@@ -975,8 +975,8 @@ const PaymentPage: React.FC = () => {
                                     Thông tin liên hệ
                                 </h2>
                                 {selectedShippingAddress && (
-                                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <p className="text-sm text-blue-700">
+                                    <div className="mb-4 p-3 bg-foreground/5 border rounded-lg">
+                                        <p className="text-sm text-blue-500">
                                             <span className="flex items-center gap-2">
                                                 <Info className="size-4" />{" "}
                                                 Thông tin liên hệ được tự động
@@ -1020,12 +1020,12 @@ const PaymentPage: React.FC = () => {
                                         }
                                     >
                                         <div className={"relative"}>
-                                            <label className="absolute top-2 left-3 text-gray-500 mb-1 text-xs">
+                                            <label className="absolute top-2 left-3 text-muted-foreground/50 mb-1 text-sm">
                                                 Họ và tên
                                             </label>
                                             <input
                                                 type="text"
-                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
+                                                className="w-full text-lg px-3 pt-7 pb-2 appearance-none border rounded-xl bg-foreground/5 text-muted-foreground cursor-not-allowed"
                                                 placeholder="Tự động điền từ địa chỉ giao hàng"
                                                 value={fullName}
                                                 readOnly
@@ -1034,12 +1034,12 @@ const PaymentPage: React.FC = () => {
                                         </div>
 
                                         <div className={"relative"}>
-                                            <label className="absolute top-2 left-3 text-gray-500 mb-1 text-xs">
+                                            <label className="absolute top-2 left-3 text-muted-foreground/50 mb-1 text-sm">
                                                 Email
                                             </label>
                                             <input
                                                 type="email"
-                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
+                                                className="w-full text-lg px-3 pt-7 pb-2 appearance-none border rounded-xl bg-foreground/5 text-muted-foreground cursor-not-allowed"
                                                 placeholder="Tự động điền từ địa chỉ giao hàng"
                                                 value={email}
                                                 readOnly
@@ -1048,12 +1048,12 @@ const PaymentPage: React.FC = () => {
                                         </div>
 
                                         <div className={"relative"}>
-                                            <label className="absolute top-2 left-3 text-gray-500 mb-1 text-xs">
+                                            <label className="absolute top-2 left-3 text-muted-foreground/50 mb-1 text-sm">
                                                 Số điện thoại
                                             </label>
                                             <input
                                                 type="tel"
-                                                className="w-full text-lg px-3 pt-6 pb-2 appearance-none border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
+                                                className="w-full text-lg px-3 pt-7 pb-2 appearance-none border rounded-xl bg-foreground/5 text-muted-foreground cursor-not-allowed"
                                                 placeholder="Tự động điền từ địa chỉ giao hàng"
                                                 value={phone}
                                                 readOnly
@@ -1127,10 +1127,10 @@ const PaymentPage: React.FC = () => {
                                             </div> */}
 
                                             <div
-                                                className={`flex gap-2 items-center border transition py-4 px-6 rounded-xl ${
+                                                className={`flex gap-2 items-center border transition py-4 px-6 rounded-2xl ${
                                                     paymentMethod === "momo"
-                                                        ? "border-blue-600 text-black bg-blue-50"
-                                                        : "border-gray-300 text-gray-500 bg-gray-50"
+                                                        ? "border-blue-600 text-black bg-foreground/5"
+                                                        : "border text-gray-500 bg-foreground/5"
                                                 }`}
                                             >
                                                 <input
@@ -1159,12 +1159,12 @@ const PaymentPage: React.FC = () => {
                                                     <label
                                                         htmlFor="momo"
                                                         className={
-                                                            " cursor-not-allowed space-y-0.5"
+                                                            " cursor-not-allowed space-y-0.5 text-foreground"
                                                         }
                                                     >
                                                         Thanh toán bằng MOMO{" "}
                                                         <br />
-                                                        <span className="text-xs text-gray-500">
+                                                        <span className="text-xs text-muted-foreground">
                                                             (Hình thức thanh
                                                             toán này sẽ được
                                                             triển khai trong
@@ -1184,10 +1184,10 @@ const PaymentPage: React.FC = () => {
                                             </div>
 
                                             <div
-                                                className={`flex gap-2 items-center border transition py-4 px-6 rounded-xl ${
+                                                className={`flex gap-2 items-center border transition py-4 px-6 rounded-2xl ${
                                                     paymentMethod === "vnpay"
-                                                        ? "border-blue-600 text-black bg-blue-50"
-                                                        : "border-gray-300 text-gray-500 bg-gray-50"
+                                                        ? "border-blue-500 text-foreground bg-muted"
+                                                        : "border text-muted-foreground bg-foreground/5"
                                                 }`}
                                             >
                                                 <input
@@ -1231,10 +1231,10 @@ const PaymentPage: React.FC = () => {
                                             </div>
 
                                             <div
-                                                className={`flex gap-2 items-center border transition py-4 px-6 rounded-xl ${
+                                                className={`flex gap-2 items-center border transition py-4 px-6 rounded-2xl ${
                                                     paymentMethod === "paypal"
-                                                        ? "border-blue-600 text-black bg-blue-50"
-                                                        : "border-gray-300 text-gray-500 bg-gray-50"
+                                                        ? "border-blue-500 text-foreground bg-muted"
+                                                        : "border text-muted-foreground bg-foreground/5"
                                                 }`}
                                             >
                                                 <input
@@ -1278,7 +1278,7 @@ const PaymentPage: React.FC = () => {
                                     </div>
 
                                     {/* Order Summary */}
-                                    <div className="mt-8 p-6 bg-gray-50 rounded-xl">
+                                    <div className="mt-8 p-6 bg-foreground/5 border rounded-xl">
                                         <h3 className="text-lg font-semibold mb-4">
                                             Tóm tắt đơn hàng
                                         </h3>
@@ -1431,7 +1431,7 @@ const PaymentPage: React.FC = () => {
                                     <div className="flex justify-between mt-6">
                                         <button
                                             type="button"
-                                            className="text-gray-700 p-0 flex gap-1 items-center hover:underline focus:outline-none"
+                                            className="text-foreground p-0 flex gap-1 items-center hover:underline focus:outline-none"
                                             onClick={handlePreviousStep}
                                         >
                                             <ChevronLeftIcon

@@ -250,13 +250,13 @@ const ProductPage: React.FC = () => {
                     <h1 className="text-5xl font-semibold mb-6">
                         Mua {product?.name}
                     </h1>
-                    <h2 className="text-2xl text-gray-700 mb-4">
+                    <h2 className="text-2xl text-muted-foreground mb-4">
                         {product?.description}
                     </h2>
                 </div>
                 <div className={"flex gap-12 flex-col md:flex-row"}>
                     <div
-                        className="items-center overflow-x-auto scrollbar-hide flex-[3] sticky top-12 bg-white z-10"
+                        className="items-center overflow-x-auto scrollbar-hide flex-[3] sticky top-12 z-10"
                         style={{ scrollSnapType: "x mandatory" }}
                     >
                         <img
@@ -276,11 +276,11 @@ const ProductPage: React.FC = () => {
                         <div>
                             <div className={"text-3xl font-semibold"}>
                                 Màu.{" "}
-                                <span className={"text-gray-500"}>
+                                <span className={"text-muted-foreground"}>
                                     Chọn màu bạn yêu thích.
                                 </span>
                             </div>
-                            <div className="my-4 text-sm text-gray-600">
+                            <div className="my-4 text-sm text-muted-foreground">
                                 Màu: {selectedStock?.color.name}
                             </div>
                             <div className="flex space-x-3">
@@ -314,7 +314,7 @@ const ProductPage: React.FC = () => {
                         <div className={"flex flex-col space-y-4 my-6"}>
                             <div className={"text-3xl font-semibold"}>
                                 Các thuộc tính khác.{" "}
-                                <span className={"text-gray-500"}>
+                                <span className={"text-muted-foreground"}>
                                     Chọn thuộc tính bạn cần.
                                 </span>
                             </div>
@@ -323,12 +323,14 @@ const ProductPage: React.FC = () => {
                                 <div className="space-y-3">
                                     {selectedStock.allStocks.map((stock) => (
                                         <button
+                                            disabled={stock.quantity === 0}
                                             key={stock.id}
-                                            className={`px-4 py-4 flex justify-between items-center rounded-xl w-full border-2 focus:outline-none transition ${
+                                            className={`px-4 py-4 gap-2 flex justify-between items-center rounded-xl w-full border-2 focus:outline-none transition ${
                                                 selectedStockId === stock.id
-                                                    ? "border-blue-600 bg-blue-50"
-                                                    : "border-gray-200 bg-white hover:bg-gray-50"
+                                                    ? "border-blue-600"
+                                                    : "border-accent hover:bg-gray-50"
                                             }`}
+                                            style={selectedStockId === stock.id ? {backgroundColor: '#155dfc26'} : {backgroundColor: "transparent"}}
                                             onClick={() =>
                                                 setSelectedStockId(stock.id)
                                             }
@@ -366,15 +368,9 @@ const ProductPage: React.FC = () => {
                                                             )
                                                         )}
                                                     </div>
-                                                    <div className="text-sm text-gray-600 mt-1">
-                                                        {stock.instanceProperty
-                                                            ?.length || 0}{" "}
-                                                        thuộc tính • Số lượng:{" "}
-                                                        {stock.quantity || 0}
-                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="text-xs text-gray-600 font-normal text-right w-32">
+                                            <div className="text-xs text-muted-foreground font-normal text-right w-48">
                                                 Trả toàn bộ <br />
                                                 {stock.price.toLocaleString(
                                                     "vi-VN",
@@ -453,7 +449,7 @@ const ProductPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <div className={"bg-gray-100 p-12 rounded-4xl"}>
+            <div className={"bg-muted p-12 rounded-4xl"}>
                 <div
                     className={
                         "container mx-auto grid lg:grid-cols-3 grid-cols-2 gap-12"
@@ -463,7 +459,7 @@ const ProductPage: React.FC = () => {
                         <div className={"text-4xl font-semibold"}>
                             {product?.name} mới của bạn.
                             <br />
-                            <span className={"text-gray-500"}>
+                            <span className={"text-muted-foreground"}>
                                 Theo cách bạn muốn.
                             </span>
                         </div>
@@ -491,7 +487,7 @@ const ProductPage: React.FC = () => {
                             "flex flex-col space-y-6 text-lg lg:col-span-2"
                         }
                     >
-                        <div className={"flex flex-col gap-1"}>
+                        <div className={"flex flex-col gap-6"}>
                             <div>
                                 {product?.name}{" "}
                                 {(() => {
@@ -525,19 +521,20 @@ const ProductPage: React.FC = () => {
                                 {selectedStock?.color?.name}
                             </div>
                             <div>
+                                <div>
                                 <span className={"font-semibold text-2xl"}>
                                     Tổng cộng{" "}
                                     {(() => {
                                         const actualSelectedStock =
                                             selectedStockId
                                                 ? selectedStock?.allStocks?.find(
-                                                      (stock) =>
-                                                          stock.id ===
-                                                          selectedStockId
-                                                  )
+                                                    (stock) =>
+                                                        stock.id ===
+                                                        selectedStockId
+                                                )
                                                 : selectedStock
-                                                      ?.allStocks?.[0] ||
-                                                  selectedStock;
+                                                    ?.allStocks?.[0] ||
+                                                selectedStock;
 
                                         return actualSelectedStock?.price?.toLocaleString(
                                             "vi-VN",
@@ -548,25 +545,26 @@ const ProductPage: React.FC = () => {
                                         );
                                     })()}
                                 </span>
-                            </div>
-                            <div className={"text-xs"}>
-                                Bao gồm thuế GTGT khoảng{" "}
-                                {(() => {
-                                    const actualSelectedStock = selectedStockId
-                                        ? selectedStock?.allStocks?.find(
-                                              (stock) =>
-                                                  stock.id === selectedStockId
-                                          )
-                                        : selectedStock?.allStocks?.[0] ||
-                                          selectedStock;
+                                </div>
+                                <div className={"text-xs mt-2"}>
+                                    Bao gồm thuế GTGT khoảng{" "}
+                                    {(() => {
+                                        const actualSelectedStock = selectedStockId
+                                            ? selectedStock?.allStocks?.find(
+                                                (stock) =>
+                                                    stock.id === selectedStockId
+                                            )
+                                            : selectedStock?.allStocks?.[0] ||
+                                            selectedStock;
 
-                                    return (
-                                        (actualSelectedStock?.price ?? 0) * 0.1
-                                    ).toLocaleString("vi-VN", {
-                                        style: "currency",
-                                        currency: "VND",
-                                    });
-                                })()}
+                                        return (
+                                            (actualSelectedStock?.price ?? 0) * 0.1
+                                        ).toLocaleString("vi-VN", {
+                                            style: "currency",
+                                            currency: "VND",
+                                        });
+                                    })()}
+                                </div>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">

@@ -157,7 +157,7 @@ const OrderSearchForm: React.FC<OrderSearchFormProps> = ({
     );
 
     return (
-        <Card className="mb-6 gap-3">
+        <Card className="gap-3">
             <CardHeader>
                 <CardTitle className="flex items-center justify-between p-0">
                     <span className="flex items-center gap-2">

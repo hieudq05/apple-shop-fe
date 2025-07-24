@@ -41,6 +41,7 @@ import {
 import AdvancedProductSearch from "@/components/AdvancedProductSearch";
 
 import type { MetadataResponse } from "@/types/api.ts";
+import {undefined} from "zod";
 
 // Transform AdminProduct to Product interface for the data table
 const transformToProduct = (adminProduct: AdminProduct): Product => {
@@ -81,7 +82,13 @@ const AdminProductsPage: React.FC = () => {
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
-    const [useAdvancedSearch, setUseAdvancedSearch] = useState(false);
+    const [searchParams, setSearchParams] = useState<ProductSearchParams>({
+        page: 0,
+        size: 10,
+        sortBy: "createdAt",
+        sortDirection: "desc",
+        searchKeyword: "",
+    })
     const [metadata, setMetadata] = useState<MetadataResponse>({
         currentPage: 0,
         pageSize: 10,
@@ -123,6 +130,14 @@ const AdminProductsPage: React.FC = () => {
         loading: true,
         error: null,
     });
+
+    const searchParamsResets: ProductSearchParams = {
+        page: 0,
+        size: 10,
+        sortBy: "createdAt",
+        sortDirection: "desc",
+        searchKeyword: "",
+    }
 
     const fetchProducts = async () => {
         try {
@@ -180,8 +195,8 @@ const AdminProductsPage: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchProducts();
-    }, [metadata.currentPage, debouncedSearchTerm, selectedCategory]);
+        handleAdvancedSearch(searchParams);
+    }, [searchParams.page, debouncedSearchTerm, selectedCategory]);
 
     // Advanced search function
     const handleAdvancedSearch = async (searchParams: ProductSearchParams) => {
@@ -244,7 +259,7 @@ const AdminProductsPage: React.FC = () => {
         setSearchTerm("");
         setSelectedCategory("");
         setMetadata((prev) => ({ ...prev, currentPage: 0 }));
-        fetchProducts();
+        handleAdvancedSearch(searchParamsResets);
     };
 
     // Use useState data instead of useQuery
@@ -343,6 +358,7 @@ const AdminProductsPage: React.FC = () => {
                             onSearch={handleAdvancedSearch}
                             onReset={handleResetSearch}
                             loading={isLoading}
+                            setSearchParams={setSearchParams}
                         />
                     </div>
                 </CardContent>
@@ -429,11 +445,21 @@ const AdminProductsPage: React.FC = () => {
                                     variant="outline"
                                     size="sm"
                                     onClick={() =>
-                                        setMetadata((prev) => ({
+                                        /*setMetadata((prev) => ({
                                             ...prev,
                                             currentPage: Math.max(
                                                 0,
                                                 prev.currentPage - 1
+                                            ),
+                                        }))*/
+                                        setSearchParams((prev) => ({
+                                            ...prev,
+                                            page: Math.max(
+                                                0,
+                                                Math.max(
+                                                    0,
+                                                    prev.page - 1
+                                                )
                                             ),
                                         }))
                                     }
@@ -455,7 +481,7 @@ const AdminProductsPage: React.FC = () => {
                                             metadata.totalPage ? (
                                             <Button
                                                 key={pageNumber}
-                                                className={`bg-transparent hover:bg-transparent text-black shadow-none ${
+                                                className={`bg-transparent hover:bg-transparent text-foreground shadow-none ${
                                                     metadata.currentPage ===
                                                     pageNumber
                                                         ? "underline"
@@ -463,9 +489,13 @@ const AdminProductsPage: React.FC = () => {
                                                 }`}
                                                 size="sm"
                                                 onClick={() =>
-                                                    setMetadata((prev) => ({
+                                                    /*setMetadata((prev) => ({
                                                         ...prev,
                                                         currentPage: pageNumber,
+                                                    }))*/
+                                                    setSearchParams((prev) => ({
+                                                        ...prev,
+                                                        page: pageNumber,
                                                     }))
                                                 }
                                             >
@@ -478,12 +508,20 @@ const AdminProductsPage: React.FC = () => {
                                     variant="outline"
                                     size="sm"
                                     onClick={() =>
-                                        setMetadata((prev) => ({
+                                        /*setMetadata((prev) => ({
                                             ...prev,
                                             currentPage: Math.min(
                                                 prev.currentPage + 1,
                                                 metadata.totalPage - 1
                                             ),
+                                        }))*/
+                                        setSearchParams((prev) => ({
+                                            ...prev,
+                                            page: Math.min(
+                                                Math.min(
+                                                    metadata.currentPage + 1,
+                                                )
+                                            )
                                         }))
                                     }
                                     disabled={

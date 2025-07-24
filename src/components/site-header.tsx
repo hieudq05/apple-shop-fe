@@ -1,5 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import {ModeToggle} from "@/components/mode-toggle.tsx";
+import * as React from "react";
 
 export function SiteHeader() {
     return (
@@ -11,6 +13,9 @@ export function SiteHeader() {
                     className="mx-2 data-[orientation=vertical]:h-4"
                 />
                 <h1 className="text-base font-medium">Documents</h1>
+            </div>
+            <div className={"me-1.5"}>
+                <ModeToggle />
             </div>
         </header>
     );

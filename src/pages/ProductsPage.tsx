@@ -245,7 +245,7 @@ const ProductsPage: React.FC = () => {
             <div>
                 <div
                     className={
-                        "bg-gray-100 sticky top-[44px] z-10 bg-opacity-75 backdrop-blur-md"
+                        "bg-accent sticky top-[44px] z-10 bg-opacity-75 backdrop-blur-md"
                     }
                 >
                     <div

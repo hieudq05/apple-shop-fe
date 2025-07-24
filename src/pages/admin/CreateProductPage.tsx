@@ -1989,7 +1989,6 @@ const CreateProductPage: React.FC = () => {
                                                                                         .files[0]
                                                                                 )
                                                                             }
-                                                                            className="file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md"
                                                                         />
                                                                     </div>
                                                                     {feature.image && (
@@ -2607,7 +2606,6 @@ const CreateProductPage: React.FC = () => {
                                                                                                         .files[0]
                                                                                                 )
                                                                                             }
-                                                                                            className="file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md"
                                                                                         />
                                                                                         <Input
                                                                                             placeholder="Mô tả ảnh (Alt text)"

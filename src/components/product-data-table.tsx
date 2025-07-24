@@ -177,7 +177,7 @@ export function ProductDataTable({
                 return (
                     <div
                         className={`font-medium text-sm py-1 ${
-                            totalStock <= 10 ? "text-red-600" : ""
+                            totalStock <= 10 ? "text-destructive" : ""
                         }`}
                     >
                         {totalStock}
@@ -218,7 +218,7 @@ export function ProductDataTable({
                                     onView?.(product.id, product.categoryId)
                                 }
                             >
-                                <Eye className="mr-2 h-4 w-4 text-black" />
+                                <Eye className="mr-2 h-4 w-4 text-foreground" />
                                 Xem chi tiết
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -227,7 +227,7 @@ export function ProductDataTable({
                                     onEdit?.(product.id, product.categoryId)
                                 }
                             >
-                                <Edit className="mr-2 h-4 w-4 text-black" />
+                                <Edit className="mr-2 h-4 w-4 text-foreground" />
                                 Chỉnh sửa
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -236,8 +236,8 @@ export function ProductDataTable({
                                     onDelete?.(product.id, product.name, product.categoryId)
                                 }
                             >
-                                <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                                <span className="text-red-600">Xóa</span>
+                                <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                                <span className="text-destructive">Xóa</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

@@ -112,7 +112,7 @@ const OrderHistoryPage: React.FC = () => {
     if (loading) {
         return (
             <>
-                <div className={"py-6 bg-gray-100"}>
+                <div className={"py-6 bg-muted"}>
                     <div className={"container mx-auto"}>
                         <div className={"text-lg font-semibold"}>Đơn hàng</div>
                     </div>
@@ -133,7 +133,7 @@ const OrderHistoryPage: React.FC = () => {
     if (error) {
         return (
             <>
-                <div className={"py-6 bg-gray-100"}>
+                <div className={"py-6 bg-muted"}>
                     <div className={"container mx-auto"}>
                         <div className={"text-lg font-semibold"}>Đơn hàng</div>
                     </div>
@@ -159,7 +159,7 @@ const OrderHistoryPage: React.FC = () => {
 
     return (
         <>
-            <div className={"py-6 bg-gray-100"}>
+            <div className={"py-6 bg-muted"}>
                 <div className={"container mx-auto"}>
                     <div className={"text-lg font-semibold"}>Đơn hàng</div>
                 </div>
@@ -206,7 +206,7 @@ const OrderHistoryPage: React.FC = () => {
                     </>
                 ) : (
                     <div className="text-center py-12">
-                        <p className="text-xl text-gray-500 font-medium mb-4">
+                        <p className="text-xl text-muted-foreground font-medium mb-4">
                             {isSearching
                                 ? "Không tìm thấy đơn hàng nào phù hợp."
                                 : "Bạn không có đơn hàng nào gần đây."}
