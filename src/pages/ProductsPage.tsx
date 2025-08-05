@@ -263,14 +263,15 @@ const ProductsPage: React.FC = () => {
                 <div className={"container mx-auto py-24"}>
                     <div
                         className={
-                            "text-start lg:pb-24 pb-12 lg:text-5xl text-4xl font-medium"
+                            "text-start lg:pb-10 lg:text-5xl text-4xl font-medium"
                         }
                     >
                         Khám phá dòng sản phẩm {category?.name} mới nhất.
+                        <div className={"text-3xl mt-2"}>Mọi phiên bản. <span className={"text-muted-foreground"}>Hãy chọn mẫu bạn thích.</span></div>
                     </div>
                     <div
                         className={
-                            "grid grid-cols-1 sm:grid-cols-2 lg:gap-24 xl:grid-cols-4 lg:grid-cols-3 gap-10 mb-12"
+                            "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 lg:grid-cols-3 gap-10 mb-12"
                         }
                     >
                         {products.map((product) => (

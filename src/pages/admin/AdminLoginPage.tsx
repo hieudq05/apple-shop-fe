@@ -8,6 +8,7 @@ import axios from "axios";
 import { setAccessToken, setRefreshToken } from "../../utils/storage";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate, Navigate } from "react-router-dom";
+import {Button} from "@/components/ui/button.tsx";
 
 const AdminLoginPage: React.FC = () => {
     const { login, canAccessAdminPanel, isAuthLoading } = useAuth();
@@ -81,49 +82,48 @@ const AdminLoginPage: React.FC = () => {
     };
 
     return (
-        <>
-            <div className={"max-w-xl mx-auto container text-black"}>
+        <div className={"w-full h-screen bg-background flex items-center gap-6"}>
+            <div className={"max-w-xl mx-auto container text-foreground"}>
                 <div
                     aria-label={"Title"}
                     className={
-                        "md:text-5xl text-3xl font-semibold text-start md:py-12 py-6"
+                        "md:text-4xl text-3xl font-semibold text-center mb-4"
                     }
                 >
                     Đăng nhập vào trang quản trị.
+                </div>
+                <div className={"text-xl font-medium text-center text-muted-foreground pb-12"}>
+                    Hệ thống quản trị cửa hàng Apple Store.
                 </div>
                 <div className={"flex w-full h-fit space-x-12"}>
                     <div
                         className={"flex-1 size-full flex flex-col space-y-12"}
                     >
-                        <div className={"text-2xl font-semibold text-gray-700"}>
-                            Đăng nhập quản trị viên
-                        </div>
-
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-2">
+                        {/*<div className="bg-foreground/5 border rounded-xl p-4 flex gap-2">
                             <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
                                 <span className="text-white text-xs font-bold">
                                     !
                                 </span>
                             </div>
                             <div>
-                                <p className="text-blue-800 text-sm font-semibold">
+                                <p className="text-blue-500 text-sm font-semibold">
                                     Trang dành cho quản trị viên
                                 </p>
-                                <p className="text-blue-700 text-sm">
+                                <p className="text-muted-foreground text-sm">
                                     Chỉ tài khoản có quyền quản trị mới có thể
                                     truy cập
                                 </p>
                             </div>
-                        </div>
+                        </div>*/}
 
                         {errors.length > 0 && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-2">
-                                <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
+                            <div className="bg-foreground/5 border rounded-xl p-4 flex gap-2">
+                                <ExclamationCircleIcon className="h-5 w-5 text-destructive" />
                                 <div>
                                     {errors.map((error, index) => (
                                         <p
                                             key={index}
-                                            className="text-red-600 text-sm"
+                                            className="text-destructive text-sm"
                                         >
                                             {error}
                                         </p>
@@ -137,7 +137,7 @@ const AdminLoginPage: React.FC = () => {
                                 <label
                                     htmlFor={"email"}
                                     className={
-                                        "absolute left-4 top-2 text-xs text-gray-500"
+                                        "absolute left-4 top-2 text-xs text-muted-foreground"
                                     }
                                 >
                                     Email
@@ -165,7 +165,7 @@ const AdminLoginPage: React.FC = () => {
                                             ?.classList.remove("z-10")
                                     }
                                     className={
-                                        "w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-b-none rounded-ee-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                        "w-full text-lg px-4 pb-3 pt-6 border rounded-xl rounded-b-none rounded-ee-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                                     }
                                 />
                             </div>
@@ -176,7 +176,7 @@ const AdminLoginPage: React.FC = () => {
                                 <label
                                     htmlFor={"password"}
                                     className={
-                                        "absolute left-4 top-2 text-xs text-gray-500"
+                                        "absolute left-4 top-2 text-xs text-muted-foreground"
                                     }
                                 >
                                     Mật khẩu
@@ -186,7 +186,7 @@ const AdminLoginPage: React.FC = () => {
                                     id={"password"}
                                     name={"password"}
                                     required
-                                    placeholder={"Mật khẩu quản trị"}
+                                    placeholder={"******"}
                                     onChange={(e) =>
                                         setFormData({
                                             ...formData,
@@ -208,18 +208,19 @@ const AdminLoginPage: React.FC = () => {
                                             ?.classList.remove("z-10")
                                     }
                                     className={
-                                        "w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-ss-none rounded-se-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                        "w-full text-lg px-4 pb-3 pt-6 border rounded-xl rounded-ss-none rounded-se-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                                     }
                                 />
-                                <button
+                                <Button
+                                    variant={"outline"}
                                     type={"submit"}
                                     disabled={isLoading}
                                     className={
-                                        "p-2 pl-2.5 rounded-full border border-gray-300 absolute right-4 top-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50"
+                                        "p-2 pl-2.5 rounded-full border cursor-pointer absolute right-4 top-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50"
                                     }
                                 >
                                     <ChevronRightIcon className={"size-6"} />
-                                </button>
+                                </Button>
                             </div>
                         </form>
 
@@ -251,7 +252,7 @@ const AdminLoginPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

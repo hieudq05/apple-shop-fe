@@ -361,9 +361,9 @@ const AdminOrdersPage: React.FC = () => {
                             onClick={() =>
                                 (window.location.href = "/admin/create/order")
                             }
-                            className="bg-blue-600 hover:bg-blue-700"
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
                         >
-                            <Plus className="h-4 w-4 mr-2" />
+                            <Plus className="h-4 w-4" />
                             Tạo đơn hàng mới
                         </Button>
                     </div>
@@ -481,7 +481,7 @@ const AdminOrdersPage: React.FC = () => {
                                         return pageNumber <= totalPages ? (
                                             <Button
                                                 key={pageNumber}
-                                                className={`bg-transparent hover:bg-transparent text-black shadow-none ${
+                                                className={`bg-transparent hover:bg-transparent text-foreground shadow-none ${
                                                     currentPage === pageNumber
                                                         ? "underline"
                                                         : ""

@@ -59,11 +59,10 @@ export interface StockDto {
 }
 
 export interface CreateReviewRequest {
-    productId: number;
+    stockId: number;
     rating: number;
-    title: string;
+    orderId: number;
     content: string;
-    images?: string[];
 }
 
 export interface UpdateReviewRequest {

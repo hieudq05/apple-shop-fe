@@ -19,22 +19,25 @@ export interface AdminProduct {
     }>;
     stocks: Array<{
         id: number;
-        colorId: number;
-        colorName: string;
-        colorHexCode: string;
+        color: {
+            id: number;
+            name: string;
+            hexCode: string;
+        };
         instanceProperties?: Array<{
             id: number;
             name: string;
         }>;
         productPhotos: Array<{
             id: number;
-            imageUrl: string;
+            imageUrl: Object;
             alt: string;
         }>;
         quantity: number;
         price: number;
         photos?: string[];
     }>;
+    isDeleted: boolean;
     createdAt: string;
     updatedAt: string;
     isActive?: boolean;

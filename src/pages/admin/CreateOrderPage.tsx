@@ -61,6 +61,7 @@ interface OrderItem {
     colorName?: string;
     price?: number;
     total?: number;
+    image?: string;
 }
 
 interface CustomerInfo {
@@ -515,6 +516,7 @@ const CreateOrderPage: React.FC = () => {
                     colorName: stock.colorName,
                     price: stock.price,
                     total: stock.price,
+                    image: stock?.photos[0]?.imageUrl,
                 },
             ]);
         }
@@ -722,8 +724,8 @@ const CreateOrderPage: React.FC = () => {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {/* User Selection */}
-                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                <div className="flex items-center justify-between mb-2">
+                            <div className="p-4 bg-foreground/3 rounded-lg border">
+                                <div className="flex items-center justify-between">
                                     <Label className="text-sm font-medium">
                                         Chọn người dùng nhận đơn hàng (tùy chọn)
                                     </Label>
@@ -737,8 +739,7 @@ const CreateOrderPage: React.FC = () => {
                                                     setSelectedUser(null)
                                                 }
                                             >
-                                                <X className="h-4 w-4 mr-2" />
-                                                Bỏ chọn
+                                                <X className="h-4 w-4" />
                                             </Button>
                                         )}
                                         <Button
@@ -749,32 +750,24 @@ const CreateOrderPage: React.FC = () => {
                                                 setShowUserSearch(true)
                                             }
                                         >
-                                            <Search className="h-4 w-4 mr-2" />
-                                            Tìm người dùng
+                                            <Search className="h-4 w-4" />
                                         </Button>
                                     </div>
                                 </div>
-                                <p className="text-xs text-gray-600 mb-3">
+                                <p className="text-xs text-muted-foreground mb-5">
                                     Nếu không chọn, đơn hàng sẽ được tạo bởi
                                     admin/staff hiện tại
                                 </p>
                                 {selectedUser ? (
-                                    <div className="flex items-center justify-between p-3 bg-white rounded border">
+                                    <div className="flex items-center justify-between p-3 bg-foreground/5 rounded-xl border">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                                                {selectedUser.firstName.charAt(
-                                                    0
-                                                )}
-                                                {selectedUser.lastName?.charAt(
-                                                    0
-                                                ) || ""}
-                                            </div>
+                                            <img src={selectedUser.image} alt="" className="size-12 object-cover rounded-full" />
                                             <div>
                                                 <div className="font-medium">
                                                     {selectedUser.firstName}{" "}
                                                     {selectedUser.lastName}
                                                 </div>
-                                                <div className="text-sm text-gray-600">
+                                                <div className="text-sm text-muted-foreground">
                                                     {selectedUser.email}
                                                 </div>
                                             </div>
@@ -791,7 +784,7 @@ const CreateOrderPage: React.FC = () => {
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="p-3 bg-gray-50 rounded border">
+                                    <div className="p-3 bg-foreground/3 rounded border">
                                         <div className="text-center text-gray-500 mb-2">
                                             Chưa chọn người dùng
                                         </div>
@@ -809,7 +802,7 @@ const CreateOrderPage: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="firstName">Tên *</Label>
+                                    <Label htmlFor="firstName">Họ *</Label>
                                     <Input
                                         id="firstName"
                                         value={customerInfo.firstName}
@@ -823,7 +816,7 @@ const CreateOrderPage: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="lastName">Họ *</Label>
+                                    <Label htmlFor="lastName">Tên *</Label>
                                     <Input
                                         id="lastName"
                                         value={customerInfo.lastName}
@@ -1196,7 +1189,7 @@ const CreateOrderPage: React.FC = () => {
 
                             {/* Promotion search results */}
                             {availablePromotions.length > 0 && (
-                                <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+                                <div className="mt-4 p-4 border rounded-xl bg-foreground/3">
                                     <h4 className="font-semibold mb-2">
                                         {promotionSearchType === "product"
                                             ? "Mã giảm giá sản phẩm có sẵn:"
@@ -1206,11 +1199,11 @@ const CreateOrderPage: React.FC = () => {
                                         {availablePromotions.map((promo) => (
                                             <div
                                                 key={promo.id}
-                                                className={`flex items-center justify-between p-3 bg-white rounded border cursor-pointer transition-colors ${
+                                                className={`flex items-center justify-between p-3 bg-foreground/3 rounded-lg border cursor-pointer transition-colors ${
                                                     promo.promotionType ===
                                                     "SHIPPING_DISCOUNT"
-                                                        ? "hover:bg-blue-50 border-blue-200"
-                                                        : "hover:bg-green-50 border-green-200"
+                                                        ? "hover:bg-foreground/10"
+                                                        : "hover:bg-foreground/10"
                                                 }`}
                                                 onClick={() => {
                                                     applyPromotion(
@@ -1225,11 +1218,12 @@ const CreateOrderPage: React.FC = () => {
                                                             {promo.code}
                                                         </div>
                                                         <Badge
-                                                            className={`rounded-full font-medium ${
+                                                            variant={"outline"}
+                                                            className={`font-medium ${
                                                                 promo.promotionType ===
                                                                 "SHIPPING_DISCOUNT"
-                                                                    ? "bg-blue-100 text-blue-800"
-                                                                    : "bg-green-100 text-green-800"
+                                                                    ? "text-blue-500 bg-blue-500/10"
+                                                                    : "text-green-500"
                                                             }`}
                                                         >
                                                             {promo.promotionType ===
@@ -1250,11 +1244,11 @@ const CreateOrderPage: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div
-                                                    className={`text-sm font-medium ${
+                                                    className={`text-sm text-end font-medium ${
                                                         promo.promotionType ===
                                                         "SHIPPING_DISCOUNT"
-                                                            ? "text-blue-600"
-                                                            : "text-green-600"
+                                                            ? "text-blue-500"
+                                                            : "text-green-500"
                                                     }`}
                                                 >
                                                     {promo.promotionType ===
@@ -1277,17 +1271,17 @@ const CreateOrderPage: React.FC = () => {
 
                             {/* Applied promotions display */}
                             {appliedProductPromotion && (
-                                <div className="mt-4 p-4 border rounded-lg bg-green-50">
+                                <div className="mt-4 p-4 border rounded-xl bg-foreground/3">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <h4 className="font-semibold text-green-800">
+                                            <h4 className="font-semibold text-foreground">
                                                 Mã giảm giá sản phẩm đã áp dụng
                                             </h4>
-                                            <p className="text-sm text-green-700">
+                                            <p className="text-sm text-muted-foreground">
                                                 {appliedProductPromotion.code} -{" "}
                                                 {appliedProductPromotion.name}
                                             </p>
-                                            <p className="text-sm font-medium text-green-600">
+                                            <p className="text-sm font-medium text-green-500">
                                                 Tiết kiệm:{" "}
                                                 {productDiscountAmount.toLocaleString()}
                                                 đ
@@ -1308,19 +1302,19 @@ const CreateOrderPage: React.FC = () => {
                             )}
 
                             {appliedShippingPromotion && (
-                                <div className="mt-4 p-4 border rounded-lg bg-blue-50">
+                                <div className="mt-4 p-4 border rounded-xl bg-foreground/3">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <h4 className="font-semibold text-blue-800">
+                                            <h4 className="font-semibold text-foreground">
                                                 Mã giảm phí vận chuyển đã áp
                                                 dụng
                                             </h4>
-                                            <p className="text-sm text-blue-700">
+                                            <p className="text-sm text-muted-foreground">
                                                 {appliedShippingPromotion.code}{" "}
                                                 -{" "}
                                                 {appliedShippingPromotion.name}
                                             </p>
-                                            <p className="text-sm font-medium text-blue-600">
+                                            <p className="text-sm font-medium text-blue-500">
                                                 Tiết kiệm:{" "}
                                                 {shippingDiscountAmount.toLocaleString()}
                                                 đ
@@ -1513,7 +1507,7 @@ const CreateOrderPage: React.FC = () => {
                                                 }
                                             >
                                                 {loadingUsers ? (
-                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-t-blue-600"></div>
                                                 ) : (
                                                     <Search className="h-4 w-4" />
                                                 )}
@@ -1532,7 +1526,7 @@ const CreateOrderPage: React.FC = () => {
                                                 {availableUsers.map((user) => (
                                                     <div
                                                         key={user.id}
-                                                        className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                                        className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-foreground/5"
                                                         onClick={() => {
                                                             setSelectedUser(
                                                                 user
@@ -1549,14 +1543,7 @@ const CreateOrderPage: React.FC = () => {
                                                         }}
                                                     >
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                                                                {user.firstName.charAt(
-                                                                    0
-                                                                )}
-                                                                {user.lastName?.charAt(
-                                                                    0
-                                                                ) || ""}
-                                                            </div>
+                                                            <img src={user.image} alt={user.name} className="w-12 h-12 rounded-full object-cover" />
                                                             <div>
                                                                 <div className="font-medium">
                                                                     {
@@ -1566,11 +1553,11 @@ const CreateOrderPage: React.FC = () => {
                                                                         user.lastName
                                                                     }
                                                                 </div>
-                                                                <div className="text-sm text-gray-600">
+                                                                <div className="text-sm text-muted-foreground">
                                                                     {user.email}
                                                                 </div>
                                                                 {user.phone && (
-                                                                    <div className="text-xs text-gray-500">
+                                                                    <div className="text-xs text-muted-foreground">
                                                                         {
                                                                             user.phone
                                                                         }
@@ -1608,7 +1595,7 @@ const CreateOrderPage: React.FC = () => {
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                                                    <Package className="h-6 w-6 text-muted-foreground" />
+                                                    <img src={item.image} alt={item.productName} className="w-full h-full object-cover rounded-lg" />
                                                 </div>
                                                 <div>
                                                     <div className="font-medium">

@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import {
-    ArrowLeftIcon,
-    PencilIcon,
-    TrashIcon,
-    EyeIcon,
-    CalendarIcon,
-    UserIcon,
-    TagIcon,
-} from "@heroicons/react/24/outline";
-import blogService, { type Blog } from "../../services/blogService";
+import React, {useEffect, useState} from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
+import {ArrowLeftIcon, CalendarIcon, PencilIcon, TagIcon, TrashIcon, UserIcon,} from "@heroicons/react/24/outline";
+import blogService, {type Blog} from "../../services/blogService";
+import {Button} from "@/components/ui/button.tsx";
+import {Badge} from "@/components/ui/badge.tsx";
+import MarkdownRenderer from "@/components/MarkdownRenderer.tsx";
 
 const BlogDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -97,8 +92,8 @@ const BlogDetailPage: React.FC = () => {
 
     const getStatusColor = (isPublished: boolean) => {
         return isPublished
-            ? "bg-green-100 text-green-800"
-            : "bg-yellow-100 text-yellow-800";
+            ? "bg-green-500/10 text-green-500"
+            : "bg-yellow-500/10 text-yellow-500";
     };
 
     const getStatusText = (isPublished: boolean) => {
@@ -123,10 +118,10 @@ const BlogDetailPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="text-center">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h2 className="text-xl font-semibold text-foreground mb-2">
                         {error || "Không tìm thấy bài viết"}
                     </h2>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-muted-foreground mb-4">
                         {error ||
                             "Bài viết có thể đã bị xóa hoặc không tồn tại."}
                     </p>
@@ -146,55 +141,50 @@ const BlogDetailPage: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
-                    <button
+                    <Button
+                        variant={"outline"}
                         onClick={() => navigate("/admin/blog")}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                         <ArrowLeftIcon className="w-5 h-5" />
-                    </button>
+                    </Button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-foreground">
                             {blog.title}
                         </h1>
-                        <p className="text-gray-600">ID: {blog.id}</p>
+                        <p className="text-muted-foreground">ID: {blog.id}</p>
                     </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                    <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                    <Badge
+                        variant={"outline"}
+                        className={`${getStatusColor(
                             blog.isPublished
                         )}`}
                     >
                         {getStatusText(blog.isPublished)}
-                    </span>
+                    </Badge>
+                </div>
 
-                    <button
+                <div className="flex items-center space-x-2">
+                    <Button
+                        variant={blog.isPublished ? "outline" : "default"}
                         onClick={handleTogglePublish}
-                        className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
-                            blog.isPublished
-                                ? "bg-orange-600 text-white hover:bg-orange-700"
-                                : "bg-green-600 text-white hover:bg-green-700"
-                        }`}
                     >
-                        <EyeIcon className="w-4 h-4 mr-2" />
                         {blog.isPublished ? "Ẩn bài viết" : "Xuất bản"}
-                    </button>
+                    </Button>
 
                     <Link
                         to={`/admin/blog/${blog.id}/edit`}
-                        className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="flex items-center px-3 py-[0.45rem] bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         <PencilIcon className="w-4 h-4 mr-2" />
-                        Chỉnh sửa
+                        Sửa
                     </Link>
-                    <button
+                    <Button
                         onClick={handleDeletePost}
-                        className="flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        className="flex items-center px-3 py-[0.45rem] bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     >
-                        <TrashIcon className="w-4 h-4 mr-2" />
+                        <TrashIcon className="w-4 h-4" />
                         Xóa
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -203,11 +193,11 @@ const BlogDetailPage: React.FC = () => {
                 <div className="lg:col-span-2 space-y-6">
                     {/* Thumbnail */}
                     {blog.thumbnail && (
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="rounded-2xl shadow-sm border overflow-hidden">
                             <img
                                 src={blog.thumbnail}
                                 alt={blog.title}
-                                className="w-full h-64 object-cover"
+                                className="w-full aspect-video object-cover"
                                 onError={(e) => {
                                     e.currentTarget.style.display = "none";
                                 }}
@@ -216,18 +206,18 @@ const BlogDetailPage: React.FC = () => {
                     )}
 
                     {/* Content */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    <div className="bg-foreground/3 rounded-2xl shadow-sm border p-6">
+                        <h2 className="text-lg font-semibold text-foreground mb-3">
                             Nội dung bài viết
                         </h2>
 
-                        <div className="prose max-w-none">
+                        <div className="markdown-content max-w-none">
                             {blog.content ? (
-                                <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                                    {blog.content}
+                                <div className="text-foreground leading-relaxed">
+                                    <MarkdownRenderer content={blog.content} />
                                 </div>
                             ) : (
-                                <p className="text-gray-500 italic">
+                                <p className="text-muted-foreground italic">
                                     Bài viết chưa có nội dung.
                                 </p>
                             )}
@@ -238,57 +228,65 @@ const BlogDetailPage: React.FC = () => {
                 {/* Sidebar */}
                 <div className="space-y-6">
                     {/* Blog Info */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    <div className="bg-foreground/3 rounded-2xl shadow-sm border p-6">
+                        <h2 className="text-lg font-semibold text-foreground mb-4">
                             Thông tin bài viết
                         </h2>
 
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-3">
-                                <UserIcon className="w-5 h-5 text-gray-400" />
+                        <div className="flex flex-col gap-5">
+                            <div className="flex items-center gap-3">
+                                <UserIcon className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-muted-foreground">
                                         Tác giả
                                     </p>
-                                    <p className="font-medium text-gray-900">
+                                    <p className="font-medium text-foreground">
                                         {blog.author.firstName}{" "}
                                         {blog.author.lastName}
                                     </p>
                                 </div>
                             </div>
 
+                            <hr />
+
                             <div className="flex items-center space-x-3">
-                                <CalendarIcon className="w-5 h-5 text-gray-400" />
+                                <CalendarIcon className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-muted-foreground">
                                         Ngày tạo
                                     </p>
-                                    <p className="font-medium text-gray-900">
+                                    <p className="font-medium text-foreground">
                                         {formatDate(blog.createdAt)}
                                     </p>
                                 </div>
                             </div>
 
+                            <hr />
+
                             <div className="flex items-center space-x-3">
-                                <CalendarIcon className="w-5 h-5 text-gray-400" />
+                                <CalendarIcon className="w-5 h-5 text-muted-foreground" />
                                 <div>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-muted-foreground">
                                         Ngày cập nhật
                                     </p>
-                                    <p className="font-medium text-gray-900">
+                                    <p className="font-medium text-foreground">
                                         {formatDate(blog.updatedAt)}
                                     </p>
                                 </div>
                             </div>
 
+                            {blog.isPublished && (
+                                <hr />
+                            )}
+
                             {blog.publishedAt && (
                                 <div className="flex items-center space-x-3">
-                                    <CalendarIcon className="w-5 h-5 text-gray-400" />
+                                    <CalendarIcon className="w-5 h-5 text-muted-foreground" />
                                     <div>
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-muted-foreground">
                                             Ngày xuất bản
                                         </p>
-                                        <p className="font-medium text-gray-900">
+                                        <p className="font-medium text-foreground">
                                             {formatDate(blog.publishedAt)}
                                         </p>
                                     </div>
@@ -313,8 +311,8 @@ const BlogDetailPage: React.FC = () => {
 
                     {/* Author Info */}
                     {blog.author.image && (
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                        <div className="bg-foreground/3 rounded-2xl shadow-sm border p-6">
+                            <h2 className="text-lg font-semibold text-foreground mb-4">
                                 Tác giả
                             </h2>
 
@@ -328,11 +326,11 @@ const BlogDetailPage: React.FC = () => {
                                     }}
                                 />
                                 <div>
-                                    <p className="font-medium text-gray-900">
+                                    <p className="font-medium text-foreground">
                                         {blog.author.firstName}{" "}
                                         {blog.author.lastName}
                                     </p>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-muted-foreground">
                                         ID: {blog.author.id}
                                     </p>
                                 </div>

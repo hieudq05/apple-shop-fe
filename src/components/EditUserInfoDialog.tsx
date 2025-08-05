@@ -100,7 +100,7 @@ const EditUserInfoDialog: React.FC<EditUserInfoDialogProps> = ({
                     </DialogDescription>
                 </DialogHeader>
                 {errorMessage && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                    <div className="bg-foreground/5 border text-destructive px-4 py-3 rounded-xl mb-4">
                         <p className="text-sm">{errorMessage}</p>
                     </div>
                 )}

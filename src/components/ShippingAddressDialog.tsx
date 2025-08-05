@@ -466,10 +466,10 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center justify-between">
+                    <DialogTitle className="flex items-center gap-2">
                         <span>Quản lý địa chỉ giao hàng</span>
                         {addresses.length > 0 && (
-                            <Badge variant="secondary" className="text-sm">
+                            <Badge variant="default">
                                 {addresses.length} địa chỉ
                             </Badge>
                         )}
@@ -481,7 +481,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                 </DialogHeader>
 
                 {errorMessage && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                    <div className="bg-foreground/5 border text-destructive px-4 py-3 rounded-xl mb-4">
                         <p className="text-sm">{errorMessage}</p>
                     </div>
                 )}
@@ -521,8 +521,8 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                                                 </h3>
                                                 {address.isDefault && (
                                                     <Badge
-                                                        variant="default"
-                                                        className="bg-green-100 text-green-800"
+                                                        variant="outline"
+                                                        className="bg-green-500/10 text-green-500"
                                                     >
                                                         Mặc định
                                                     </Badge>
@@ -550,7 +550,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                                             <div className="mt-3 pt-3 border-t">
                                                 <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
                                                     <div>
-                                                        <span className="font-medium">
+                                                        <span className="font-medium text-foreground">
                                                             Tạo:
                                                         </span>
                                                         <br/>
@@ -559,7 +559,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <span className="font-medium">
+                                                        <span className="font-medium text-foreground">
                                                             Cập nhật:
                                                         </span>
                                                         <br/>

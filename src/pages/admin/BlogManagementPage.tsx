@@ -23,11 +23,19 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import blogService, {
     type Blog,
     type BlogParams,
 } from "../../services/blogService";
 import { useDebounce } from "../../hooks/useDebounce";
+import {Input} from "@/components/ui/input.tsx";
 
 const BlogManagementPage: React.FC = () => {
     const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -197,8 +205,8 @@ const BlogManagementPage: React.FC = () => {
 
     const getStatusBadgeClass = (isPublished: boolean): string => {
         return isPublished
-            ? "bg-green-50 text-green-800"
-            : "bg-gray-100 text-gray-800";
+            ? "text-green-500"
+            : "text-muted-foreground";
     };
 
     const getStatusText = (isPublished: boolean) => {
@@ -244,7 +252,7 @@ const BlogManagementPage: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-foreground">
                         Quản lý Blog
                     </h1>
                     <p className="text-muted-foreground">
@@ -254,7 +262,7 @@ const BlogManagementPage: React.FC = () => {
                 <Button asChild>
                     <Link
                         to="/admin/blog/create"
-                        className="flex items-center space-x-2"
+                        className="flex items-center"
                     >
                         <PlusIcon className="w-4 h-4" />
                         <span>Viết bài mới</span>
@@ -264,66 +272,70 @@ const BlogManagementPage: React.FC = () => {
 
             {/* Error Message */}
             {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-800">{error}</p>
+                <div className="p-4 bg-foreground/3 border rounded-lg">
+                    <p className="text-destructive">{error}</p>
                 </div>
             )}
 
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1 max-w-md">
-                    <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
+                    <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+                    <Input
                         type="text"
                         placeholder="Tìm kiếm bài viết..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-10"
                     />
                 </div>
-                <select
+                <Select
                     value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onValueChange={(s) => setSelectedStatus(s)}
                 >
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="PUBLISHED">Đã xuất bản</option>
-                    <option value="DRAFT">Bản nháp</option>
-                </select>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Tất cả trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                        <SelectItem value="PUBLISHED">Đã xuất bản</SelectItem>
+                        <SelectItem value="DRAFT">Bản nháp</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
             {/* Blogs Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-background rounded-lg shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-foreground/5">
+                        <thead className="bg-foreground/3">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Bài viết
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Tác giả
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Trạng thái
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Ngày tạo
                                 </th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-right text-sm font-medium text-foreground">
                                     Thao tác
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-foreground/5">
                             {filteredBlogs.map((blog) => (
                                 <tr
                                     key={blog.id}
-                                    className="hover:bg-gray-50 h-16"
+                                    className="hover:bg-foreground/3 h-16"
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center space-x-3">
-                                            <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                                            <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
                                                 <img
                                                     src={blog.thumbnail}
                                                     className="w-full h-full object-cover"
@@ -331,10 +343,10 @@ const BlogManagementPage: React.FC = () => {
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-sm font-medium text-gray-900 truncate">
+                                                <h3 className="text-sm font-medium text-foreground truncate">
                                                     {blog.title}
                                                 </h3>
-                                                <p className="text-xs text-gray-500 mt-1">
+                                                <p className="text-xs text-muted-foreground mt-1">
                                                     ID: {blog.id}
                                                 </p>
                                             </div>
@@ -342,7 +354,7 @@ const BlogManagementPage: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center space-x-2">
-                                            <Avatar className="h-8 w-8">
+                                            <Avatar className="size-10">
                                                 <AvatarImage
                                                     src={blog.author.image}
                                                     alt={getAuthorName(
@@ -350,10 +362,10 @@ const BlogManagementPage: React.FC = () => {
                                                     )}
                                                 />
                                                 <AvatarFallback>
-                                                    <UserIcon className="h-4 w-4" />
+                                                    <UserIcon className="size-6" />
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <span className="text-sm text-gray-900">
+                                            <span className="text-sm text-foreground">
                                                 {getAuthorName(blog.author)}
                                             </span>
                                         </div>
@@ -361,19 +373,20 @@ const BlogManagementPage: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center space-x-2">
                                             <Badge
+                                                variant={"secondary"}
                                                 className={
-                                                    "text-xs " +
+                                                    "text-xs flex items-center gap-1 " +
                                                     getStatusBadgeClass(
                                                         blog.isPublished
                                                     )
                                                 }
                                             >
                                                 {blog.isPublished ? (
-                                                    <div className="size-3 bg-green-200 rounded-full relative">
+                                                    <div className="size-3 bg-green-500/35 rounded-full relative">
                                                         <div className="size-1.5 bg-green-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                                                     </div>
                                                 ) : (
-                                                    <div className="size-3 bg-gray-200 rounded-full flex items-center justify-center">
+                                                    <div className="size-3 bg-gray-500/35 rounded-full flex items-center justify-center">
                                                         <div className="size-1.5 bg-gray-500 rounded-full"></div>
                                                     </div>
                                                 )}
@@ -382,7 +395,7 @@ const BlogManagementPage: React.FC = () => {
                                                 )}
                                             </Badge>
                                             <label className="relative inline-flex items-center cursor-pointer">
-                                                <input
+                                                <Input
                                                     type="checkbox"
                                                     checked={blog.isPublished}
                                                     onChange={() =>
@@ -397,9 +410,8 @@ const BlogManagementPage: React.FC = () => {
                                             </label>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                         <div className="flex items-center space-x-1">
-                                            <CalendarIcon className="w-4 h-4" />
                                             <span>
                                                 {formatDate(blog.createdAt)}
                                             </span>
@@ -408,7 +420,7 @@ const BlogManagementPage: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex items-center justify-end space-x-2">
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 asChild
                                             >
@@ -419,7 +431,7 @@ const BlogManagementPage: React.FC = () => {
                                                 </Link>
                                             </Button>
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 asChild
                                             >
@@ -430,7 +442,7 @@ const BlogManagementPage: React.FC = () => {
                                                 </Link>
                                             </Button>
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 onClick={() =>
                                                     openDeleteDialog(
@@ -438,7 +450,7 @@ const BlogManagementPage: React.FC = () => {
                                                         blog.title
                                                     )
                                                 }
-                                                className="text-red-600 hover:text-red-900"
+                                                className="text-destructive hover:text-destructive cursor-pointer"
                                             >
                                                 <TrashIcon className="w-4 h-4" />
                                             </Button>
@@ -452,8 +464,8 @@ const BlogManagementPage: React.FC = () => {
 
                 {/* Pagination */}
                 {blogs.length > 0 && (
-                    <div className="bg-white px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
+                    <div className="bg-background px-6 py-3 border-t flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
                             Hiển thị{" "}
                             <span className="font-medium">
                                 {currentPage * pageSize + 1}

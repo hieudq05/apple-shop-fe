@@ -69,31 +69,11 @@ const data = {
             title: "Danh mục",
             url: "/admin/categories",
             icon: Tag,
-            items: [
-                {
-                    title: "Quản lý danh mục",
-                    url: "/admin/categories",
-                },
-                {
-                    title: "Tạo danh mục mới",
-                    url: "/admin/categories/create",
-                },
-            ],
         },
         {
             title: "Khuyến mãi",
             url: "/admin/promotions",
             icon: Gift,
-            items: [
-                {
-                    title: "Danh sách khuyến mãi",
-                    url: "/admin/promotions",
-                },
-                {
-                    title: "Tạo khuyến mãi",
-                    url: "/admin/promotions/create",
-                },
-            ],
         },
         {
             title: "Blog",
@@ -117,16 +97,6 @@ const data = {
             url: "/admin/settings",
             icon: Settings,
             adminOnly: true,
-        },
-        {
-            title: "Trợ giúp",
-            url: "#",
-            icon: HelpCircle,
-        },
-        {
-            title: "Tìm kiếm",
-            url: "#",
-            icon: Search,
         },
     ],
 };

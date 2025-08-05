@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import {
-    CalendarIcon,
-    UserIcon,
-    ArrowLeftIcon,
-    ShareIcon,
-} from "@heroicons/react/24/outline";
-import publicBlogService, {
-    type BlogDetail,
-} from "../services/publicBlogService";
+import React, {useEffect, useState} from "react";
+import {Link, useNavigate, useParams} from "react-router-dom";
+import {ArrowLeftIcon, CalendarIcon, ShareIcon,} from "@heroicons/react/24/outline";
+import publicBlogService, {type BlogDetail,} from "../services/publicBlogService";
+import MarkdownRenderer from "@/components/MarkdownRenderer.tsx";
+import {ChevronLeft, ChevronUp, Clock} from "lucide-react";
+import {Button} from "@/components/ui/button.tsx";
 
 const BlogPostPage: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+    const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [post, setPost] = useState<BlogDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -74,7 +70,7 @@ const BlogPostPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+            <div className="min-h-screen bg-foreground/3 flex justify-center items-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         );
@@ -82,12 +78,12 @@ const BlogPostPage: React.FC = () => {
 
     if (error || !post) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center">
+            <div className="min-h-screen bg-foreground/3 flex flex-col justify-center items-center">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                    <h1 className="text-2xl font-bold text-foreground mb-4">
                         {error || "Không tìm thấy bài viết"}
                     </h1>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-muted-foreground mb-6">
                         Bài viết bạn đang tìm kiếm có thể đã bị xóa hoặc không
                         tồn tại.
                     </p>
@@ -96,7 +92,7 @@ const BlogPostPage: React.FC = () => {
                             onClick={() => navigate(-1)}
                             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
                         >
-                            <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                            <ArrowLeftIcon className="h-4 w-4 mr-2"/>
                             Quay lại
                         </button>
                         <Link
@@ -112,26 +108,28 @@ const BlogPostPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background">
             {/* Header */}
-            <div className="bg-white shadow-sm">
+            <div className="bg-foreground/5 shadow-sm">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
-                        <button
+                        <Button
+                            variant={"ghost"}
                             onClick={() => navigate(-1)}
-                            className="inline-flex items-center text-gray-600 hover:text-gray-900"
+                            className="inline-flex cursor-pointer items-center text-foreground"
                         >
-                            <ArrowLeftIcon className="h-5 w-5 mr-2" />
+                            <ChevronLeft className="h-5 w-5"/>
                             Quay lại
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button
+                            variant={"ghost"}
                             onClick={handleShare}
-                            className="inline-flex items-center text-gray-600 hover:text-gray-900"
+                            className="inline-flex cursor-pointer items-center text-foreground"
                         >
-                            <ShareIcon className="h-5 w-5 mr-2" />
+                            <ShareIcon className="h-5 w-5"/>
                             Chia sẻ
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -145,7 +143,7 @@ const BlogPostPage: React.FC = () => {
                             <img
                                 src={post.thumbnail}
                                 alt={post.title}
-                                className="w-full h-64 md:h-96 object-cover rounded-lg shadow-md"
+                                className="w-full aspect-video md:h-96 object-cover rounded-2xl shadow-md"
                                 onError={(e) => {
                                     e.currentTarget.style.display = "none";
                                 }}
@@ -154,13 +152,14 @@ const BlogPostPage: React.FC = () => {
                     )}
 
                     {/* Article Header */}
-                    <div className="bg-white rounded-lg shadow-md p-8 mb-8">
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                    <div className="bg-foreground/3 rounded-2xl border shadow-md p-8 mb-8">
+                        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                             {post.title}
                         </h1>
 
                         {/* Meta Information */}
-                        <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 mb-6 pb-6 border-b border-gray-200">
+                        <div
+                            className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground mb-6 pb-6 border-b border-gray-200">
                             <div className="flex items-center">
                                 <div className="flex items-center space-x-2">
                                     {post.author.image && (
@@ -170,7 +169,7 @@ const BlogPostPage: React.FC = () => {
                                             className="w-8 h-8 rounded-full"
                                         />
                                     )}
-                                    <span className="font-medium">
+                                    <span className="font-medium text-foreground">
                                         {post.author.firstName}{" "}
                                         {post.author.lastName}
                                     </span>
@@ -178,7 +177,7 @@ const BlogPostPage: React.FC = () => {
                             </div>
 
                             <div className="flex items-center">
-                                <CalendarIcon className="h-5 w-5 mr-2" />
+                                <CalendarIcon className="size-4 mr-2"/>
                                 <span>
                                     Đăng ngày {formatDate(post.publishedAt)}
                                 </span>
@@ -186,7 +185,7 @@ const BlogPostPage: React.FC = () => {
 
                             {post.updatedAt !== post.createdAt && (
                                 <div className="flex items-center">
-                                    <CalendarIcon className="h-5 w-5 mr-2" />
+                                    <Clock className={"size-4 mr-2 text-yellow-500"}/>
                                     <span>
                                         Cập nhật {formatDate(post.updatedAt)}
                                     </span>
@@ -197,17 +196,17 @@ const BlogPostPage: React.FC = () => {
                         {/* Article Content */}
                         <div className="prose prose-lg max-w-none">
                             <div
-                                className="text-gray-800 leading-relaxed whitespace-pre-wrap"
-                                style={{ lineHeight: "1.8" }}
+                                className="text-foreground leading-relaxed whitespace-pre-wrap"
+                                style={{lineHeight: "1.8"}}
                             >
-                                {post.content}
+                                <MarkdownRenderer content={post.content}/>
                             </div>
                         </div>
 
                         {/* Article Footer */}
-                        <div className="mt-8 pt-6 border-t border-gray-200">
+                        <div className="mt-8 pt-6 border-t">
                             <div className="flex items-center justify-between">
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-muted-foreground">
                                     Bài viết được đăng bởi{" "}
                                     <strong>
                                         {post.author.firstName}{" "}
@@ -215,39 +214,40 @@ const BlogPostPage: React.FC = () => {
                                     </strong>
                                 </div>
 
-                                {/* <button
+                                 <Button
                                     onClick={handleShare}
                                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                                 >
-                                    <ShareIcon className="h-4 w-4 mr-2" />
-                                    Chia sẻ bài viết
-                                </button> */}
+                                    <ShareIcon className="h-4 w-4" />
+                                    Chia sẻ
+                                </Button>
                             </div>
                         </div>
                     </div>
 
                     {/* Navigation */}
-                    <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="bg-foreground/3 rounded-2xl shadow-md p-6 border">
                         <div className="flex flex-col sm:flex-row gap-4 justify-between">
                             <Link
                                 to="/blog"
-                                className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                                className="inline-flex items-center justify-center pe-6 ps-3 py-3 border text-sm rounded-xl text-foreground bg-muted hover:bg-foreground/7 transition-colors"
                             >
-                                <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                                <ChevronLeft className="h-4 w-4 mr-2"/>
                                 Quay lại danh sách bài viết
                             </Link>
 
-                            <button
+                            <Button
                                 onClick={() =>
                                     window.scrollTo({
                                         top: 0,
                                         behavior: "smooth",
                                     })
                                 }
-                                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                className="inline-flex cursor-pointer h-full rounded-xl items-center justify-center px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                             >
+                                <ChevronUp className="h-4 w-4"/>
                                 Lên đầu trang
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

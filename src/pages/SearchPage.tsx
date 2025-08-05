@@ -19,6 +19,7 @@ import {
     DropdownMenuSeparator,
 } from "../components/ui/dropdown-menu";
 import {ChevronLeft, ChevronRight, X} from "lucide-react";
+import {Input} from "@/components/ui/input.tsx";
 
 const SearchPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -91,16 +92,6 @@ const SearchPage: React.FC = () => {
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const performSearch = useCallback(async () => {
-        console.log("performSearch called with:", {
-            searchTerm,
-            selectedCategories,
-            selectedColors,
-            priceRange,
-            inStockOnly,
-            // sortBy,
-            // sortDirection,
-            currentPage,
-        });
 
         setIsLoading(true);
         try {
@@ -117,14 +108,12 @@ const SearchPage: React.FC = () => {
                 minPrice: priceRange.min ? parseInt(priceRange.min) : undefined,
                 maxPrice: priceRange.max ? parseInt(priceRange.max) : undefined,
                 inStock: inStockOnly || undefined,
+                page: currentPage,
             };
 
-            console.log("Sending search request with filters:", filters);
             const response = await searchService.searchProducts(filters);
-            console.log("Search response:", response);
 
             if (response.success) {
-                console.log("Setting products:", response.data);
                 setProducts(response.data);
                 setCurrentPage(response.meta.currentPage);
                 setTotalPages(response.meta.totalPage);
@@ -149,29 +138,6 @@ const SearchPage: React.FC = () => {
         // sortDirection,
         currentPage,
     ]);
-
-    useEffect(() => {
-        const query = searchParams.get("q");
-        if (query) {
-            console.log("Setting search term from URL:", query);
-            setSearchTerm(query);
-        }
-
-        // Kiểm tra nếu có bất kỳ filter nào từ URL, thực hiện search
-        const hasUrlFilters =
-            query ||
-            searchParams.get("category") ||
-            searchParams.get("colors") ||
-            searchParams.get("minPrice") ||
-            searchParams.get("maxPrice") ||
-            searchParams.get("inStock");
-        //|| searchParams.get("sort") ||
-        // searchParams.get("direction");
-
-        if (hasUrlFilters) {
-            performSearch();
-        }
-    }, [searchParams, performSearch]);
 
     useEffect(() => {
         // Luôn luôn search khi có thay đổi các parameter (kể cả khi tất cả đều empty)
@@ -304,7 +270,7 @@ const SearchPage: React.FC = () => {
                         showFilters ? "block" : "hidden lg:block"
                     }`}
                 >
-                    <div className="bg-muted p-6 rounded-3xl shadow-sm border">
+                    <div className="bg-foreground/2 p-6 rounded-3xl shadow-sm border">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-semibold text-foreground">
                                 Bộ lọc
@@ -325,7 +291,7 @@ const SearchPage: React.FC = () => {
                             <DropdownMenu>
                                 <DropdownMenuTrigger className={"rounded-xl"} asChild>
                                     <button
-                                        className="w-full flex items-center justify-between px-3 py-3 border rounded-lg text-foreground transition-colors">
+                                        className="w-full shadow-xs flex items-center justify-between px-3 py-3 border rounded-lg text-foreground transition-colors">
                                         <span className="text-sm text-foreground truncate">
                                             {selectedCategories.length > 0
                                                 ? selectedCategories.length ===
@@ -420,7 +386,7 @@ const SearchPage: React.FC = () => {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <button
-                                        className="w-full flex items-center justify-between px-3 py-3 border rounded-xl transition-colors">
+                                        className="w-full shadow-xs flex items-center justify-between px-3 py-3 border rounded-xl transition-colors">
                                         <span className="text-sm text-foreground truncate">
                                             {selectedColors.length > 0
                                                 ? selectedColors.length === 1
@@ -532,7 +498,7 @@ const SearchPage: React.FC = () => {
                                             min: e.target.value,
                                         }))
                                     }
-                                    className="w-full px-3 rounded-xl py-3 text-sm border text-foreground"
+                                    className="w-full shadow-xs px-3 rounded-xl py-3 text-sm border text-foreground"
                                 />
                                 <input
                                     type="number"
@@ -544,7 +510,7 @@ const SearchPage: React.FC = () => {
                                             max: e.target.value,
                                         }))
                                     }
-                                    className="w-full px-3 rounded-xl py-3 text-sm border text-foreground"
+                                    className="w-full shadow-xs px-3 rounded-xl py-3 text-sm border text-foreground"
                                 />
                             </div>
                         </div>
@@ -552,8 +518,8 @@ const SearchPage: React.FC = () => {
                         {/* Stock Filter */}
                         <div className="mb-6">
                             <label className="flex items-center">
-                                <input
-                                    type="checkbox"
+                                <Input
+                                    type={"checkbox"}
                                     checked={inStockOnly}
                                     onChange={(e) =>
                                         setInStockOnly(e.target.checked)
@@ -665,9 +631,9 @@ const SearchPage: React.FC = () => {
                                         <Link
                                             key={product.id}
                                             to={`/product/${product.categoryId}/${product.id}`}
-                                            className="group bg-muted rounded-2xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+                                            className="group bg-foreground/3 flex flex-col rounded-2xl shadow-sm h-full border overflow-hidden hover:shadow-md transition-shadow"
                                         >
-                                            <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                                            <div className="aspect-square bg-gray-100 overflow-hidden">
                                                 <img
                                                     src={mainImageUrl}
                                                     alt={product.name}
@@ -682,16 +648,16 @@ const SearchPage: React.FC = () => {
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="p-4">
+                                            <div className="p-4 flex flex-col justify-between">
                                                 <h3 className="font-medium text-foreground mb-1 line-clamp-2">
                                                     {product.name}
                                                 </h3>
-                                                <p className="text-sm text-muted-foreground mb-6 line-clamp-2">
-                                                    {product.description}
-                                                </p>
-                                                <div className="flex items-center justify-between">
+                                                {/*<p className="text-sm text-muted-foreground mb-6 line-clamp-2">*/}
+                                                {/*    {product.description}*/}
+                                                {/*</p>*/}
+                                                <div className="flex items-end justify-between">
                                                     <div>
-                                                        <span className="text-lg font-bold text-foreground">
+                                                        <span className="text-sm font-light text-muted-foreground">
                                                             {hasMultiplePrices
                                                                 ? `Từ `
                                                                 : ""}
@@ -701,7 +667,7 @@ const SearchPage: React.FC = () => {
                                                         </span>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="text-xs text-muted-foreground">
+                                                        <div className="text-xs font-light text-muted-foreground">
                                                             Còn: {totalQuantity}
                                                         </div>
                                                     </div>

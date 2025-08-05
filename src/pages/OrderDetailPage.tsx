@@ -344,9 +344,9 @@ const OrderDetailPage: React.FC = () => {
                     )
                 }
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                     {/* Main content */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="lg:col-span-3 space-y-6">
                         {/* Order status timeline */}
                         <OrderStatusTimeline
                             currentStatus={orderDetail.status}
@@ -435,7 +435,7 @@ const OrderDetailPage: React.FC = () => {
                     </div>
 
                     {/* Sidebar */}
-                    <div className="space-y-6">
+                    <div className="space-y-6 lg:col-span-2">
                         {/* Order summary */}
                         <div className="bg-foreground/3 rounded-2xl border p-6 flex flex-col gap-6">
                             <div>
@@ -446,7 +446,7 @@ const OrderDetailPage: React.FC = () => {
                                     <div className="flex justify-between">
                                         <span>Tạm tính:</span>
                                         <span>
-                                        {orderDetail.pricing.subtotal.toLocaleString(
+                                        {orderDetail.subtotal.toLocaleString(
                                             "vi-VN",
                                             {
                                                 style: "currency",
@@ -458,7 +458,7 @@ const OrderDetailPage: React.FC = () => {
                                     <div className="flex justify-between">
                                         <span>Phí vận chuyển:</span>
                                         <span>
-                                        {orderDetail.pricing.shippingFee.toLocaleString(
+                                        {orderDetail.shippingFee.toLocaleString(
                                             "vi-VN",
                                             {
                                                 style: "currency",
@@ -467,13 +467,13 @@ const OrderDetailPage: React.FC = () => {
                                         )}
                                     </span>
                                     </div>
-                                    {orderDetail.pricing.productDiscountAmount >
+                                    {orderDetail.productDiscountAmount >
                                         0 && (
                                             <div className="flex justify-between text-green-600">
                                                 <span>Giảm giá sản phẩm:</span>
                                                 <span>
                                             -
-                                                    {orderDetail.pricing.productDiscountAmount.toLocaleString(
+                                                    {orderDetail.productDiscountAmount.toLocaleString(
                                                         "vi-VN",
                                                         {
                                                             style: "currency",
@@ -483,13 +483,13 @@ const OrderDetailPage: React.FC = () => {
                                         </span>
                                             </div>
                                         )}
-                                    {orderDetail.pricing.shippingDiscountAmount >
+                                    {orderDetail.shippingDiscountAmount >
                                         0 && (
                                             <div className="flex justify-between text-green-600">
                                                 <span>Giảm giá vận chuyển:</span>
                                                 <span>
                                             -
-                                                    {orderDetail.pricing.shippingDiscountAmount.toLocaleString(
+                                                    {orderDetail.shippingDiscountAmount.toLocaleString(
                                                         "vi-VN",
                                                         {
                                                             style: "currency",
@@ -504,7 +504,7 @@ const OrderDetailPage: React.FC = () => {
                                         <div className="flex justify-between font-semibold text-lg">
                                             <span>Tổng cộng:</span>
                                             <span>
-                                            {orderDetail.pricing.finalTotal.toLocaleString(
+                                            {orderDetail.finalTotal.toLocaleString(
                                                 "vi-VN",
                                                 {
                                                     style: "currency",
@@ -516,19 +516,14 @@ const OrderDetailPage: React.FC = () => {
                                         <span className="text-sm font-normal">
                                         (Đã bao gồm{" "}
                                             {(
-                                                orderDetail.pricing.finalTotal -
-                                                (orderDetail.pricing
-                                                        .productDiscountAmount +
-                                                    orderDetail.pricing
-                                                        .shippingDiscountAmount -
-                                                    orderDetail.pricing
-                                                        .shippingFee +
-                                                    orderDetail.pricing.subtotal) + orderDetail.pricing.productDiscountAmount
-                                                + orderDetail.pricing.shippingDiscountAmount
-                                            ).toLocaleString("vi-VN", {
-                                                style: "currency",
-                                                currency: "VND",
-                                            })}{" "}
+                                                orderDetail.vat.toLocaleString(
+                                                    "vi-VN",
+                                                    {
+                                                        style: "currency",
+                                                        currency: "VND",
+                                                    }
+                                                )
+                                            )}{" "}
                                             thuế VAT)
                                     </span>
                                     </div>

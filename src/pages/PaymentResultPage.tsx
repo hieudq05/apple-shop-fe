@@ -22,18 +22,18 @@ import paymentService, {
 } from "../services/paymentService";
 
 interface PaymentResultData {
-    vnp_Amount?: string;
-    vnp_BankCode?: string;
-    vnp_BankTranNo?: string;
-    vnp_CardType?: string;
-    vnp_OrderInfo?: string;
-    vnp_PayDate?: string;
-    vnp_ResponseCode?: string;
-    vnp_TmnCode?: string;
-    vnp_TransactionNo?: string;
-    vnp_TransactionStatus?: string;
-    vnp_TxnRef?: string;
-    vnp_SecureHash?: string;
+    Amount?: string;
+    BankCode?: string;
+    BankTranNo?: string;
+    CardType?: string;
+    OrderInfo?: string;
+    PayDate?: string;
+    ResponseCode?: string;
+    TmnCode?: string;
+    TransactionNo?: string;
+    TransactionStatus?: string;
+    TxnRef?: string;
+    SecureHash?: string;
 }
 
 const PaymentResultPage: React.FC = () => {
@@ -53,30 +53,28 @@ const PaymentResultPage: React.FC = () => {
             data[key as keyof PaymentResultData] = value;
         });
         setPaymentData(data);
+        setIsVerifying(false);
 
-        // Simulate payment verification (you can replace this with actual API call)
-        verifyPayment(data);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const verifyPayment = React.useCallback(async (data: PaymentResultData) => {
+    /*const verifyPayment = React.useCallback(async (data: PaymentResultData) => {
         try {
             setIsVerifying(true);
 
             // Prepare verification data
             const verificationData: PaymentVerificationRequest = {
-                vnp_Amount: data.vnp_Amount,
-                vnp_BankCode: data.vnp_BankCode,
-                vnp_BankTranNo: data.vnp_BankTranNo,
-                vnp_CardType: data.vnp_CardType,
-                vnp_OrderInfo: data.vnp_OrderInfo,
-                vnp_PayDate: data.vnp_PayDate,
-                vnp_ResponseCode: data.vnp_ResponseCode,
-                vnp_TmnCode: data.vnp_TmnCode,
-                vnp_TransactionNo: data.vnp_TransactionNo,
-                vnp_TransactionStatus: data.vnp_TransactionStatus,
-                vnp_TxnRef: data.vnp_TxnRef,
-                vnp_SecureHash: data.vnp_SecureHash,
+                Amount: data.Amount,
+                BankCode: data.BankCode,
+                BankTranNo: data.BankTranNo,
+                CardType: data.CardType,
+                OrderInfo: data.OrderInfo,
+                PayDate: data.PayDate,
+                ResponseCode: data.ResponseCode,
+                TmnCode: data.TmnCode,
+                TransactionNo: data.TransactionNo,
+                TransactionStatus: data.TransactionStatus,
+                TxnRef: data.TxnRef,
+                SecureHash: data.SecureHash,
             };
 
             // Call API to verify payment
@@ -96,7 +94,7 @@ const PaymentResultPage: React.FC = () => {
                     success: false,
                     message:
                         response.data.message ||
-                        getErrorMessage(data.vnp_ResponseCode || ""),
+                        getErrorMessage(data.ResponseCode || ""),
                 });
             }
         } catch (error) {
@@ -104,8 +102,8 @@ const PaymentResultPage: React.FC = () => {
 
             // Fallback to client-side verification if API fails
             if (
-                data.vnp_ResponseCode === "00" &&
-                data.vnp_TransactionStatus === "00"
+                data.ResponseCode === "00" &&
+                data.TransactionStatus === "00"
             ) {
                 setVerificationResult({
                     success: true,
@@ -115,13 +113,13 @@ const PaymentResultPage: React.FC = () => {
             } else {
                 setVerificationResult({
                     success: false,
-                    message: getErrorMessage(data.vnp_ResponseCode || ""),
+                    message: getErrorMessage(data.ResponseCode || ""),
                 });
             }
         } finally {
             setIsVerifying(false);
         }
-    }, []);
+    }, []);*/
 
     const getErrorMessage = (responseCode: string): string => {
         const errorMessages: { [key: string]: string } = {
@@ -209,7 +207,7 @@ const PaymentResultPage: React.FC = () => {
             return <Loader2 className="h-16 w-16 animate-spin text-blue-600" />;
         }
 
-        if (verificationResult?.success) {
+        if (paymentData.ResponseCode === "00" && (paymentData.TransactionStatus === "00" || paymentData.TransactionStatus === "approved")) {
             return <CheckCircle className="h-16 w-16 text-green-600" />;
         } else {
             return <XCircle className="h-16 w-16 text-red-600" />;
@@ -218,12 +216,12 @@ const PaymentResultPage: React.FC = () => {
 
     const getStatusColor = () => {
         if (isVerifying) return "text-blue-600";
-        return verificationResult?.success ? "text-green-600" : "text-red-600";
+        return (paymentData.ResponseCode === "00" && (paymentData.TransactionStatus === "00" || paymentData.TransactionStatus === "approved")) ? "text-green-600" : "text-red-600";
     };
 
     const getStatusTitle = () => {
         if (isVerifying) return "Đang xác thực thanh toán...";
-        return verificationResult?.success
+        return (paymentData.ResponseCode === "00" && (paymentData.TransactionStatus === "00" || paymentData.TransactionStatus === "approved"))
             ? "Thanh toán thành công!"
             : "Thanh toán thất bại";
     };
@@ -254,7 +252,7 @@ const PaymentResultPage: React.FC = () => {
                                     <Button
                                         variant="outline"
                                         onClick={() =>
-                                            navigate("/order-history")
+                                            navigate("/order-detail/"+ paymentData.OrderInfo.split("#")[1])
                                         }
                                         className="flex items-center gap-2"
                                     >
@@ -283,7 +281,7 @@ const PaymentResultPage: React.FC = () => {
                 </Card>
 
                 {/* Payment Details */}
-                {!isVerifying && paymentData.vnp_TransactionNo && (
+                {!isVerifying && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg">
@@ -300,7 +298,7 @@ const PaymentResultPage: React.FC = () => {
                                         Mã giao dịch
                                     </label>
                                     <p className="text-sm font-mono">
-                                        {paymentData.vnp_TransactionNo}
+                                        {paymentData.TransactionNo}
                                     </p>
                                 </div>
 
@@ -309,79 +307,79 @@ const PaymentResultPage: React.FC = () => {
                                         Mã đơn hàng
                                     </label>
                                     <p className="text-sm font-mono">
-                                        {paymentData.vnp_TxnRef}
+                                        {paymentData.TxnRef}
                                     </p>
                                 </div>
 
-                                {paymentData.vnp_Amount && (
+                                {paymentData.Amount && (
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">
                                             Số tiền
                                         </label>
                                         <p className="text-lg font-semibold text-blue-600">
                                             {formatAmount(
-                                                paymentData.vnp_Amount
+                                                paymentData.Amount
                                             )}
                                         </p>
                                     </div>
                                 )}
 
-                                {paymentData.vnp_PayDate && (
+                                {paymentData.PayDate && (
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">
                                             Thời gian thanh toán
                                         </label>
                                         <p className="text-sm">
                                             {formatDateTime(
-                                                paymentData.vnp_PayDate
+                                                paymentData.PayDate
                                             )}
                                         </p>
                                     </div>
                                 )}
 
-                                {paymentData.vnp_BankCode && (
+                                {paymentData.BankCode && (
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">
                                             Ngân hàng
                                         </label>
                                         <p className="text-sm">
                                             {getBankName(
-                                                paymentData.vnp_BankCode
+                                                paymentData.BankCode
                                             )}
                                         </p>
                                     </div>
                                 )}
 
-                                {paymentData.vnp_CardType && (
+                                {paymentData.CardType && (
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">
                                             Loại thẻ
                                         </label>
                                         <Badge variant="outline">
-                                            {paymentData.vnp_CardType}
+                                            {paymentData.CardType}
                                         </Badge>
                                     </div>
                                 )}
 
-                                {paymentData.vnp_BankTranNo && (
+                                {paymentData.BankTranNo && (
                                     <div className="md:col-span-2">
                                         <label className="text-sm font-medium text-gray-500">
                                             Mã giao dịch ngân hàng
                                         </label>
                                         <p className="text-sm font-mono">
-                                            {paymentData.vnp_BankTranNo}
+                                            {paymentData.BankTranNo}
                                         </p>
                                     </div>
                                 )}
 
-                                {paymentData.vnp_OrderInfo && (
+                                {paymentData.OrderInfo && (
                                     <div className="md:col-span-2">
                                         <label className="text-sm font-medium text-gray-500">
                                             Thông tin đơn hàng
                                         </label>
                                         <p className="text-sm">
                                             {decodeURIComponent(
-                                                paymentData.vnp_OrderInfo
+                                                paymentData.OrderInfo
                                             )}
                                         </p>
                                     </div>

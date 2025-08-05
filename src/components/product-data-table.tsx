@@ -1,5 +1,5 @@
 import * as React from "react";
-import { z } from "zod";
+import {z} from "zod";
 import {
     type ColumnDef,
     type ColumnFiltersState,
@@ -12,11 +12,11 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { Trash2, MoreHorizontal, Edit, Eye } from "lucide-react";
+import {Trash2, MoreHorizontal, Edit, Eye, Undo2} from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar } from "@/components/ui/avatar";
+import {Button} from "@/components/ui/button";
+import {Badge} from "@/components/ui/badge";
+import {Avatar} from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -66,6 +66,7 @@ export const productSchema = z.object({
             image: z.string(),
         })
     ),
+    isDeleted: z.boolean(),
 });
 
 export type Product = z.infer<typeof productSchema>;
@@ -78,11 +79,11 @@ interface ProductDataTableProps {
 }
 
 export function ProductDataTable({
-    data,
-    onEdit,
-    onDelete,
-    onView,
-}: ProductDataTableProps) {
+                                     data,
+                                     onEdit,
+                                     onDelete,
+                                     onView,
+                                 }: ProductDataTableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] =
         React.useState<ColumnFiltersState>([]);
@@ -121,7 +122,7 @@ export function ProductDataTable({
         {
             accessorKey: "name",
             header: "Sản phẩm",
-            cell: ({ row }) => {
+            cell: ({row}) => {
                 const product = row.original;
                 const image = getProductImage(product.stocks);
 
@@ -151,14 +152,14 @@ export function ProductDataTable({
         {
             accessorKey: "categoryName",
             header: "Danh mục",
-            cell: ({ row }) => (
+            cell: ({row}) => (
                 <Badge variant="outline">{row.getValue("categoryName")}</Badge>
             ),
         },
         {
             accessorKey: "stocks",
             header: "Giá",
-            cell: ({ row }) => {
+            cell: ({row}) => {
                 const stocks = row.getValue("stocks") as Product["stocks"];
                 const minPrice = getMinPrice(stocks);
                 return (
@@ -171,7 +172,7 @@ export function ProductDataTable({
         {
             accessorKey: "stocks",
             header: "Tồn kho",
-            cell: ({ row }) => {
+            cell: ({row}) => {
                 const stocks = row.getValue("stocks") as Product["stocks"];
                 const totalStock = getTotalStock(stocks);
                 return (
@@ -188,7 +189,7 @@ export function ProductDataTable({
         {
             accessorKey: "createdAt",
             header: "Ngày tạo",
-            cell: ({ row }) => (
+            cell: ({row}) => (
                 <div className="text-xs py-1">
                     {formatDate(row.getValue("createdAt"))}
                 </div>
@@ -197,7 +198,7 @@ export function ProductDataTable({
         {
             id: "actions",
             header: "",
-            cell: ({ row }) => {
+            cell: ({row}) => {
                 const product = row.original;
 
                 return (
@@ -208,7 +209,7 @@ export function ProductDataTable({
                         >
                             <Button variant="ghost" className="p-2">
                                 <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
+                                <MoreHorizontal className="h-4 w-4"/>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -218,7 +219,7 @@ export function ProductDataTable({
                                     onView?.(product.id, product.categoryId)
                                 }
                             >
-                                <Eye className="mr-2 h-4 w-4 text-foreground" />
+                                <Eye className="mr-2 h-4 w-4 text-foreground"/>
                                 Xem chi tiết
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -227,7 +228,7 @@ export function ProductDataTable({
                                     onEdit?.(product.id, product.categoryId)
                                 }
                             >
-                                <Edit className="mr-2 h-4 w-4 text-foreground" />
+                                <Edit className="mr-2 h-4 w-4 text-foreground"/>
                                 Chỉnh sửa
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -236,8 +237,19 @@ export function ProductDataTable({
                                     onDelete?.(product.id, product.name, product.categoryId)
                                 }
                             >
-                                <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                                <span className="text-destructive">Xóa</span>
+                                {
+                                    product.isDeleted ? (
+                                        <>
+                                            <Undo2 className="mr-2 h-4 w-4 text-foreground"/>
+                                            <span>Đưa trở lại</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 className="mr-2 h-4 w-4 text-destructive"/>
+                                            <span className="text-destructive">Chuyển vào Thùng rác</span>
+                                        </>
+                                    )
+                                }
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -278,10 +290,10 @@ export function ProductDataTable({
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
-                                                      header.column.columnDef
-                                                          .header,
-                                                      header.getContext()
-                                                  )}
+                                                    header.column.columnDef
+                                                        .header,
+                                                    header.getContext()
+                                                )}
                                         </TableHead>
                                     );
                                 })}

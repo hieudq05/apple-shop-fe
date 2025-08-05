@@ -1,12 +1,18 @@
-import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import React, {useState, useRef} from "react";
+import {useNavigate} from "react-router-dom";
+import {toast} from "sonner";
 import {
     EyeIcon,
     CloudArrowUpIcon,
     PhotoIcon,
 } from "@heroicons/react/24/outline";
 import blogService from "../../services/blogService";
+import {Button} from "@/components/ui/button.tsx";
+import {Input} from "@/components/ui/input.tsx";
+import {X} from "lucide-react";
+import MarkdownEditor from "@/components/MarkdownEditor.tsx";
+import {Badge} from "@/components/ui/badge.tsx";
+import MarkdownRenderer from "@/components/MarkdownRenderer.tsx";
 
 interface BlogForm {
     title: string;
@@ -65,7 +71,7 @@ const CreateBlogPage: React.FC = () => {
 
             // Create preview URL
             const imageUrl = URL.createObjectURL(file);
-            setFormData((prev) => ({ ...prev, thumbnail: imageUrl }));
+            setFormData((prev) => ({...prev, thumbnail: imageUrl}));
 
             toast.dismiss(uploadToast);
             toast.success("Tải ảnh lên thành công!");
@@ -79,7 +85,7 @@ const CreateBlogPage: React.FC = () => {
     };
 
     const handleUrlChange = (url: string) => {
-        setFormData((prev) => ({ ...prev, thumbnail: url }));
+        setFormData((prev) => ({...prev, thumbnail: url}));
     };
 
     const validateUrl = (url: string): boolean => {
@@ -151,33 +157,33 @@ const CreateBlogPage: React.FC = () => {
     }, [navigate]);
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">
+                            <h1 className="text-3xl font-bold text-foreground">
                                 Tạo bài viết mới
                             </h1>
-                            <p className="mt-2 text-gray-600">
+                            <p className="mt-2 text-muted-foreground">
                                 Tạo và xuất bản bài viết mới cho blog của bạn
                             </p>
                         </div>
 
                         <div className="flex items-center space-x-3">
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => setShowPreview(!showPreview)}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                                     showPreview
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                                        ? "bg-blue-600 text-foreground hover:bg-blue-700"
+                                        : ""
                                 }`}
                             >
-                                <EyeIcon className="w-4 h-4 mr-2 inline" />
+                                <EyeIcon className="w-4 h-4 inline"/>
                                 {showPreview ? "Ẩn xem trước" : "Xem trước"}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -196,20 +202,20 @@ const CreateBlogPage: React.FC = () => {
                     >
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Basic Information */}
-                            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                            <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border">
+                                <h2 className="text-lg font-semibold text-foreground mb-4">
                                     Thông tin cơ bản
                                 </h2>
 
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-muted-foreground mb-1">
                                             Tiêu đề bài viết{" "}
                                             <span className="text-red-500">
                                                 *
                                             </span>
                                         </label>
-                                        <input
+                                        <Input
                                             type="text"
                                             required
                                             value={formData.title}
@@ -219,18 +225,17 @@ const CreateBlogPage: React.FC = () => {
                                                     title: e.target.value,
                                                 }))
                                             }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             placeholder="Nhập tiêu đề bài viết"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label className="block text-sm font-medium text-muted-foreground mb-1">
                                             Trạng thái
                                         </label>
                                         <div className="flex items-center space-x-4">
                                             <label className="flex items-center">
-                                                <input
+                                                <Input
                                                     type="radio"
                                                     name="isPublished"
                                                     checked={
@@ -242,14 +247,14 @@ const CreateBlogPage: React.FC = () => {
                                                             isPublished: false,
                                                         }))
                                                     }
-                                                    className="mr-2"
+                                                    className="mr-2 size-4"
                                                 />
-                                                <span className="text-sm text-gray-700">
+                                                <span className="text-sm text-muted-foreground">
                                                     Bản nháp
                                                 </span>
                                             </label>
                                             <label className="flex items-center">
-                                                <input
+                                                <Input
                                                     type="radio"
                                                     name="isPublished"
                                                     checked={
@@ -261,9 +266,9 @@ const CreateBlogPage: React.FC = () => {
                                                             isPublished: true,
                                                         }))
                                                     }
-                                                    className="mr-2"
+                                                    className="mr-2 size-4"
                                                 />
-                                                <span className="text-sm text-gray-700">
+                                                <span className="text-sm text-muted-foreground">
                                                     Xuất bản ngay
                                                 </span>
                                             </label>
@@ -273,8 +278,8 @@ const CreateBlogPage: React.FC = () => {
                             </div>
 
                             {/* Thumbnail */}
-                            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                            <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border">
+                                <h2 className="text-lg font-semibold text-foreground mb-4">
                                     Ảnh đại diện
                                 </h2>
 
@@ -311,10 +316,10 @@ const CreateBlogPage: React.FC = () => {
 
                                     {uploadMethod === "url" ? (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <label className="block text-sm font-medium text-muted-foreground mb-1">
                                                 URL ảnh đại diện
                                             </label>
-                                            <input
+                                            <Input
                                                 type="url"
                                                 value={formData.thumbnail}
                                                 onChange={(e) =>
@@ -322,38 +327,37 @@ const CreateBlogPage: React.FC = () => {
                                                         e.target.value
                                                     )
                                                 }
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 placeholder="https://example.com/image.jpg"
                                             />
                                         </div>
                                     ) : (
                                         <div>
-                                            <input
+                                            <Input
                                                 ref={fileInputRef}
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleFileChange}
                                                 className="hidden"
                                             />
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={handleFileSelect}
                                                 disabled={isUploading}
-                                                className="w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="w-full cursor-pointer h-48 border-2 border-dashed rounded-2xl hover:border-blue-400 hover:bg-foreground/5 bg-foreground/3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <div className="text-center">
-                                                    <CloudArrowUpIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                                    <p className="text-sm text-gray-600 mb-1">
+                                                    <CloudArrowUpIcon className="size-20 text-gray-400 mx-auto mb-2"/>
+                                                    <p className="text-sm text-muted-foreground mb-1">
                                                         {isUploading
                                                             ? "Đang tải lên..."
                                                             : "Chọn ảnh để tải lên"}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-muted-foreground/50">
                                                         PNG, JPG, GIF (tối đa
                                                         5MB)
                                                     </p>
                                                 </div>
-                                            </button>
+                                            </Button>
                                         </div>
                                     )}
 
@@ -363,13 +367,13 @@ const CreateBlogPage: React.FC = () => {
                                             <img
                                                 src={formData.thumbnail}
                                                 alt="Preview"
-                                                className="w-full h-48 object-cover rounded-lg"
+                                                className="w-full aspect-video object-cover rounded-2xl"
                                                 onError={(e) => {
                                                     e.currentTarget.style.display =
                                                         "none";
                                                 }}
                                             />
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={() =>
                                                     setFormData((prev) => ({
@@ -377,28 +381,17 @@ const CreateBlogPage: React.FC = () => {
                                                         thumbnail: "",
                                                     }))
                                                 }
-                                                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                                                className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 transition-colors"
                                             >
-                                                <svg
-                                                    className="w-4 h-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M6 18L18 6M6 6l12 12"
-                                                    />
-                                                </svg>
-                                            </button>
+                                                <X className={"size-4"}/>
+                                            </Button>
                                         </div>
                                     ) : (
-                                        <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                                        <div
+                                            className="w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center">
                                             <div className="text-center">
-                                                <PhotoIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                                <p className="text-gray-500">
+                                                <PhotoIcon className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2"/>
+                                                <p className="text-muted-foreground">
                                                     Chưa có ảnh đại diện
                                                 </p>
                                             </div>
@@ -408,26 +401,24 @@ const CreateBlogPage: React.FC = () => {
                             </div>
 
                             {/* Content */}
-                            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                            <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border">
+                                <h2 className="text-lg font-semibold text-foreground mb-4">
                                     Nội dung bài viết
                                 </h2>
 
                                 <div>
-                                    <textarea
-                                        rows={20}
-                                        required
+                                    <MarkdownEditor
                                         value={formData.content}
-                                        onChange={(e) =>
+                                        onChange={(value) => {
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                content: e.target.value,
+                                                content: value,
                                             }))
-                                        }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-                                        placeholder="Nhập nội dung bài viết (Markdown)"
+                                        }}
+                                        height={500}
+                                        placeholder="Nhập nội dung bài viết..."
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-muted-foreground mt-1">
                                         Hỗ trợ Markdown: **bold**, *italic*,
                                         [link](url), ![image](url)
                                     </p>
@@ -435,7 +426,7 @@ const CreateBlogPage: React.FC = () => {
                             </div>
 
                             {/* Submit Buttons */}
-                            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                            <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border">
                                 <div className="flex space-x-3">
                                     <button
                                         type="submit"
@@ -445,8 +436,8 @@ const CreateBlogPage: React.FC = () => {
                                         {isLoading
                                             ? "Đang tạo..."
                                             : formData.isPublished
-                                            ? "Tạo và xuất bản"
-                                            : "Lưu bản nháp"}
+                                                ? "Tạo và xuất bản"
+                                                : "Lưu bản nháp"}
                                     </button>
 
                                     <button
@@ -464,9 +455,8 @@ const CreateBlogPage: React.FC = () => {
                     {/* Preview Panel */}
                     {showPreview && (
                         <div className="lg:col-span-1">
-                            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                    <EyeIcon className="w-5 h-5 mr-2" />
+                            <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border sticky top-6">
+                                <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                                     Xem trước
                                 </h2>
 
@@ -484,43 +474,42 @@ const CreateBlogPage: React.FC = () => {
                                     )}
 
                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                                        <h3 className="text-lg font-bold text-foreground mb-2">
                                             {formData.title ||
                                                 "Tiêu đề bài viết"}
                                         </h3>
-                                        <p className="text-sm text-gray-600 mb-2">
+                                        <p className="text-sm text-muted-foreground mb-2">
                                             {new Date().toLocaleDateString(
                                                 "vi-VN"
                                             )}{" "}
                                             •
-                                            <span
+                                            <Badge
+                                                variant={"outline"}
                                                 className={`ml-1 px-2 py-0.5 rounded text-xs font-medium ${
                                                     formData.isPublished
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-yellow-100 text-yellow-800"
+                                                        ? "bg-green-500/10 text-green-500"
+                                                        : "bg-yellow-500/10 text-yellow-500"
                                                 }`}
                                             >
                                                 {formData.isPublished
                                                     ? "Sẽ xuất bản"
                                                     : "Bản nháp"}
-                                            </span>
+                                            </Badge>
                                         </p>
                                     </div>
 
                                     <div className="border-t pt-4">
-                                        <h4 className="font-medium text-gray-900 mb-2">
+                                        <h4 className="font-medium text-muted-foreground mb-2">
                                             Nội dung:
                                         </h4>
-                                        <div className="text-sm text-gray-600 max-h-40 overflow-y-auto">
+                                        <div className="text-sm text-muted-foreground max-h-40 overflow-y-auto">
                                             {formData.content ? (
-                                                <pre className="whitespace-pre-wrap font-sans">
-                                                    {formData.content.substring(
-                                                        0,
-                                                        200
-                                                    )}
-                                                    {formData.content.length >
-                                                        200 && "..."}
-                                                </pre>
+                                                <MarkdownRenderer content={formData.content.substring(
+                                                    0,
+                                                    200
+                                                )}
+
+                                                />
                                             ) : (
                                                 <p className="italic">
                                                     Chưa có nội dung

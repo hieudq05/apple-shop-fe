@@ -1,21 +1,20 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { toast } from "sonner";
+import React, {useCallback, useEffect, useState} from "react";
+import {toast} from "sonner";
 import {
-    PlusIcon,
-    PencilIcon,
-    TrashIcon,
-    MagnifyingGlassIcon,
-    GiftIcon,
-    CalendarIcon,
-    UserIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
     FunnelIcon,
+    GiftIcon,
+    MagnifyingGlassIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+    UserIcon,
     XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Badge} from "@/components/ui/badge";
 import {
     Dialog,
     DialogContent,
@@ -24,15 +23,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select"
 import promotionService, {
+    type CreatePromotionData,
     type Promotion,
     type PromotionParams,
     type PromotionSearchParams,
-    type CreatePromotionData,
 } from "../../services/promotionService";
-import { useDebounce } from "../../hooks/useDebounce";
-import { Check, Copy } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {useDebounce} from "../../hooks/useDebounce";
+import {Check, Copy} from "lucide-react";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label.tsx";
 
 interface PromotionForm {
     name: string;
@@ -107,7 +108,7 @@ const PromotionManagementPage: React.FC = () => {
             const hasFilters = Object.keys(searchFilters).some(
                 (key) =>
                     searchFilters[key as keyof PromotionSearchParams] !==
-                        undefined &&
+                    undefined &&
                     searchFilters[key as keyof PromotionSearchParams] !== ""
             );
 
@@ -243,11 +244,11 @@ const PromotionManagementPage: React.FC = () => {
 
         const loadingToast = editingPromotion
             ? toast.loading("Đang cập nhật khuyến mãi...", {
-                  duration: Infinity,
-              })
+                duration: Infinity,
+            })
             : toast.loading("Đang tạo khuyến mãi mới...", {
-                  duration: Infinity,
-              });
+                duration: Infinity,
+            });
 
         try {
             const submitData: CreatePromotionData = {
@@ -277,7 +278,7 @@ const PromotionManagementPage: React.FC = () => {
                     setPromotions((prev) =>
                         prev.map((promotion) =>
                             promotion.id === editingPromotion.id
-                                ? { ...updatedPromotion }
+                                ? {...updatedPromotion}
                                 : promotion
                         )
                     );
@@ -330,7 +331,7 @@ const PromotionManagementPage: React.FC = () => {
     const handleDeletePromotion = async () => {
         if (!deleteDialog.promotionId) return;
 
-        setDeleteDialog((prev) => ({ ...prev, isDeleting: true }));
+        setDeleteDialog((prev) => ({...prev, isDeleting: true}));
         const loadingToast = toast.loading("Đang xóa khuyến mãi...", {
             duration: Infinity,
         });
@@ -358,7 +359,7 @@ const PromotionManagementPage: React.FC = () => {
             toast.dismiss(loadingToast);
             toast.error("Không thể xóa khuyến mãi. Vui lòng thử lại.");
             setError("Không thể xóa khuyến mãi. Vui lòng thử lại.");
-            setDeleteDialog((prev) => ({ ...prev, isDeleting: false }));
+            setDeleteDialog((prev) => ({...prev, isDeleting: false}));
         }
     };
 
@@ -381,7 +382,7 @@ const PromotionManagementPage: React.FC = () => {
                 setPromotions((prev) =>
                     prev.map((promotion) =>
                         promotion.id === promotionId
-                            ? { ...promotion, isActive: !currentStatus }
+                            ? {...promotion, isActive: !currentStatus}
                             : promotion
                     )
                 );
@@ -429,13 +430,13 @@ const PromotionManagementPage: React.FC = () => {
     const getTypeColor = (type: Promotion["promotionType"]) => {
         switch (type) {
             case "PERCENTAGE":
-                return "bg-blue-100 text-blue-800";
+                return "bg-blue-500/10 text-blue-500";
             case "FIXED_AMOUNT":
-                return "bg-green-100 text-green-800";
+                return "bg-green-500/10 text-green-500";
             case "SHIPPING_DISCOUNT":
-                return "bg-purple-100 text-purple-800";
+                return "bg-purple-500/10 text-purple-500";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-500";
         }
     };
 
@@ -468,12 +469,12 @@ const PromotionManagementPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+                    <div className="h-8 bg-foreground/5 rounded w-1/4 mb-6"></div>
                     <div className="space-y-4">
                         {[...Array(5)].map((_, i) => (
                             <div
                                 key={i}
-                                className="h-16 bg-gray-200 rounded"
+                                className="h-16 bg-foreground/5 rounded"
                             ></div>
                         ))}
                     </div>
@@ -487,7 +488,7 @@ const PromotionManagementPage: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-foreground">
                         Quản lý khuyến mãi
                     </h1>
                     <p className="text-muted-foreground">
@@ -496,16 +497,16 @@ const PromotionManagementPage: React.FC = () => {
                 </div>
                 <Button
                     onClick={openCreateForm}
-                    className="flex items-center space-x-2"
+                    className="flex items-center"
                 >
-                    <PlusIcon className="w-4 h-4" />
+                    <PlusIcon className="w-4 h-4"/>
                     <span>Thêm khuyến mãi</span>
                 </Button>
             </div>
 
             {/* Error Message */}
             {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-4 bg-foreground/3 border border-destructive rounded-lg">
                     <p className="text-red-800">{error}</p>
                 </div>
             )}
@@ -513,13 +514,14 @@ const PromotionManagementPage: React.FC = () => {
             {/* Search */}
             <div className="flex items-center space-x-4">
                 <div className="relative flex-1 max-w-md">
-                    <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <MagnifyingGlassIcon
+                        className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"/>
                     <Input
                         type="text"
                         placeholder="Tìm kiếm khuyến mãi..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
                 <Button
@@ -527,7 +529,7 @@ const PromotionManagementPage: React.FC = () => {
                     variant="outline"
                     className="flex items-center space-x-2"
                 >
-                    <FunnelIcon className="w-4 h-4" />
+                    <FunnelIcon className="w-4 h-4"/>
                     <span>Bộ lọc</span>
                     {hasActiveFilters && (
                         <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
@@ -542,244 +544,250 @@ const PromotionManagementPage: React.FC = () => {
                         size="sm"
                         className="text-gray-600 hover:text-gray-900"
                     >
-                        <XMarkIcon className="w-4 h-4 mr-1" />
+                        <XMarkIcon className="w-4 h-4 mr-1"/>
                         Xóa bộ lọc
                     </Button>
                 )}
             </div>
 
             {/* Promotions Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-foreground/3 rounded-lg shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Khuyến mãi
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Mã code
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Loại
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Giá trị
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Sử dụng
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Thời gian
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Người tạo
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Trạng thái
-                                </th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Thao tác
-                                </th>
-                            </tr>
+                    <table className="min-w-full bg-background divide-y divide-foreground/5">
+                        <thead className="bg-foreground/5">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
+                                Khuyến mãi
+                            </th>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
+                                Mã code
+                            </th>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
+                                Loại
+                            </th>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
+                                Giá trị
+                            </th>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
+                                Sử dụng
+                            </th>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
+                                Thời gian
+                            </th>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
+                                Người tạo
+                            </th>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
+                                Trạng thái
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-foreground">
+                                Thao tác
+                            </th>
+                        </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredPromotions.map((promotion) => (
-                                <tr
-                                    key={promotion.id}
-                                    className="hover:bg-gray-50 h-16"
-                                >
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center space-x-3">
-                                            <GiftIcon className="w-5 h-5 text-gray-400" />
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {promotion.name}
-                                                </div>
-                                                <div className="text-xs text-gray-500">
-                                                    ID: {promotion.id}
-                                                </div>
+                        <tbody className="divide-y divide-foreground/5">
+                        {filteredPromotions.map((promotion) => (
+                            <tr
+                                key={promotion.id}
+                                className="hover:bg-foreground/3 h-16"
+                            >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center space-x-3">
+                                        <GiftIcon className="w-5 h-5 text-muted-foreground"/>
+                                        <div>
+                                            <div className="text-sm font-medium text-foreground">
+                                                {promotion.name}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                ID: {promotion.id}
                                             </div>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <Badge
-                                            variant="outline"
-                                            className="font-mono text-xs"
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <Badge
+                                        variant="outline"
+                                        className="font-mono text-sm"
+                                    >
+                                        {promotion.code}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(
+                                                    promotion.code
+                                                );
+                                                setClickedCopy(
+                                                    promotion.id
+                                                );
+                                                setTimeout(
+                                                    () =>
+                                                        setClickedCopy(
+                                                            null
+                                                        ),
+                                                    2000
+                                                );
+                                            }}
+                                            className="ml-1 p-1 rounded-sm hover:bg-gray-200 size-fit"
                                         >
-                                            {promotion.code}
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(
-                                                        promotion.code
-                                                    );
-                                                    setClickedCopy(
-                                                        promotion.id
-                                                    );
-                                                    setTimeout(
-                                                        () =>
-                                                            setClickedCopy(
-                                                                null
-                                                            ),
-                                                        2000
-                                                    );
-                                                }}
-                                                className="ml-1 p-1 rounded-sm hover:bg-gray-200 size-fit"
-                                            >
-                                                {clickedCopy ===
-                                                promotion.id ? (
-                                                    <Check className="w-4 h-4" />
-                                                ) : (
-                                                    <Copy className="w-4 h-4" />
-                                                )}
-                                            </Button>
-                                        </Badge>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <Badge
-                                            variant="secondary"
-                                            className={`text-xs ${getTypeColor(
-                                                promotion.promotionType
-                                            )}`}
-                                        >
-                                            {getTypeText(
-                                                promotion.promotionType
+                                            {clickedCopy ===
+                                            promotion.id ? (
+                                                <Check className="w-4 h-4"/>
+                                            ) : (
+                                                <Copy className="w-4 h-4"/>
                                             )}
-                                        </Badge>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <div>
-                                            <div className="font-medium">
-                                                {getValueDisplay(promotion)}
+                                        </Button>
+                                    </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <Badge
+                                        variant="outline"
+                                        className={`text-xs ${getTypeColor(
+                                            promotion.promotionType
+                                        )}`}
+                                    >
+                                        {getTypeText(
+                                            promotion.promotionType
+                                        )}
+                                    </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                                    <div>
+                                        <div className="font-medium">
+                                            {getValueDisplay(promotion)}
+                                        </div>
+                                        {promotion.minOrderValue &&
+                                            promotion.minOrderValue > 0 && (
+                                                <div className="text-xs text-muted-foreground">
+                                                    Tối thiểu:{" "}
+                                                    {formatCurrency(
+                                                        promotion.minOrderValue
+                                                    )}
+                                                </div>
+                                            )}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                                    <div>
+                                        <div className="font-medium">
+                                            {promotion.usageCount}
+                                        </div>
+                                        {promotion.usageLimit > 0 && (
+                                            <div className="text-xs text-muted-foreground">
+                                                / {promotion.usageLimit}
                                             </div>
-                                            {promotion.minOrderValue &&
-                                                promotion.minOrderValue > 0 && (
-                                                    <div className="text-xs text-gray-500">
-                                                        Tối thiểu:{" "}
-                                                        {formatCurrency(
-                                                            promotion.minOrderValue
+                                        )}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                                    <div className="flex items-center space-x-1">
+                                        {/*<CalendarIcon className="w-4 h-4" />*/}
+                                        <div>
+                                            <div>
+                                                Từ{" "}
+                                                <span className="font-medium text-foreground">
+                                                        {formatDate(
+                                                            promotion.startDate
                                                         )}
-                                                    </div>
-                                                )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <div>
-                                            <div className="font-medium">
-                                                {promotion.usageCount}
+                                                    </span>
                                             </div>
-                                            {promotion.usageLimit > 0 && (
-                                                <div className="text-xs text-gray-500">
-                                                    / {promotion.usageLimit}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <div className="flex items-center space-x-1">
-                                            <CalendarIcon className="w-4 h-4" />
                                             <div>
-                                                <div>
-                                                    {formatDate(
-                                                        promotion.startDate
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    đến{" "}
-                                                    {formatDate(
-                                                        promotion.endDate
-                                                    )}
-                                                </div>
+                                                đến{" "}
+                                                <span className="font-medium text-foreground">
+                                                        {formatDate(
+                                                            promotion.endDate
+                                                        )}
+                                                    </span>
                                             </div>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center space-x-2">
-                                            <Avatar className="h-6 w-6">
-                                                <AvatarImage
-                                                    src={
-                                                        promotion.createdBy
-                                                            .image
-                                                    }
-                                                    alt={`${promotion.createdBy.firstName} ${promotion.createdBy.lastName}`}
-                                                />
-                                                <AvatarFallback>
-                                                    <UserIcon className="h-3 w-3" />
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="text-xs text-gray-600">
-                                                {promotion.createdBy.firstName}{" "}
-                                                {promotion.createdBy.lastName}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col space-y-1">
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={promotion.isActive}
-                                                    onChange={() =>
-                                                        togglePromotionStatus(
-                                                            promotion.id,
-                                                            promotion.isActive
-                                                        )
-                                                    }
-                                                    className="sr-only peer"
-                                                />
-                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                            </label>
-                                            {isPromotionExpired(
-                                                promotion.endDate
-                                            ) && (
-                                                <Badge
-                                                    variant="destructive"
-                                                    className="text-xs"
-                                                >
-                                                    Đã hết hạn
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end space-x-2">
-                                            <Button
-                                                onClick={() =>
-                                                    openEditForm(promotion)
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center space-x-2">
+                                        <Avatar className="size-10">
+                                            <AvatarImage
+                                                src={
+                                                    promotion.createdBy
+                                                        .image
                                                 }
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-indigo-600 hover:text-indigo-900"
-                                            >
-                                                <PencilIcon className="w-4 h-4" />
-                                            </Button>
-                                            <Button
-                                                onClick={() =>
-                                                    openDeleteDialog(
+                                                alt={`${promotion.createdBy.firstName} ${promotion.createdBy.lastName}`}
+                                            />
+                                            <AvatarFallback>
+                                                <UserIcon className="size-4"/>
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="text-sm text-foreground">
+                                            {promotion.createdBy.firstName}{" "}
+                                            {promotion.createdBy.lastName}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex flex-col space-y-1">
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={promotion.isActive}
+                                                onChange={() =>
+                                                    togglePromotionStatus(
                                                         promotion.id,
-                                                        promotion.name
+                                                        promotion.isActive
                                                     )
                                                 }
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-red-600 hover:text-red-900"
+                                                className="sr-only peer"
+                                            />
+                                            <div
+                                                className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                        {isPromotionExpired(
+                                            promotion.endDate
+                                        ) && (
+                                            <Badge
+                                                variant="destructive"
+                                                className="text-xs"
                                             >
-                                                <TrashIcon className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                                Đã hết hạn
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div className="flex items-center justify-end space-x-2">
+                                        <Button
+                                            onClick={() =>
+                                                openEditForm(promotion)
+                                            }
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-indigo-500"
+                                        >
+                                            <PencilIcon className="w-4 h-4"/>
+                                        </Button>
+                                        <Button
+                                            onClick={() =>
+                                                openDeleteDialog(
+                                                    promotion.id,
+                                                    promotion.name
+                                                )
+                                            }
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-600"
+                                        >
+                                            <TrashIcon className="w-4 h-4"/>
+                                        </Button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>
 
                 {/* Pagination */}
                 {promotions.length > 0 && (
-                    <div className="bg-white px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
+                    <div className="bg-background px-6 py-3 border-t flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
                             Hiển thị{" "}
                             <span className="font-medium">
                                 {currentPage * pageSize + 1}
@@ -804,7 +812,7 @@ const PromotionManagementPage: React.FC = () => {
                                 }
                                 disabled={currentPage === 0}
                             >
-                                <ChevronLeftIcon className="w-4 h-4" />
+                                <ChevronLeftIcon className="w-4 h-4"/>
                                 Trước
                             </Button>
                             <div className="flex items-center space-x-1">
@@ -845,7 +853,7 @@ const PromotionManagementPage: React.FC = () => {
                                 disabled={currentPage === totalPages - 1}
                             >
                                 Sau
-                                <ChevronRightIcon className="w-4 h-4" />
+                                <ChevronRightIcon className="w-4 h-4"/>
                             </Button>
                         </div>
                     </div>
@@ -869,26 +877,26 @@ const PromotionManagementPage: React.FC = () => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Tên khuyến mãi *
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     required
                                     value={formData.name}
                                     onChange={(e) =>
                                         handleNameChange(e.target.value)
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                     placeholder="Giảm giá 10%"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Mã code *
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     required
                                     value={formData.code}
@@ -898,7 +906,7 @@ const PromotionManagementPage: React.FC = () => {
                                             code: e.target.value.toUpperCase(),
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
+                                    className="w-full"
                                     placeholder="DISCOUNT10"
                                 />
                             </div>
@@ -906,44 +914,42 @@ const PromotionManagementPage: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Loại khuyến mãi *
                                 </label>
-                                <select
-                                    required
+                                <Select
+                                    required={true}
                                     value={formData.promotionType}
-                                    onChange={(e) =>
+                                    onValueChange={(value) => {
+                                        // @ts-ignore
                                         setFormData((prev) => ({
                                             ...prev,
-                                            promotionType: e.target
-                                                .value as PromotionForm["promotionType"],
-                                        }))
-                                    }
-                                    className="w-full px-3 py-[0.65rem] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            promotionType: value,
+                                        }));
+                                    }}
                                 >
-                                    <option value="PERCENTAGE">
-                                        Phần trăm (%)
-                                    </option>
-                                    <option value="FIXED_AMOUNT">
-                                        Số tiền cố định (VND)
-                                    </option>
-                                    <option value="SHIPPING_DISCOUNT">
-                                        Miễn phí vận chuyển
-                                    </option>
-                                </select>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Theme"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="PERCENTAGE">Phần trăm</SelectItem>
+                                        <SelectItem value="FIXED_AMOUNT">Số tiền cố định</SelectItem>
+                                        <SelectItem value="SHIPPING_DISCOUNT">Miễn phí vận chuyển</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <Label className="block text-sm text-muted-foreground mb-1">
                                     Giá trị{" "}
                                     {formData.promotionType === "PERCENTAGE"
                                         ? "(%)"
                                         : formData.promotionType ===
-                                          "FIXED_AMOUNT"
-                                        ? "(VND)"
-                                        : ""}
-                                </label>
-                                <input
+                                        "FIXED_AMOUNT"
+                                            ? "(VND)"
+                                            : ""}
+                                </Label>
+                                <Input
                                     type="number"
                                     min="0"
                                     max={
@@ -959,17 +965,17 @@ const PromotionManagementPage: React.FC = () => {
                                                 parseFloat(e.target.value) || 0,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                 />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Đơn hàng tối thiểu (VND)
                                 </label>
-                                <input
+                                <Input
                                     type="number"
                                     min="0"
                                     value={formData.minOrderValue}
@@ -980,15 +986,15 @@ const PromotionManagementPage: React.FC = () => {
                                                 parseInt(e.target.value) || 0,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Giảm tối đa (VND)
                                 </label>
-                                <input
+                                <Input
                                     type="number"
                                     min="0"
                                     value={formData.maxDiscountAmount}
@@ -999,12 +1005,12 @@ const PromotionManagementPage: React.FC = () => {
                                                 parseInt(e.target.value) || 0,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                     disabled={
                                         formData.promotionType ===
-                                            "FIXED_AMOUNT" ||
+                                        "FIXED_AMOUNT" ||
                                         formData.promotionType ===
-                                            "SHIPPING_DISCOUNT"
+                                        "SHIPPING_DISCOUNT"
                                     }
                                 />
                             </div>
@@ -1012,10 +1018,10 @@ const PromotionManagementPage: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Giới hạn sử dụng
                                 </label>
-                                <input
+                                <Input
                                     type="number"
                                     min="0"
                                     value={formData.usageLimit}
@@ -1026,16 +1032,16 @@ const PromotionManagementPage: React.FC = () => {
                                                 parseInt(e.target.value) || 0,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                     placeholder="0 = không giới hạn"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Ngày bắt đầu *
                                 </label>
-                                <input
+                                <Input
                                     type="datetime-local"
                                     required
                                     value={formData.startDate}
@@ -1045,15 +1051,15 @@ const PromotionManagementPage: React.FC = () => {
                                             startDate: e.target.value,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Ngày kết thúc *
                                 </label>
-                                <input
+                                <Input
                                     type="datetime-local"
                                     required
                                     value={formData.endDate}
@@ -1063,13 +1069,13 @@ const PromotionManagementPage: React.FC = () => {
                                             endDate: e.target.value,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                 />
                             </div>
                         </div>
 
                         <div className="flex items-center">
-                            <input
+                            <Input
                                 type="checkbox"
                                 id="isActive"
                                 checked={formData.isActive}
@@ -1079,11 +1085,11 @@ const PromotionManagementPage: React.FC = () => {
                                         isActive: e.target.checked,
                                     }))
                                 }
-                                className="mr-2 text-blue-600 focus:ring-blue-500"
+                                className="size-4 mr-2 text-blue-600 focus:ring-blue-500"
                             />
                             <label
                                 htmlFor="isActive"
-                                className="text-sm text-gray-700"
+                                className="text-sm text-muted-foreground"
                             >
                                 Kích hoạt khuyến mãi
                             </label>
@@ -1101,8 +1107,8 @@ const PromotionManagementPage: React.FC = () => {
                                 {isSaving
                                     ? "Đang lưu..."
                                     : editingPromotion
-                                    ? "Cập nhật"
-                                    : "Tạo mới"}
+                                        ? "Cập nhật"
+                                        : "Tạo mới"}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -1171,7 +1177,7 @@ const AdvancedSearchForm: React.FC<{
     initialFilters: PromotionSearchParams;
     onSearch: (filters: PromotionSearchParams) => void;
     onClose: () => void;
-}> = ({ initialFilters, onSearch, onClose }) => {
+}> = ({initialFilters, onSearch, onClose}) => {
     const [filters, setFilters] =
         useState<PromotionSearchParams>(initialFilters);
 

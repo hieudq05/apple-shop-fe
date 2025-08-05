@@ -82,7 +82,7 @@ interface ProductForm {
         colorId: number | string; // Can be actual ID (number) or temp ID (string)
         quantity: number;
         price: number;
-        photos: string[]; // URLs
+        photos: Object[]; // URLs
         instances: Array<{
             id: number | string | null; // Can be actual ID (number), temp ID (string), or null for new
             name: string;
@@ -1029,7 +1029,7 @@ const EditProductPage: React.FC = () => {
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        <div className="space-y-2">
+                                        <div className="">
                                             <Label htmlFor="name">
                                                 Tên sản phẩm *
                                             </Label>

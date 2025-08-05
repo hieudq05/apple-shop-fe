@@ -18,6 +18,7 @@ export interface SearchFilters {
     minRating?: number;
     maxRating?: number;
     inStock?: boolean;
+    page?: number;
     // sortBy?: string;
     // sortDirection?: "ASC" | "DESC";
     // page?: number;

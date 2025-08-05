@@ -131,13 +131,14 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
             )} */}
 
             {/* Reviews List */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle>
-                            Đánh giá ({reviews.length || 0})
-                        </CardTitle>
-                        {/* <div className="flex items-center space-x-2">
+            {reviews.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle>
+                                Đánh giá ({reviews.length || 0})
+                            </CardTitle>
+                            {/* <div className="flex items-center space-x-2">
                             <Filter className="w-4 h-4" />
                             <Select
                                 value={ratingFilter}
@@ -156,62 +157,63 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
                                 </SelectContent>
                             </Select>
                         </div> */}
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {loading && currentPage === 1 ? (
-                        <div className="space-y-4">
-                            {[...Array(3)].map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="border rounded-lg p-4 animate-pulse"
-                                >
-                                    <div className="flex space-x-4">
-                                        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                                        <div className="flex-1 space-y-2">
-                                            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                                            <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {loading && currentPage === 1 ? (
+                            <div className="space-y-4">
+                                {[...Array(3)].map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="border rounded-lg p-4 animate-pulse"
+                                    >
+                                        <div className="flex space-x-4">
+                                            <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : reviews.length === 0 ? (
-                        <div className="text-center py-8">
-                            <p className="text-gray-500">
-                                {ratingFilter !== "ALL"
-                                    ? `Chưa có đánh giá ${ratingFilter} sao nào`
-                                    : "Chưa có đánh giá nào cho sản phẩm này"}
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {reviews.map((review) => (
-                                <ReviewCard
-                                    key={review.id}
-                                    review={review}
-                                    onReviewUpdate={handleReviewSubmitted}
-                                />
-                            ))}
+                                ))}
+                            </div>
+                        ) : reviews.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500">
+                                    {ratingFilter !== "ALL"
+                                        ? `Chưa có đánh giá ${ratingFilter} sao nào`
+                                        : "Chưa có đánh giá nào cho sản phẩm này"}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {reviews.map((review) => (
+                                    <ReviewCard
+                                        key={review.id}
+                                        review={review}
+                                        onReviewUpdate={handleReviewSubmitted}
+                                    />
+                                ))}
 
-                            {hasMoreReviews && (
-                                <div className="text-center pt-4">
-                                    <Button
-                                        variant="outline"
-                                        onClick={handleLoadMore}
-                                        disabled={loading}
-                                    >
-                                        {loading
-                                            ? "Đang tải..."
-                                            : "Xem thêm đánh giá"}
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                                {hasMoreReviews && (
+                                    <div className="text-center pt-4">
+                                        <Button
+                                            variant="outline"
+                                            onClick={handleLoadMore}
+                                            disabled={loading}
+                                        >
+                                            {loading
+                                                ? "Đang tải..."
+                                                : "Xem thêm đánh giá"}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Review Form Dialog */}
             <ReviewFormDialog

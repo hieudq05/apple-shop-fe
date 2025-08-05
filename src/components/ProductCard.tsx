@@ -63,7 +63,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     return (
         <div className="bg-transparent flex flex-col space-y-6 h-full" key={id}>
-            <Carousel className="w-full aspect-[9/12] relative hover:scale-[1.03] transition-transform duration-300">
+            <Carousel className="w-full aspect-[9/12] relative hover:scale-[1.03] transition-transform duration-200">
                 <CarouselContent className="w-full h-full">
                     {allPhotos.length > 0 ? (
                         allPhotos.map((photo, index) => (
@@ -97,12 +97,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         </CarouselItem>
                     )}
                 </CarouselContent>
-                {allPhotos.length > 1 && (
-                    <>
-                        <CarouselPrevious className="absolute left-[-15px]" />
-                        <CarouselNext className="absolute right-[-15px]" />
-                    </>
-                )}
+                {/*{allPhotos.length > 1 && (*/}
+                {/*    <>*/}
+                {/*        <CarouselPrevious className="absolute left-[-15px]" />*/}
+                {/*        <CarouselNext className="absolute right-[-15px]" />*/}
+                {/*    </>*/}
+                {/*)}*/}
             </Carousel>
             <div className={"flex justify-center gap-2"}>
                 {stocks?.map((stockItem) => (
@@ -117,7 +117,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             </div>
             <div className={"flex flex-col items-center h-full"}>
                 <h2 className="text-xl font-medium">{name}</h2>
-                <p className="mb-8 text-lg text-center h-full">{description}</p>
+                <p className="mb-8 font-light text-center h-full">{description}</p>
                 <div className="text-center">
                     {stocks && stocks.length > 0
                         ? `Từ ${Math.min(

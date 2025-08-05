@@ -1,14 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import {
-    MagnifyingGlassIcon,
-    CalendarIcon,
-    UserIcon,
-    ChatBubbleLeftIcon,
-} from "@heroicons/react/24/outline";
-import publicBlogService, {
-    type PublicBlog,
-} from "../services/publicBlogService";
+import React, {useCallback, useEffect, useState} from "react";
+import {Link, useSearchParams} from "react-router-dom";
+import {CalendarIcon, ChatBubbleLeftIcon, UserIcon,} from "@heroicons/react/24/outline";
+import publicBlogService, {type PublicBlog,} from "../services/publicBlogService";
+import MarkdownRenderer from "@/components/MarkdownRenderer.tsx";
+import {useTheme} from "@/components/theme-provider.tsx";
 
 const BlogPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -87,18 +82,24 @@ const BlogPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen">
             {/* Header Section */}
-            <div className="bg-white shadow-sm">
-                <div className="container mx-auto px-4 py-16">
-                    <div className="text-center">
-                        <h1 className="text-6xl font-bold text-gray-900 mb-4">
-                            Apple Blog
-                        </h1>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                            Khám phá những bài viết mới nhất về sản phẩm Apple,
-                            tin tức công nghệ và hướng dẫn sử dụng
-                        </p>
+            <div className=" pt-16">
+                <div className="container mx-auto px-4 bg-muted shadow-sm rounded-2xl border">
+                    <div className="relative text-center flex flex-col items-center justify-center gap-4">
+                        <svg className={"size-80 mb-30"} viewBox="0 0 14 44" xmlns="http://www.w3.org/2000/svg"><path d="m13.0729 17.6825a3.61 3.61 0 0 0 -1.7248 3.0365 3.5132 3.5132 0 0 0 2.1379 3.2223 8.394 8.394 0 0 1 -1.0948 2.2618c-.6816.9812-1.3943 1.9623-2.4787 1.9623s-1.3633-.63-2.613-.63c-1.2187 0-1.6525.6507-2.644.6507s-1.6834-.9089-2.4787-2.0243a9.7842 9.7842 0 0 1 -1.6628-5.2776c0-3.0984 2.014-4.7405 3.9969-4.7405 1.0535 0 1.9314.6919 2.5924.6919.63 0 1.6112-.7333 2.8092-.7333a3.7579 3.7579 0 0 1 3.1604 1.5802zm-3.7284-2.8918a3.5615 3.5615 0 0 0 .8469-2.22 1.5353 1.5353 0 0 0 -.031-.32 3.5686 3.5686 0 0 0 -2.3445 1.2084 3.4629 3.4629 0 0 0 -.8779 2.1585 1.419 1.419 0 0 0 .031.2892 1.19 1.19 0 0 0 .2169.0207 3.0935 3.0935 0 0 0 2.1586-1.1368z" fill={
+                            useTheme().theme === "light" ? "#000" : useTheme().theme === "dark" ? "#fff" :
+                                useTheme().theme === "system" ? window.matchMedia("(prefers-color-scheme: light)").matches ? "#000" : "#fff" : "#000"
+                        }></path></svg>
+                        <div className={"absolute bottom-14"}>
+                            <h1 className="text-6xl font-bold text-foreground mb-4">
+                                Apple Blog
+                            </h1>
+                            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                                Khám phá những bài viết mới nhất về sản phẩm Apple,
+                                tin tức công nghệ và hướng dẫn sử dụng
+                            </p>
+                        </div>
                     </div>
 
                     {/* Search Bar */}
@@ -128,10 +129,10 @@ const BlogPage: React.FC = () => {
             </div>
 
             {/* Main Content */}
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto py-8">
                 {/* Results Info */}
                 {!isLoading && (
-                    <div className="mb-6 text-gray-600">
+                    <div className="mb-6 text-muted-foreground">
                         {searchTerm ? (
                             <p>
                                 Tìm thấy {totalElements} kết quả cho "
@@ -158,38 +159,37 @@ const BlogPage: React.FC = () => {
                                 {posts.map((post) => (
                                     <div
                                         key={post.id}
-                                        className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                                        className="bg-foreground/5 h-full justify-between flex flex-col rounded-2xl border-2 border-foreground/7 overflow-hidden hover:shadow-lg transition-shadow duration-300"
                                     >
-                                        {/* Featured Image */}
-                                        {post.thumbnail && (
-                                            <div className="aspect-w-16 aspect-h-9">
-                                                <img
-                                                    src={post.thumbnail}
-                                                    alt={post.title}
-                                                    className="w-full h-48 object-cover"
-                                                    onError={(e) => {
-                                                        e.currentTarget.src =
-                                                            "/placeholder-image.jpg";
-                                                    }}
-                                                />
+                                        <div>
+                                            {/* Featured Image */}
+                                            {post.thumbnail && (
+                                                <div className={""}>
+                                                    <img
+                                                        src={post.thumbnail}
+                                                        alt={post.title}
+                                                        className={"w-full object-cover " + (post.thumbnail ? "aspect-video" : "h-full")}
+                                                    />
+                                                </div>
+                                            )}
+                                            <div className={"pt-6 px-6"}>
+                                                <h2 className="text-xl font-semibold text-foreground mb-3 line-clamp-2">
+                                                    <Link
+                                                        to={`/blog/${post.id}`}
+                                                        className="hover:text-blue-500 transition-colors"
+                                                    >
+                                                        {post.title}
+                                                    </Link>
+                                                </h2>
+
+                                                <p className="text-muted-foreground mb-4 line-clamp-1">
+                                                    <MarkdownRenderer content={post.content} />
+                                                </p>
                                             </div>
-                                        )}
+                                        </div>
 
                                         {/* Content */}
                                         <div className="p-6">
-                                            <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
-                                                <Link
-                                                    to={`/blog/${post.id}`}
-                                                    className="hover:text-blue-600 transition-colors"
-                                                >
-                                                    {post.title}
-                                                </Link>
-                                            </h2>
-
-                                            <p className="text-gray-600 mb-4 line-clamp-3">
-                                                {getExcerpt(post.content)}
-                                            </p>
-
                                             {/* Meta Info */}
                                             <div className="flex items-center justify-between text-sm text-gray-500">
                                                 <div className="flex items-center space-x-4">
@@ -216,12 +216,11 @@ const BlogPage: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </div>
-
                                             {/* Read More */}
                                             <div className="mt-4">
                                                 <Link
                                                     to={`/blog/${post.id}`}
-                                                    className="flex justify-end items-center text-blue-600 hover:text-blue-800 font-medium"
+                                                    className="flex justify-end items-center text-blue-600 hover:text-blue-500 hover:underline font-medium"
                                                 >
                                                     Đọc thêm
                                                     <svg

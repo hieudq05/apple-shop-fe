@@ -1,24 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, Navigate, useRoutes } from "react-router-dom";
-import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import React, {useEffect, useState} from "react";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {Link} from "react-router-dom";
+import {ChevronLeft, ChevronRight, Plus, Search} from "lucide-react";
+import {toast} from "sonner";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -29,19 +15,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-import adminProductService, {
-    type AdminProduct,
-    type ProductSearchParams,
-} from "../../services/adminProductService";
-import {
-    ProductDataTable,
-    type Product,
-} from "@/components/product-data-table";
+import {Skeleton} from "@/components/ui/skeleton";
+import adminProductService, {type AdminProduct, type ProductSearchParams,} from "../../services/adminProductService";
+import {type Product, ProductDataTable,} from "@/components/product-data-table";
 import AdvancedProductSearch from "@/components/AdvancedProductSearch";
 
-import type { MetadataResponse } from "@/types/api.ts";
-import {undefined} from "zod";
+import type {MetadataResponse} from "@/types/api.ts";
 
 // Transform AdminProduct to Product interface for the data table
 const transformToProduct = (adminProduct: AdminProduct): Product => {
@@ -75,6 +54,7 @@ const transformToProduct = (adminProduct: AdminProduct): Product => {
                 name: feature.name,
                 image: "", // AdminProduct features don't have images, so we use empty string
             })) || [],
+        isDeleted: adminProduct.isDeleted,
     };
 };
 
@@ -575,9 +555,11 @@ const AdminProductsPage: React.FC = () => {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Xóa sản phẩm</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Xác nhận thao tác với sản phẩm "{deleteDialog.productName}"?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bạn có chắc chắn muốn xóa sản phẩm "
+                            Bạn có chắc chắn thực hiện hành động này với sản phẩm "
                             {deleteDialog.productName}"? Hành động này không thể
                             hoàn tác.
                         </AlertDialogDescription>
@@ -589,7 +571,7 @@ const AdminProductsPage: React.FC = () => {
                             className="bg-destructive text-white hover:bg-destructive/90"
                             disabled={deleteDialog.isDeleting}
                         >
-                            {deleteDialog.isDeleting ? "Đang xóa..." : "Xóa"}
+                            {deleteDialog.isDeleting ? "Đang thực hiện..." : "Tiếp tục"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
