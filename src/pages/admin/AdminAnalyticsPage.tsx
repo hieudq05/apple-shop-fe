@@ -1,13 +1,29 @@
-import React, {useCallback, useEffect, useState} from "react";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Avatar, AvatarFallback} from "@/components/ui/avatar";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {Calendar} from "@/components/ui/calendar";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
     BarChart3,
     Calendar as CalendarIcon,
@@ -17,14 +33,15 @@ import {
     TrendingUp,
     Users,
 } from "lucide-react";
-import {RevenueChart} from "@/components/charts/RevenueChart";
-import {OrderStatusPieChart} from "@/components/charts/OrderStatusPieChart";
+import { RevenueChart } from "@/components/charts/RevenueChart";
+import { OrderStatusPieChart } from "@/components/charts/OrderStatusPieChart";
 import statisticsService from "@/services/statisticsService";
-import type {ProductSelling} from "@/pages/admin/AdminDashboard";
-import {Link} from "react-router-dom";
-import {cn} from "@/lib/utils";
-import {format} from "date-fns";
-import {vi} from "date-fns/locale";
+import type { ProductSelling } from "@/pages/admin/AdminDashboard";
+import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { Helmet } from "react-helmet-async";
 
 export interface AnalyticsData {
     revenue: {
@@ -170,12 +187,15 @@ const AdminAnalyticsPage: React.FC = () => {
     const [selectedPeriod, setSelectedPeriod] = useState("30d");
     const [customDateRange, setCustomDateRange] = useState({
         startDate: undefined as Date | undefined,
-        endDate: undefined as Date | undefined
+        endDate: undefined as Date | undefined,
     });
     const [isCustomDate, setIsCustomDate] = useState(false);
 
     // Helper function to format date for API
-    const formatDateForAPI = (date: Date | undefined, isEndDate = false): string => {
+    const formatDateForAPI = (
+        date: Date | undefined,
+        isEndDate = false
+    ): string => {
         if (!date) return "";
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -189,7 +209,10 @@ const AdminAnalyticsPage: React.FC = () => {
     };
 
     // Function to get custom date range
-    const getCustomDateRange = (startDate: Date | undefined, endDate: Date | undefined) => {
+    const getCustomDateRange = (
+        startDate: Date | undefined,
+        endDate: Date | undefined
+    ) => {
         if (!startDate || !endDate) return null;
 
         const fromDate = formatDateForAPI(startDate);
@@ -215,12 +238,14 @@ const AdminAnalyticsPage: React.FC = () => {
             let fromDate, toDate, previousFromDate, previousToDate;
 
             if (isCustomDate) {
-                ({fromDate, toDate, previousFromDate, previousToDate} = getCustomDateRange(
-                    customDateRange.startDate,
-                    customDateRange.endDate
-                ));
+                ({ fromDate, toDate, previousFromDate, previousToDate } =
+                    getCustomDateRange(
+                        customDateRange.startDate,
+                        customDateRange.endDate
+                    ));
             } else {
-                ({fromDate, toDate, previousFromDate, previousToDate} = getDateRange(selectedPeriod));
+                ({ fromDate, toDate, previousFromDate, previousToDate } =
+                    getDateRange(selectedPeriod));
             }
 
             // Fetch current period data
@@ -244,32 +269,32 @@ const AdminAnalyticsPage: React.FC = () => {
             const revenueGrowth =
                 previousRevenue.data > 0
                     ? parseFloat(
-                        (
-                            ((currentRevenue.data - previousRevenue.data) /
-                                (previousRevenue.data || 1)) *
-                            100
-                        ).toFixed(2)
-                    )
+                          (
+                              ((currentRevenue.data - previousRevenue.data) /
+                                  (previousRevenue.data || 1)) *
+                              100
+                          ).toFixed(2)
+                      )
                     : 0;
             const ordersGrowth =
                 previousOrders.data > 0
                     ? parseFloat(
-                        (
-                            ((currentOrders.data - previousOrders.data) /
-                                (previousOrders.data || 1)) *
-                            100
-                        ).toFixed(2)
-                    )
+                          (
+                              ((currentOrders.data - previousOrders.data) /
+                                  (previousOrders.data || 1)) *
+                              100
+                          ).toFixed(2)
+                      )
                     : 0;
             const usersGrowth =
                 previousUsers.data > 0
                     ? parseFloat(
-                        (
-                            ((currentUsers.data - previousUsers.data) /
-                                (previousUsers.data || 1)) *
-                            100
-                        ).toFixed(2)
-                    )
+                          (
+                              ((currentUsers.data - previousUsers.data) /
+                                  (previousUsers.data || 1)) *
+                              100
+                          ).toFixed(2)
+                      )
                     : 0;
             const avgOrderValueCurrent =
                 currentOrders.data > 0
@@ -282,12 +307,12 @@ const AdminAnalyticsPage: React.FC = () => {
             const avgOrderValueGrowth =
                 avgOrderValuePrevious > 0
                     ? parseFloat(
-                        (
-                            ((avgOrderValueCurrent - avgOrderValuePrevious) /
-                                (avgOrderValuePrevious || 1)) *
-                            100
-                        ).toFixed(2)
-                    )
+                          (
+                              ((avgOrderValueCurrent - avgOrderValuePrevious) /
+                                  (avgOrderValuePrevious || 1)) *
+                              100
+                          ).toFixed(2)
+                      )
                     : 0;
 
             // Generate revenue by month data for the last 6 months
@@ -325,11 +350,11 @@ const AdminAnalyticsPage: React.FC = () => {
 
             // Fetch orders by status data from API
             const orderStatuses = [
-                {key: "DELIVERED", name: "Đã giao"},
-                {key: "SHIPPED", name: "Đang giao"},
-                {key: "PROCESSING", name: "Đã xác nhận, đang xử lý"},
-                {key: "PENDING_PAYMENT", name: "Chờ thanh toán"},
-                {key: "CANCELLED", name: "Đã hủy"},
+                { key: "DELIVERED", name: "Đã giao" },
+                { key: "SHIPPED", name: "Đang giao" },
+                { key: "PROCESSING", name: "Đã xác nhận, đang xử lý" },
+                { key: "PENDING_PAYMENT", name: "Chờ thanh toán" },
+                { key: "CANCELLED", name: "Đã hủy" },
             ];
 
             const ordersByStatusPromises = orderStatuses.map((status) =>
@@ -343,7 +368,7 @@ const AdminAnalyticsPage: React.FC = () => {
                             `Error fetching ${status.key} orders:`,
                             error
                         );
-                        return {status: status.name, count: 0};
+                        return { status: status.name, count: 0 };
                     })
             );
 
@@ -361,11 +386,11 @@ const AdminAnalyticsPage: React.FC = () => {
                 percentage:
                     totalOrdersForPercentage > 0
                         ? parseFloat(
-                            (
-                                (item.count / totalOrdersForPercentage) *
-                                100
-                            ).toFixed(1)
-                        )
+                              (
+                                  (item.count / totalOrdersForPercentage) *
+                                  100
+                              ).toFixed(1)
+                          )
                         : 0,
             }));
 
@@ -408,24 +433,24 @@ const AdminAnalyticsPage: React.FC = () => {
                         data: 0,
                     })),
                     fetchNumberOfOrders(yesterdayStart, yesterdayEnd).catch(
-                        () => ({data: 0})
+                        () => ({ data: 0 })
                     ),
                     fetchOrdersByStatus(
                         "PENDING_PAYMENT",
                         fromDate,
                         toDate
-                    ).catch(() => ({data: 0})),
+                    ).catch(() => ({ data: 0 })),
                 ]);
 
             const todayOrdersGrowth =
                 yesterdayOrders.data > 0
                     ? parseFloat(
-                        (
-                            ((todayOrders.data - yesterdayOrders.data) /
-                                yesterdayOrders.data) *
-                            100
-                        ).toFixed(1)
-                    )
+                          (
+                              ((todayOrders.data - yesterdayOrders.data) /
+                                  yesterdayOrders.data) *
+                              100
+                          ).toFixed(1)
+                      )
                     : 0;
 
             const analyticsData: AnalyticsData = {
@@ -471,7 +496,7 @@ const AdminAnalyticsPage: React.FC = () => {
         fetchAnalyticsData();
     }, [fetchAnalyticsData]);
 
-    console.log(analyticsData)
+    console.log(analyticsData);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat("vi-VN", {
@@ -491,7 +516,7 @@ const AdminAnalyticsPage: React.FC = () => {
         growth: number;
         icon: React.ReactNode;
         formatter?: (value: number) => string;
-    }> = ({title, current, growth, icon, formatter = formatNumber}) => (
+    }> = ({ title, current, growth, icon, formatter = formatNumber }) => (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -501,9 +526,9 @@ const AdminAnalyticsPage: React.FC = () => {
                 <div className="text-2xl font-bold">{formatter(current)}</div>
                 <p className="text-xs text-muted-foreground flex items-center mt-1">
                     {growth >= 0 ? (
-                        <TrendingUp className="w-4 h-4 text-green-500 mr-1"/>
+                        <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
                     ) : (
-                        <TrendingDown className="w-4 h-4 text-red-500 mr-1"/>
+                        <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
                     )}
                     <span
                         className={`${
@@ -581,10 +606,19 @@ const AdminAnalyticsPage: React.FC = () => {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <Helmet>
+                <title>Thống kê - Apple</title>
+                <meta
+                    name="description"
+                    content="Xem thống kê chi tiết cho bảng điều khiển quản trị."
+                />
+            </Helmet>
             {/* Header */}
             <div className="flex flex-col space-y-4">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        Analytics
+                    </h2>
                 </div>
 
                 {/* Metrics Cards */}
@@ -595,7 +629,7 @@ const AdminAnalyticsPage: React.FC = () => {
                         previous={analyticsData.revenue.previous}
                         growth={analyticsData.revenue.growth}
                         icon={
-                            <DollarSign className="h-4 w-4 text-muted-foreground"/>
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
                         }
                         formatter={formatCurrency}
                     />
@@ -605,7 +639,7 @@ const AdminAnalyticsPage: React.FC = () => {
                         previous={analyticsData.orders.previous}
                         growth={analyticsData.orders.growth}
                         icon={
-                            <ShoppingBag className="h-4 w-4 text-muted-foreground"/>
+                            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                         }
                     />
                     <MetricCard
@@ -613,7 +647,9 @@ const AdminAnalyticsPage: React.FC = () => {
                         current={analyticsData.customers.current}
                         previous={analyticsData.customers.previous}
                         growth={analyticsData.customers.growth}
-                        icon={<Users className="h-4 w-4 text-muted-foreground"/>}
+                        icon={
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                        }
                     />
                     <MetricCard
                         title="Giá trị đơn hàng TB"
@@ -621,7 +657,7 @@ const AdminAnalyticsPage: React.FC = () => {
                         previous={analyticsData.avgOrderValue.previous}
                         growth={analyticsData.avgOrderValue.growth}
                         icon={
-                            <BarChart3 className="h-4 w-4 text-muted-foreground"/>
+                            <BarChart3 className="h-4 w-4 text-muted-foreground" />
                         }
                         formatter={formatCurrency}
                     />
@@ -630,7 +666,9 @@ const AdminAnalyticsPage: React.FC = () => {
                 {/* Date Selection Controls */}
                 <Card>
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">Chọn khoảng thời gian</CardTitle>
+                        <CardTitle className="text-lg">
+                            Chọn khoảng thời gian
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center space-x-4">
@@ -660,19 +698,27 @@ const AdminAnalyticsPage: React.FC = () => {
 
                         {!isCustomDate ? (
                             <div className="flex items-center space-x-2">
-                                <CalendarIcon className="h-4 w-4 text-muted-foreground"/>
+                                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                                 <Select
                                     value={selectedPeriod}
                                     onValueChange={setSelectedPeriod}
                                 >
                                     <SelectTrigger className="w-40">
-                                        <SelectValue/>
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="7d">7 ngày qua</SelectItem>
-                                        <SelectItem value="30d">30 ngày qua</SelectItem>
-                                        <SelectItem value="90d">90 ngày qua</SelectItem>
-                                        <SelectItem value="1y">1 năm qua</SelectItem>
+                                        <SelectItem value="7d">
+                                            7 ngày qua
+                                        </SelectItem>
+                                        <SelectItem value="30d">
+                                            30 ngày qua
+                                        </SelectItem>
+                                        <SelectItem value="90d">
+                                            90 ngày qua
+                                        </SelectItem>
+                                        <SelectItem value="1y">
+                                            1 năm qua
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -686,27 +732,42 @@ const AdminAnalyticsPage: React.FC = () => {
                                                 variant={"outline"}
                                                 className={cn(
                                                     "w-full justify-start text-left font-normal",
-                                                    !customDateRange.startDate && "text-muted-foreground"
+                                                    !customDateRange.startDate &&
+                                                        "text-muted-foreground"
                                                 )}
                                             >
-                                                <CalendarIcon className="mr-2 h-4 w-4"/>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
                                                 {customDateRange.startDate ? (
-                                                    format(customDateRange.startDate, "PPP", {locale: vi})
+                                                    format(
+                                                        customDateRange.startDate,
+                                                        "PPP",
+                                                        { locale: vi }
+                                                    )
                                                 ) : (
-                                                    <span>Chọn ngày bắt đầu</span>
+                                                    <span>
+                                                        Chọn ngày bắt đầu
+                                                    </span>
                                                 )}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
                                             <Calendar
                                                 mode="single"
-                                                selected={customDateRange.startDate}
-                                                onSelect={(date) => setCustomDateRange(prev => ({
-                                                    ...prev,
-                                                    startDate: date
-                                                }))}
+                                                selected={
+                                                    customDateRange.startDate
+                                                }
+                                                onSelect={(date) =>
+                                                    setCustomDateRange(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            startDate: date,
+                                                        })
+                                                    )
+                                                }
                                                 disabled={(date) =>
-                                                    date > new Date() || date < new Date("1900-01-01")
+                                                    date > new Date() ||
+                                                    date <
+                                                        new Date("1900-01-01")
                                                 }
                                                 initialFocus
                                             />
@@ -721,29 +782,47 @@ const AdminAnalyticsPage: React.FC = () => {
                                                 variant={"outline"}
                                                 className={cn(
                                                     "w-full justify-start text-left font-normal",
-                                                    !customDateRange.endDate && "text-muted-foreground"
+                                                    !customDateRange.endDate &&
+                                                        "text-muted-foreground"
                                                 )}
                                             >
-                                                <CalendarIcon className="mr-2 h-4 w-4"/>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
                                                 {customDateRange.endDate ? (
-                                                    format(customDateRange.endDate, "PPP", {locale: vi})
+                                                    format(
+                                                        customDateRange.endDate,
+                                                        "PPP",
+                                                        { locale: vi }
+                                                    )
                                                 ) : (
-                                                    <span>Chọn ngày kết thúc</span>
+                                                    <span>
+                                                        Chọn ngày kết thúc
+                                                    </span>
                                                 )}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
                                             <Calendar
                                                 mode="single"
-                                                selected={customDateRange.endDate}
-                                                onSelect={(date) => setCustomDateRange(prev => ({
-                                                    ...prev,
-                                                    endDate: date
-                                                }))}
+                                                selected={
+                                                    customDateRange.endDate
+                                                }
+                                                onSelect={(date) =>
+                                                    setCustomDateRange(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            endDate: date,
+                                                        })
+                                                    )
+                                                }
                                                 disabled={(date) =>
                                                     date > new Date() ||
-                                                    date < new Date("1900-01-01") ||
-                                                    (customDateRange.startDate && date < customDateRange.startDate)
+                                                    date <
+                                                        new Date(
+                                                            "1900-01-01"
+                                                        ) ||
+                                                    (customDateRange.startDate &&
+                                                        date <
+                                                            customDateRange.startDate)
                                                 }
                                                 initialFocus
                                             />
@@ -752,14 +831,20 @@ const AdminAnalyticsPage: React.FC = () => {
                                 </div>
                                 <Button
                                     onClick={() => {
-                                        if (customDateRange.startDate && customDateRange.endDate) {
+                                        if (
+                                            customDateRange.startDate &&
+                                            customDateRange.endDate
+                                        ) {
                                             fetchAnalyticsData();
                                         }
                                     }}
-                                    disabled={!customDateRange.startDate || !customDateRange.endDate}
+                                    disabled={
+                                        !customDateRange.startDate ||
+                                        !customDateRange.endDate
+                                    }
                                     className="w-full md:w-auto"
                                 >
-                                    <CalendarIcon className="w-4 h-4 mr-2"/>
+                                    <CalendarIcon className="w-4 h-4 mr-2" />
                                     Áp dụng
                                 </Button>
                             </div>
@@ -858,10 +943,10 @@ const AdminAnalyticsPage: React.FC = () => {
                                                             index === 0
                                                                 ? "bg-blue-600 text-white"
                                                                 : index === 1
-                                                                    ? "bg-blue-400 text-white"
-                                                                    : index === 2
-                                                                        ? "bg-blue-200 text-blue-600"
-                                                                        : "text-primary"
+                                                                ? "bg-blue-400 text-white"
+                                                                : index === 2
+                                                                ? "bg-blue-200 text-blue-600"
+                                                                : "text-primary"
                                                         }`}
                                                     >
                                                         {index + 1}
@@ -907,21 +992,27 @@ const AdminAnalyticsPage: React.FC = () => {
                                     <CardTitle className="text-sm font-medium">
                                         Đơn hàng hôm nay
                                     </CardTitle>
-                                    <ShoppingBag className="h-4 w-4 text-muted-foreground"/>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">
-                                        {formatNumber(analyticsData.todayOrders.count)}
+                                        {formatNumber(
+                                            analyticsData.todayOrders.count
+                                        )}
                                     </div>
                                     <p className="text-xs text-muted-foreground">
                                         <span
                                             className={`${
-                                                analyticsData.todayOrders.growth >= 0
+                                                analyticsData.todayOrders
+                                                    .growth >= 0
                                                     ? "text-green-600"
                                                     : "text-red-600"
                                             }`}
                                         >
-                                            {analyticsData.todayOrders.growth >= 0 ? "+" : ""}
+                                            {analyticsData.todayOrders.growth >=
+                                            0
+                                                ? "+"
+                                                : ""}
                                             {analyticsData.todayOrders.growth}%
                                         </span>{" "}
                                         so với hôm qua
@@ -934,11 +1025,15 @@ const AdminAnalyticsPage: React.FC = () => {
                                     <CardTitle className="text-sm font-medium">
                                         Tỷ lệ giao hàng thành công
                                     </CardTitle>
-                                    <ShoppingBag className="h-4 w-4 text-muted-foreground"/>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">
-                                        {analyticsData.ordersByStatus[0].percentage}%
+                                        {
+                                            analyticsData.ordersByStatus[0]
+                                                .percentage
+                                        }
+                                        %
                                     </div>
                                 </CardContent>
                             </Card>
@@ -948,11 +1043,15 @@ const AdminAnalyticsPage: React.FC = () => {
                                     <CardTitle className="text-sm font-medium">
                                         Tỷ lệ huỷ đơn
                                     </CardTitle>
-                                    <ShoppingBag className="h-4 w-4 text-muted-foreground"/>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">
-                                        {analyticsData.ordersByStatus[1].percentage}%
+                                        {
+                                            analyticsData.ordersByStatus[1]
+                                                .percentage
+                                        }
+                                        %
                                     </div>
                                 </CardContent>
                             </Card>
@@ -961,11 +1060,15 @@ const AdminAnalyticsPage: React.FC = () => {
                                     <CardTitle className="text-sm font-medium">
                                         Tỷ lệ đơn hàng đang chờ xử lý
                                     </CardTitle>
-                                    <ShoppingBag className="h-4 w-4 text-muted-foreground"/>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">
-                                        {analyticsData.ordersByStatus[2].percentage}%
+                                        {
+                                            analyticsData.ordersByStatus[2]
+                                                .percentage
+                                        }
+                                        %
                                     </div>
                                 </CardContent>
                             </Card>
@@ -974,11 +1077,15 @@ const AdminAnalyticsPage: React.FC = () => {
                                     <CardTitle className="text-sm font-medium">
                                         Tỷ lệ đơn hàng đã thanh toán
                                     </CardTitle>
-                                    <ShoppingBag className="h-4 w-4 text-muted-foreground"/>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">
-                                        {analyticsData.ordersByStatus[3].percentage}%
+                                        {
+                                            analyticsData.ordersByStatus[3]
+                                                .percentage
+                                        }
+                                        %
                                     </div>
                                 </CardContent>
                             </Card>

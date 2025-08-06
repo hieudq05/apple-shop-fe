@@ -53,6 +53,7 @@ import addressService, {
 } from "@/services/addressService";
 import promotionService, { type Promotion } from "@/services/promotionService";
 import { Badge } from "@/components/ui/badge";
+import { Helmet } from "react-helmet-async";
 
 interface OrderItem {
     stockId: number;
@@ -692,6 +693,9 @@ const CreateOrderPage: React.FC = () => {
 
     return (
         <div className="container mx-auto p-4 max-w-6xl">
+            <Helmet>
+                <title>Tạo đơn hàng mới - Apple</title>
+            </Helmet>
             <div className="mb-6">
                 <div className="flex items-center gap-4 mb-4">
                     <Button

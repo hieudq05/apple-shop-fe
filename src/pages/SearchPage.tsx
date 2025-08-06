@@ -1,5 +1,5 @@
-import React, {useState, useEffect, useCallback} from "react";
-import {useSearchParams, Link} from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import {
     MagnifyingGlassIcon,
     FunnelIcon,
@@ -9,8 +9,8 @@ import searchService, {
     type SearchProduct,
     type SearchFilters,
 } from "../services/searchService";
-import {fetchCategories, type Category} from "../services/categoryService";
-import {fetchColors, type Color} from "../services/colorService";
+import { fetchCategories, type Category } from "../services/categoryService";
+import { fetchColors, type Color } from "../services/colorService";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,8 +18,9 @@ import {
     DropdownMenuCheckboxItem,
     DropdownMenuSeparator,
 } from "../components/ui/dropdown-menu";
-import {ChevronLeft, ChevronRight, X} from "lucide-react";
-import {Input} from "@/components/ui/input.tsx";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Input } from "@/components/ui/input.tsx";
+import { Helmet } from "react-helmet-async";
 
 const SearchPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -58,11 +59,11 @@ const SearchPage: React.FC = () => {
     const [isLoadingFilters, setIsLoadingFilters] = useState(true);
 
     const sortOptions = [
-        {value: "name", label: "Tên sản phẩm"},
-        {value: "createdbyname", label: "Ngày mở bán"},
-        {value: "quantity", label: "Giá"},
-        {value: "createdAt", label: "Mới nhất"},
-        {value: "updatedAt", label: "Cập nhật gần đây"},
+        { value: "name", label: "Tên sản phẩm" },
+        { value: "createdbyname", label: "Ngày mở bán" },
+        { value: "quantity", label: "Giá" },
+        { value: "createdAt", label: "Mới nhất" },
+        { value: "updatedAt", label: "Cập nhật gần đây" },
     ];
 
     // Fetch filter data
@@ -92,7 +93,6 @@ const SearchPage: React.FC = () => {
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const performSearch = useCallback(async () => {
-
         setIsLoading(true);
         try {
             const filters: SearchFilters = {
@@ -100,8 +100,8 @@ const SearchPage: React.FC = () => {
                 categoryId:
                     selectedCategories.length > 0
                         ? selectedCategories
-                            .map((id) => parseInt(id))
-                            .filter((id) => !isNaN(id))
+                              .map((id) => parseInt(id))
+                              .filter((id) => !isNaN(id))
                         : undefined,
                 colorIds:
                     selectedColors.length > 0 ? selectedColors : undefined,
@@ -180,7 +180,7 @@ const SearchPage: React.FC = () => {
     const clearFilters = () => {
         setSelectedCategories([]);
         setSelectedColors([]);
-        setPriceRange({min: "", max: ""});
+        setPriceRange({ min: "", max: "" });
         setInStockOnly(false);
         // setSortBy("name");
         // setSortDirection("ASC");
@@ -214,12 +214,17 @@ const SearchPage: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
+            <Helmet>
+                <title>Tìm kiếm sản phẩm</title>
+            </Helmet>
             {/* Search Header */}
             <div className="mb-8">
-                <form onSubmit={handleSearch} className="flex gap-4 mb-6 relative">
+                <form
+                    onSubmit={handleSearch}
+                    className="flex gap-4 mb-6 relative"
+                >
                     <div className="flex-1 relative">
-                        <MagnifyingGlassIcon
-                            className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"/>
+                        <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
                             value={searchTerm}
@@ -245,18 +250,18 @@ const SearchPage: React.FC = () => {
                             {searchTerm
                                 ? `Kết quả tìm kiếm cho "${searchTerm}"`
                                 : selectedCategories.length > 0 ||
-                                selectedColors.length > 0 ||
-                                priceRange.min ||
-                                priceRange.max ||
-                                inStockOnly
-                                    ? "Kết quả lọc sản phẩm"
-                                    : "Tất cả sản phẩm"}
+                                  selectedColors.length > 0 ||
+                                  priceRange.min ||
+                                  priceRange.max ||
+                                  inStockOnly
+                                ? "Kết quả lọc sản phẩm"
+                                : "Tất cả sản phẩm"}
                         </h1>
                         <button
                             onClick={() => setShowFilters(!showFilters)}
                             className="lg:hidden flex items-center px-4 py-2 border rounded-lg hover:bg-gray-50"
                         >
-                            <FunnelIcon className="w-4 h-4 mr-2"/>
+                            <FunnelIcon className="w-4 h-4 mr-2" />
                             Bộ lọc
                         </button>
                     </div>
@@ -289,18 +294,20 @@ const SearchPage: React.FC = () => {
                                 Danh mục
                             </h4>
                             <DropdownMenu>
-                                <DropdownMenuTrigger className={"rounded-xl"} asChild>
-                                    <button
-                                        className="w-full shadow-xs flex items-center justify-between px-3 py-3 border rounded-lg text-foreground transition-colors">
+                                <DropdownMenuTrigger
+                                    className={"rounded-xl"}
+                                    asChild
+                                >
+                                    <button className="w-full shadow-xs flex items-center justify-between px-3 py-3 border rounded-lg text-foreground transition-colors">
                                         <span className="text-sm text-foreground truncate">
                                             {selectedCategories.length > 0
                                                 ? selectedCategories.length ===
-                                                1
+                                                  1
                                                     ? getSelectedCategoryNames()[0]
                                                     : `${selectedCategories.length} danh mục đã chọn`
                                                 : "Chọn danh mục"}
                                         </span>
-                                        <ChevronDownIcon className="w-4 h-4 flex-shrink-0 ml-2"/>
+                                        <ChevronDownIcon className="w-4 h-4 flex-shrink-0 ml-2" />
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-52 max-h-60 overflow-y-auto rounded-xl">
@@ -323,11 +330,11 @@ const SearchPage: React.FC = () => {
                                                             }
                                                             className="w-full flex items-center gap-2 text-left text-sm text-red-600 py-3 px-2 rounded-lg hover:bg-muted"
                                                         >
-                                                            <X className="size-4"/>
+                                                            <X className="size-4" />
                                                             Xóa tất cả đã chọn
                                                         </button>
                                                     </div>
-                                                    <DropdownMenuSeparator/>
+                                                    <DropdownMenuSeparator />
                                                 </>
                                             )}
                                             {categories.map((category) => (
@@ -335,7 +342,7 @@ const SearchPage: React.FC = () => {
                                                     key={category.id}
                                                     checked={selectedCategories.includes(
                                                         category.id?.toString() ||
-                                                        ""
+                                                            ""
                                                     )}
                                                     onCheckedChange={(
                                                         checked
@@ -385,8 +392,7 @@ const SearchPage: React.FC = () => {
                             </h4>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button
-                                        className="w-full shadow-xs flex items-center justify-between px-3 py-3 border rounded-xl transition-colors">
+                                    <button className="w-full shadow-xs flex items-center justify-between px-3 py-3 border rounded-xl transition-colors">
                                         <span className="text-sm text-foreground truncate">
                                             {selectedColors.length > 0
                                                 ? selectedColors.length === 1
@@ -394,7 +400,7 @@ const SearchPage: React.FC = () => {
                                                     : `${selectedColors.length} màu đã chọn`
                                                 : "Chọn màu sắc"}
                                         </span>
-                                        <ChevronDownIcon className="w-4 h-4 flex-shrink-0 ml-2"/>
+                                        <ChevronDownIcon className="w-4 h-4 flex-shrink-0 ml-2" />
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-52 max-h-60 overflow-y-auto rounded-xl">
@@ -417,11 +423,11 @@ const SearchPage: React.FC = () => {
                                                             }
                                                             className="w-full flex items-center gap-2 text-left text-sm text-red-600 py-3 px-2 rounded-lg hover:bg-muted"
                                                         >
-                                                            <X className="size-4"/>
+                                                            <X className="size-4" />
                                                             Xóa tất cả đã chọn
                                                         </button>
                                                     </div>
-                                                    <DropdownMenuSeparator/>
+                                                    <DropdownMenuSeparator />
                                                 </>
                                             )}
                                             {availableColors.map((color) => (
@@ -462,7 +468,7 @@ const SearchPage: React.FC = () => {
                                                             }
                                                             style={{
                                                                 backgroundColor:
-                                                                color.hexCode,
+                                                                    color.hexCode,
                                                                 boxShadow: `inset -2px 1px 5px -1px rgba(0,0,0,0.30)`,
                                                             }}
                                                         ></div>
@@ -640,8 +646,7 @@ const SearchPage: React.FC = () => {
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />
                                                 {totalQuantity === 0 && (
-                                                    <div
-                                                        className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                                                         <span className="text-foreground font-medium">
                                                             Hết hàng
                                                         </span>
@@ -690,7 +695,7 @@ const SearchPage: React.FC = () => {
                                         disabled={currentPage === 0}
                                         className="pe-3 ps-2 py-2 border rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted hover:cursor-pointer"
                                     >
-                                        <ChevronLeft/>
+                                        <ChevronLeft />
                                     </button>
                                     <span className="px-4 py-2 text-sm text-gray-600">
                                         Trang {currentPage + 1} / {totalPages}
@@ -707,19 +712,19 @@ const SearchPage: React.FC = () => {
                                         disabled={currentPage >= totalPages - 1}
                                         className="ps-3 pe-2 py-2 border rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted hover:cursor-pointer"
                                     >
-                                        <ChevronRight/>
+                                        <ChevronRight />
                                     </button>
                                 </div>
                             )}
                         </>
                     ) : searchTerm ||
-                    selectedCategories.length > 0 ||
-                    selectedColors.length > 0 ||
-                    priceRange.min ||
-                    priceRange.max ||
-                    inStockOnly ? (
+                      selectedCategories.length > 0 ||
+                      selectedColors.length > 0 ||
+                      priceRange.min ||
+                      priceRange.max ||
+                      inStockOnly ? (
                         <div className="text-center py-12">
-                            <MagnifyingGlassIcon className="w-16 h-16 text-gray-300 mx-auto mb-4"/>
+                            <MagnifyingGlassIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
                                 Không tìm thấy sản phẩm nào
                             </h3>
@@ -736,15 +741,15 @@ const SearchPage: React.FC = () => {
                             </button>
                         </div>
                     ) : !isLoading &&
-                    products.length === 0 &&
-                    !searchTerm &&
-                    selectedCategories.length === 0 &&
-                    selectedColors.length === 0 &&
-                    !priceRange.min &&
-                    !priceRange.max &&
-                    !inStockOnly ? (
+                      products.length === 0 &&
+                      !searchTerm &&
+                      selectedCategories.length === 0 &&
+                      selectedColors.length === 0 &&
+                      !priceRange.min &&
+                      !priceRange.max &&
+                      !inStockOnly ? (
                         <div className="text-center py-12">
-                            <MagnifyingGlassIcon className="w-16 h-16 text-gray-300 mx-auto mb-4"/>
+                            <MagnifyingGlassIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
                                 Nhập từ khóa để tìm kiếm
                             </h3>

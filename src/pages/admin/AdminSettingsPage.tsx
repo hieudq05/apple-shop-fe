@@ -24,6 +24,7 @@ import userService, {type MyInfo, type UpdateMyInfoData} from "@/services/userSe
 import {format} from "date-fns";
 import {vi} from "date-fns/locale";
 import {AlertCircleIcon, Calendar as CalendarIcon} from "lucide-react";
+import { Helmet } from 'react-helmet-async';
 
 interface Settings {
     notifications: {
@@ -333,6 +334,9 @@ const AdminSettingsPage: React.FC = () => {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <Helmet>
+                <title>Cài đặt hệ thống - Apple</title>
+            </Helmet>
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Cài đặt hệ thống</h2>
             </div>
@@ -411,7 +415,7 @@ const AdminSettingsPage: React.FC = () => {
                                     {/* Avatar Section */}
                                     <div className={"flex transition duration-500 overflow-hidden items-center space-x-4 transform " + (!isEditingProfile ? "scale-100 h-fit" : "scale-0 h-0")}>
                                         <Avatar className="h-20 w-20">
-                                            <AvatarImage src={myInfo.image || undefined} />
+                                            <AvatarImage className='object-cover' src={myInfo.image || undefined} />
                                             <AvatarFallback className="text-lg">
                                                 {myInfo.firstName?.[0]}{myInfo.lastName?.[0]}
                                             </AvatarFallback>

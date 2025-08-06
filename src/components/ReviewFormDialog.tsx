@@ -1,8 +1,7 @@
-import React, {useState} from "react";
-import {Button} from "@/components/ui/button";
-import {Textarea} from "@/components/ui/textarea";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
     Dialog,
     DialogContent,
@@ -11,11 +10,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import {Alert, AlertDescription} from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import StarRating from "@/components/StarRating";
-import {useToast} from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import reviewService from "@/services/reviewService";
-import type {CreateReviewRequest,} from "@/types/review";
+import type { CreateReviewRequest } from "@/types/review";
 
 interface ReviewFormDialogProps {
     open: boolean;
@@ -26,15 +25,22 @@ interface ReviewFormDialogProps {
 }
 
 const ReviewFormDialog: React.FC<ReviewFormDialogProps> = ({
-                                                               open,
-                                                               onOpenChange,
-                                                               orderId,
-                                                               stockId,
-                                                               onSuccess,
-                                                           }) => {
-    const {toast} = useToast();
+    open,
+    onOpenChange,
+    orderId,
+    stockId,
+    onSuccess,
+}) => {
+    console.log("ReviewFormDialog props:", { open, orderId, stockId });
+    const { toast } = useToast();
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState<CreateReviewRequest>({});
+    const [formData, setFormData] = useState<{
+        rating: number;
+        content: string;
+    }>({
+        rating: 0,
+        content: "",
+    });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -69,21 +75,28 @@ const ReviewFormDialog: React.FC<ReviewFormDialogProps> = ({
                 rating: formData.rating,
                 content: formData.content,
             };
-            await reviewService.createReview(createData);
-            toast({
-                title: "Thành công",
-                description: "Tạo đánh giá thành công",
-            });
+            const response = await reviewService.createReview(createData);
+
+            if (response.success) {
+                toast({
+                    title: "Thành công",
+                    description: "Tạo đánh giá thành công",
+                });
+            } else {
+                toast({
+                    title: "Lỗi",
+                    description: response.message,
+                    variant: "destructive",
+                });
+            }
 
             onOpenChange(false);
             onSuccess?.();
-
         } catch (error) {
             console.error("Error submitting review:", error);
             toast({
                 title: "Lỗi",
-                description:
-                    "Không thể tạo đánh giá",
+                description: error.message,
                 variant: "destructive",
             });
         } finally {
@@ -95,11 +108,11 @@ const ReviewFormDialog: React.FC<ReviewFormDialogProps> = ({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>
-                        Viết đánh giá
-                    </DialogTitle>
+                    <DialogTitle>Viết đánh giá</DialogTitle>
                     <DialogDescription>
-                            Chia sẻ đánh giá của bạn về sản phẩm.
+                        Chia sẻ đánh giá của bạn về sản phẩm. (Debug: open=
+                        {open ? "true" : "false"}, stockId={stockId}, orderId=
+                        {orderId})
                     </DialogDescription>
                 </DialogHeader>
 
@@ -111,7 +124,7 @@ const ReviewFormDialog: React.FC<ReviewFormDialogProps> = ({
                             interactive
                             size="lg"
                             onRatingChange={(rating) =>
-                                setFormData((prev) => ({...prev, rating}))
+                                setFormData((prev) => ({ ...prev, rating }))
                             }
                         />
                     </div>
@@ -153,9 +166,7 @@ const ReviewFormDialog: React.FC<ReviewFormDialogProps> = ({
                             Hủy
                         </Button>
                         <Button type="submit" disabled={loading}>
-                            {loading
-                                ? "Đang xử lý..."
-                                    : "Gửi đánh giá"}
+                            {loading ? "Đang xử lý..." : "Gửi đánh giá"}
                         </Button>
                     </DialogFooter>
                 </form>

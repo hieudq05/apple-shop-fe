@@ -3,7 +3,7 @@ import {ModeToggle} from "@/components/mode-toggle.tsx";
 
 const Footer: React.FC = () => {
     return (
-        <footer className="bg-muted text-foreground py-8 px-6 mt-6">
+        <footer className="bg-muted text-foreground py-8 px-6">
             <div className="container mx-auto">
                 {/* Footer notes */}
                 <div className="border-b border-gray-300 pb-5 text-xs">

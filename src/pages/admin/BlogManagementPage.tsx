@@ -11,6 +11,7 @@ import {
     UserIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
+    EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,13 +30,20 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import blogService, {
     type Blog,
     type BlogParams,
 } from "../../services/blogService";
 import { useDebounce } from "../../hooks/useDebounce";
-import {Input} from "@/components/ui/input.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { Helmet } from "react-helmet-async";
 
 const BlogManagementPage: React.FC = () => {
     const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -204,9 +212,7 @@ const BlogManagementPage: React.FC = () => {
     };
 
     const getStatusBadgeClass = (isPublished: boolean): string => {
-        return isPublished
-            ? "text-green-500"
-            : "text-muted-foreground";
+        return isPublished ? "text-green-500" : "text-muted-foreground";
     };
 
     const getStatusText = (isPublished: boolean) => {
@@ -249,6 +255,9 @@ const BlogManagementPage: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6">
+            <Helmet>
+                <title>Quản lý Blog - Apple</title>
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -260,10 +269,7 @@ const BlogManagementPage: React.FC = () => {
                     </p>
                 </div>
                 <Button asChild>
-                    <Link
-                        to="/admin/blog/create"
-                        className="flex items-center"
-                    >
+                    <Link to="/admin/blog/create" className="flex items-center">
                         <PlusIcon className="w-4 h-4" />
                         <span>Viết bài mới</span>
                     </Link>
@@ -354,17 +360,6 @@ const BlogManagementPage: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center space-x-2">
-                                            <Avatar className="size-10">
-                                                <AvatarImage
-                                                    src={blog.author.image}
-                                                    alt={getAuthorName(
-                                                        blog.author
-                                                    )}
-                                                />
-                                                <AvatarFallback>
-                                                    <UserIcon className="size-6" />
-                                                </AvatarFallback>
-                                            </Avatar>
                                             <span className="text-sm text-foreground">
                                                 {getAuthorName(blog.author)}
                                             </span>
@@ -418,42 +413,50 @@ const BlogManagementPage: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end space-x-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                asChild
-                                            >
-                                                <Link
-                                                    to={`/admin/blog/${blog.id}`}
-                                                >
-                                                    <EyeIcon className="w-4 h-4" />
-                                                </Link>
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                asChild
-                                            >
-                                                <Link
-                                                    to={`/admin/blog/${blog.id}/edit`}
-                                                >
-                                                    <PencilIcon className="w-4 h-4" />
-                                                </Link>
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    openDeleteDialog(
-                                                        blog.id,
-                                                        blog.title
-                                                    )
-                                                }
-                                                className="text-destructive hover:text-destructive cursor-pointer"
-                                            >
-                                                <TrashIcon className="w-4 h-4" />
-                                            </Button>
+                                        <div className="flex items-center justify-end">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 p-0"
+                                                    >
+                                                        <EllipsisVerticalIcon className="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link
+                                                            to={`/admin/blog/${blog.id}`}
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <EyeIcon className="w-4 h-4" />
+                                                            Xem chi tiết
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem asChild>
+                                                        <Link
+                                                            to={`/admin/blog/${blog.id}/edit`}
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <PencilIcon className="w-4 h-4" />
+                                                            Chỉnh sửa
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            openDeleteDialog(
+                                                                blog.id,
+                                                                blog.title
+                                                            )
+                                                        }
+                                                        className="text-destructive focus:text-destructive flex items-center gap-2"
+                                                    >
+                                                        <TrashIcon className="w-4 h-4 text-destructive" />
+                                                        Xóa
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </td>
                                 </tr>

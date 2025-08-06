@@ -71,6 +71,7 @@ import {
     DialogTitle,
 } from "../../components/ui/dialog";
 import { Textarea } from "../../components/ui/textarea";
+import { Helmet } from "react-helmet-async";
 
 interface ProductForm {
     id: number;
@@ -910,6 +911,13 @@ const EditProductPage: React.FC = () => {
 
     return (
         <div className="p-6">
+            <Helmet>
+                <title>Chỉnh sửa {formData.name}</title>
+                <meta
+                    name="description"
+                    content="Chỉnh sửa thông tin sản phẩm trong trang quản trị"
+                />
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">

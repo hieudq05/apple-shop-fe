@@ -339,7 +339,7 @@ export function OrderDataTable({
 
     return (
         <div className="w-full">
-            <div className="rounded-md border">
+            <div className="rounded-2xl border">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

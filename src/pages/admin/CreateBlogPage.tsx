@@ -1,18 +1,19 @@
-import React, {useState, useRef} from "react";
-import {useNavigate} from "react-router-dom";
-import {toast} from "sonner";
+import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
     EyeIcon,
     CloudArrowUpIcon,
     PhotoIcon,
 } from "@heroicons/react/24/outline";
 import blogService from "../../services/blogService";
-import {Button} from "@/components/ui/button.tsx";
-import {Input} from "@/components/ui/input.tsx";
-import {X} from "lucide-react";
+import { Button } from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { X } from "lucide-react";
 import MarkdownEditor from "@/components/MarkdownEditor.tsx";
-import {Badge} from "@/components/ui/badge.tsx";
+import { Badge } from "@/components/ui/badge.tsx";
 import MarkdownRenderer from "@/components/MarkdownRenderer.tsx";
+import { Helmet } from "react-helmet-async";
 
 interface BlogForm {
     title: string;
@@ -71,7 +72,7 @@ const CreateBlogPage: React.FC = () => {
 
             // Create preview URL
             const imageUrl = URL.createObjectURL(file);
-            setFormData((prev) => ({...prev, thumbnail: imageUrl}));
+            setFormData((prev) => ({ ...prev, thumbnail: imageUrl }));
 
             toast.dismiss(uploadToast);
             toast.success("Tải ảnh lên thành công!");
@@ -85,7 +86,7 @@ const CreateBlogPage: React.FC = () => {
     };
 
     const handleUrlChange = (url: string) => {
-        setFormData((prev) => ({...prev, thumbnail: url}));
+        setFormData((prev) => ({ ...prev, thumbnail: url }));
     };
 
     const validateUrl = (url: string): boolean => {
@@ -158,6 +159,13 @@ const CreateBlogPage: React.FC = () => {
 
     return (
         <div className="min-h-screen py-8">
+            <Helmet>
+                <title>Tạo bài viết mới - Apple</title>
+                <meta
+                    name="description"
+                    content="Tạo và quản lý bài viết blog của bạn"
+                />
+            </Helmet>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -181,7 +189,7 @@ const CreateBlogPage: React.FC = () => {
                                         : ""
                                 }`}
                             >
-                                <EyeIcon className="w-4 h-4 inline"/>
+                                <EyeIcon className="w-4 h-4 inline" />
                                 {showPreview ? "Ẩn xem trước" : "Xem trước"}
                             </Button>
                         </div>
@@ -346,7 +354,7 @@ const CreateBlogPage: React.FC = () => {
                                                 className="w-full cursor-pointer h-48 border-2 border-dashed rounded-2xl hover:border-blue-400 hover:bg-foreground/5 bg-foreground/3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <div className="text-center">
-                                                    <CloudArrowUpIcon className="size-20 text-gray-400 mx-auto mb-2"/>
+                                                    <CloudArrowUpIcon className="size-20 text-gray-400 mx-auto mb-2" />
                                                     <p className="text-sm text-muted-foreground mb-1">
                                                         {isUploading
                                                             ? "Đang tải lên..."
@@ -383,14 +391,13 @@ const CreateBlogPage: React.FC = () => {
                                                 }
                                                 className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 transition-colors"
                                             >
-                                                <X className={"size-4"}/>
+                                                <X className={"size-4"} />
                                             </Button>
                                         </div>
                                     ) : (
-                                        <div
-                                            className="w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center">
+                                        <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center">
                                             <div className="text-center">
-                                                <PhotoIcon className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2"/>
+                                                <PhotoIcon className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2" />
                                                 <p className="text-muted-foreground">
                                                     Chưa có ảnh đại diện
                                                 </p>
@@ -413,7 +420,7 @@ const CreateBlogPage: React.FC = () => {
                                             setFormData((prev) => ({
                                                 ...prev,
                                                 content: value,
-                                            }))
+                                            }));
                                         }}
                                         height={500}
                                         placeholder="Nhập nội dung bài viết..."
@@ -436,8 +443,8 @@ const CreateBlogPage: React.FC = () => {
                                         {isLoading
                                             ? "Đang tạo..."
                                             : formData.isPublished
-                                                ? "Tạo và xuất bản"
-                                                : "Lưu bản nháp"}
+                                            ? "Tạo và xuất bản"
+                                            : "Lưu bản nháp"}
                                     </button>
 
                                     <button
@@ -504,11 +511,11 @@ const CreateBlogPage: React.FC = () => {
                                         </h4>
                                         <div className="text-sm text-muted-foreground max-h-40 overflow-y-auto">
                                             {formData.content ? (
-                                                <MarkdownRenderer content={formData.content.substring(
-                                                    0,
-                                                    200
-                                                )}
-
+                                                <MarkdownRenderer
+                                                    content={formData.content.substring(
+                                                        0,
+                                                        200
+                                                    )}
                                                 />
                                             ) : (
                                                 <p className="italic">

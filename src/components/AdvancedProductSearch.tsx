@@ -7,6 +7,11 @@ import {
     DollarSign,
     Package,
     Tag,
+    ChevronDown,
+    ChevronUp,
+    Sliders,
+    Star,
+    Archive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +25,20 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 import type { ProductSearchParams } from "@/services/adminProductService";
 
 // Simple Switch component
@@ -46,35 +65,22 @@ const Switch: React.FC<{
     </button>
 );
 
-// Simple accordion implementation
-const Accordion: React.FC<{
-    children: React.ReactNode;
-    type: string;
-    className?: string;
-}> = ({ children }) => <div className="space-y-2">{children}</div>;
+// Price formatter
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+    }).format(amount);
+};
 
-const AccordionItem: React.FC<{ children: React.ReactNode; value: string }> = ({
-    children,
-}) => <div className="border rounded-lg">{children}</div>;
-
-const AccordionTrigger: React.FC<{
-    children: React.ReactNode;
-    onClick?: () => void;
-}> = ({ children, onClick }) => (
-    <button
-        onClick={onClick}
-        className="flex items-center justify-between w-full p-4 text-left hover:bg-muted/50 rounded-t-lg"
-    >
-        {children}
-    </button>
-);
-
-const AccordionContent: React.FC<{
-    children: React.ReactNode;
-    className?: string;
-}> = ({ children, className }) => (
-    <div className={`px-4 pb-4 ${className}`}>{children}</div>
-);
+// Quick price filters
+const QUICK_PRICE_FILTERS = [
+    { label: "Dưới 10 triệu", min: 0, max: 10000000 },
+    { label: "10 - 20 triệu", min: 10000000, max: 20000000 },
+    { label: "20 - 30 triệu", min: 20000000, max: 30000000 },
+    { label: "30 - 50 triệu", min: 30000000, max: 50000000 },
+    { label: "Trên 50 triệu", min: 50000000, max: 100000000 },
+];
 
 interface AdvancedProductSearchProps {
     onSearch: (params: ProductSearchParams) => void;
@@ -98,6 +104,16 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
         searchKeyword: "",
     });
 
+    // Collapsible states
+    const [basicOpen, setBasicOpen] = useState(true);
+    const [priceOpen, setPriceOpen] = useState(false);
+    const [quantityOpen, setQuantityOpen] = useState(false);
+    const [categoriesOpen, setCategoriesOpen] = useState(false);
+    const [statusOpen, setStatusOpen] = useState(false);
+
+    // Price range state for slider
+    const [priceRange, setPriceRange] = useState([0, 100000000]);
+
     const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
     // Update active filters when search params change
@@ -120,7 +136,7 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
 
         setActiveFilters(filters);
         setSearchParams1(searchParams);
-    }, [searchParams]);
+    }, [searchParams, setSearchParams1]);
 
     const handleInputChange = (
         field: keyof ProductSearchParams,
@@ -129,6 +145,24 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
         setSearchParams((prev) => ({
             ...prev,
             [field]: value,
+        }));
+    };
+
+    const handlePriceRangeChange = (values: number[]) => {
+        setPriceRange(values);
+        setSearchParams((prev) => ({
+            ...prev,
+            minPrice: values[0] || undefined,
+            maxPrice: values[1] || undefined,
+        }));
+    };
+
+    const handleQuickPriceFilter = (min: number, max: number) => {
+        setPriceRange([min, max]);
+        setSearchParams((prev) => ({
+            ...prev,
+            minPrice: min,
+            maxPrice: max,
         }));
     };
 
@@ -145,6 +179,7 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
             sortDirection: "desc",
         };
         setSearchParams(resetParams);
+        setPriceRange([0, 100000000]);
         onReset();
         setIsOpen(false);
     };
@@ -165,7 +200,7 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Tìm kiếm sản phẩm..."
+                        placeholder="Tìm kiếm sản phẩm (tên, mô tả, features...)..."
                         value={searchParams.searchKeyword || ""}
                         onChange={(e) =>
                             handleInputChange("searchKeyword", e.target.value)
@@ -191,7 +226,7 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
                     <DialogTrigger asChild>
                         <Button variant="outline" className="relative">
                             <Filter className="h-4 w-4 mr-2" />
-                            Lọc nâng cao
+                            Bộ lọc nâng cao
                             {activeFilters.length > 0 && (
                                 <Badge className="ml-2 h-5 w-5 p-0 text-xs">
                                     {activeFilters.length}
@@ -199,24 +234,32 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
                             )}
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
                         <DialogHeader>
-                            <DialogTitle>Tìm kiếm nâng cao</DialogTitle>
+                            <DialogTitle className="flex items-center gap-2">
+                                <Sliders className="h-5 w-5" />
+                                Tìm kiếm và lọc sản phẩm nâng cao
+                            </DialogTitle>
                             <DialogDescription>
                                 Sử dụng các bộ lọc chi tiết để tìm kiếm sản phẩm
+                                chính xác
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="space-y-4">
-                            {/* Active Filters */}
+                        <div className="flex-1 overflow-y-auto space-y-6">
+                            {/* Active Filters Preview */}
                             {activeFilters.length > 0 && (
-                                <div className="space-y-2">
-                                    <Label>Bộ lọc đang áp dụng:</Label>
-                                    <div className="flex flex-wrap gap-2">
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                    <Label className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                                        Bộ lọc đang áp dụng (
+                                        {activeFilters.length}):
+                                    </Label>
+                                    <div className="flex flex-wrap gap-2 mt-2">
                                         {activeFilters.map((filter) => (
                                             <Badge
                                                 key={filter}
                                                 variant="secondary"
+                                                className="bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100"
                                             >
                                                 {filter}
                                             </Badge>
@@ -225,460 +268,540 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
                                 </div>
                             )}
 
-                            <Accordion type="multiple" className="w-full">
-                                {/* Basic Search */}
-                                <AccordionItem value="basic">
-                                    <AccordionTrigger>
+                            {/* Basic Search Section */}
+                            <Collapsible
+                                open={basicOpen}
+                                onOpenChange={setBasicOpen}
+                            >
+                                <CollapsibleTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-between p-0 h-auto"
+                                    >
                                         <div className="flex items-center gap-2">
-                                            <Search className="h-4 w-4" />
-                                            Tìm kiếm cơ bản
+                                            <Search className="h-4 w-4 text-blue-600" />
+                                            <span className="font-medium">
+                                                Tìm kiếm cơ bản
+                                            </span>
                                         </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="space-y-4">
+                                        {basicOpen ? (
+                                            <ChevronUp className="h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="mt-4 space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <Label htmlFor="searchKeyword">
-                                                Từ khóa
+                                            <Label
+                                                htmlFor="name"
+                                                className="text-sm font-medium"
+                                            >
+                                                Tên sản phẩm
                                             </Label>
                                             <Input
-                                                id="searchKeyword"
-                                                placeholder="Tìm kiếm trong tên, mô tả..."
+                                                id="name"
+                                                placeholder="iPhone, MacBook, iPad..."
+                                                value={searchParams.name || ""}
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        "name",
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label
+                                                htmlFor="description"
+                                                className="text-sm font-medium"
+                                            >
+                                                Mô tả sản phẩm
+                                            </Label>
+                                            <Input
+                                                id="description"
+                                                placeholder="Tìm trong mô tả..."
                                                 value={
-                                                    searchParams.searchKeyword ||
+                                                    searchParams.description ||
                                                     ""
                                                 }
                                                 onChange={(e) =>
                                                     handleInputChange(
-                                                        "searchKeyword",
+                                                        "description",
                                                         e.target.value
                                                     )
                                                 }
+                                                className="mt-1"
                                             />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <Label htmlFor="name">
-                                                    Tên sản phẩm
-                                                </Label>
-                                                <Input
-                                                    id="name"
-                                                    placeholder="Tìm theo tên..."
-                                                    value={
-                                                        searchParams.name || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            "name",
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
+
+                            <Separator />
+
+                            {/* Price Range Section */}
+                            <Collapsible
+                                open={priceOpen}
+                                onOpenChange={setPriceOpen}
+                            >
+                                <CollapsibleTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-between p-0 h-auto"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <DollarSign className="h-4 w-4 text-green-600" />
+                                            <span className="font-medium">
+                                                Khoảng giá
+                                            </span>
+                                            {(searchParams.minPrice ||
+                                                searchParams.maxPrice) && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="ml-2"
+                                                >
+                                                    {formatCurrency(
+                                                        priceRange[0]
+                                                    )}{" "}
+                                                    -{" "}
+                                                    {formatCurrency(
+                                                        priceRange[1]
+                                                    )}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        {priceOpen ? (
+                                            <ChevronUp className="h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="mt-4 space-y-4">
+                                    {/* Quick Price Filters */}
+                                    <div>
+                                        <Label className="text-sm font-medium mb-2 block">
+                                            Chọn nhanh mức giá:
+                                        </Label>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                            {QUICK_PRICE_FILTERS.map(
+                                                (filter) => (
+                                                    <Button
+                                                        key={filter.label}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            handleQuickPriceFilter(
+                                                                filter.min,
+                                                                filter.max
+                                                            )
+                                                        }
+                                                        className={`text-xs h-8 ${
+                                                            priceRange[0] ===
+                                                                filter.min &&
+                                                            priceRange[1] ===
+                                                                filter.max
+                                                                ? "bg-primary text-primary-foreground"
+                                                                : ""
+                                                        }`}
+                                                    >
+                                                        {filter.label}
+                                                    </Button>
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Price Range Slider */}
+                                    <div className="space-y-4">
+                                        <Label className="text-sm font-medium">
+                                            Tùy chỉnh khoảng giá:{" "}
+                                            {formatCurrency(priceRange[0])} -{" "}
+                                            {formatCurrency(priceRange[1])}
+                                        </Label>
+                                        <Slider
+                                            value={priceRange}
+                                            onValueChange={
+                                                handlePriceRangeChange
+                                            }
+                                            max={100000000}
+                                            min={0}
+                                            step={1000000}
+                                            className="w-full"
+                                        />
+                                        <div className="flex justify-between text-xs text-muted-foreground">
+                                            <span>0₫</span>
+                                            <span>100.000.000₫</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Manual Price Input */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label
+                                                htmlFor="minPrice"
+                                                className="text-sm"
+                                            >
+                                                Giá từ (VND)
+                                            </Label>
+                                            <Input
+                                                id="minPrice"
+                                                type="number"
+                                                placeholder="0"
+                                                value={priceRange[0] || ""}
+                                                onChange={(e) => {
+                                                    const value =
+                                                        Number(
                                                             e.target.value
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="description">
-                                                    Mô tả
-                                                </Label>
-                                                <Input
-                                                    id="description"
-                                                    placeholder="Tìm theo mô tả..."
-                                                    value={
-                                                        searchParams.description ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            "description",
+                                                        ) || 0;
+                                                    handlePriceRangeChange([
+                                                        value,
+                                                        priceRange[1],
+                                                    ]);
+                                                }}
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label
+                                                htmlFor="maxPrice"
+                                                className="text-sm"
+                                            >
+                                                Giá đến (VND)
+                                            </Label>
+                                            <Input
+                                                id="maxPrice"
+                                                type="number"
+                                                placeholder="100000000"
+                                                value={priceRange[1] || ""}
+                                                onChange={(e) => {
+                                                    const value =
+                                                        Number(
                                                             e.target.value
-                                                        )
-                                                    }
-                                                />
-                                            </div>
+                                                        ) || 100000000;
+                                                    handlePriceRangeChange([
+                                                        priceRange[0],
+                                                        value,
+                                                    ]);
+                                                }}
+                                                className="mt-1"
+                                            />
                                         </div>
-                                    </AccordionContent>
-                                </AccordionItem>
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
 
-                                {/* Price Range */}
-                                <AccordionItem value="price">
-                                    <AccordionTrigger>
-                                        <div className="flex items-center gap-2">
-                                            <DollarSign className="h-4 w-4" />
-                                            Khoảng giá
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <Label htmlFor="minPrice">
-                                                    Giá từ (VND)
-                                                </Label>
-                                                <Input
-                                                    id="minPrice"
-                                                    type="number"
-                                                    placeholder="0"
-                                                    value={
-                                                        searchParams.minPrice ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            "minPrice",
-                                                            Number(
-                                                                e.target.value
-                                                            ) || undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="maxPrice">
-                                                    Giá đến (VND)
-                                                </Label>
-                                                <Input
-                                                    id="maxPrice"
-                                                    type="number"
-                                                    placeholder="999999999"
-                                                    value={
-                                                        searchParams.maxPrice ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            "maxPrice",
-                                                            Number(
-                                                                e.target.value
-                                                            ) || undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
+                            <Separator />
 
-                                {/* Quantity Range */}
-                                <AccordionItem value="quantity">
-                                    <AccordionTrigger>
+                            {/* Quantity Section */}
+                            <Collapsible
+                                open={quantityOpen}
+                                onOpenChange={setQuantityOpen}
+                            >
+                                <CollapsibleTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-between p-0 h-auto"
+                                    >
                                         <div className="flex items-center gap-2">
-                                            <Package className="h-4 w-4" />
-                                            Số lượng tồn kho
+                                            <Package className="h-4 w-4 text-orange-600" />
+                                            <span className="font-medium">
+                                                Số lượng tồn kho
+                                            </span>
                                         </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <Label htmlFor="minQuantity">
-                                                    Số lượng từ
-                                                </Label>
-                                                <Input
-                                                    id="minQuantity"
-                                                    type="number"
-                                                    placeholder="0"
-                                                    value={
-                                                        searchParams.minQuantity ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            "minQuantity",
-                                                            Number(
-                                                                e.target.value
-                                                            ) || undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="maxQuantity">
-                                                    Số lượng đến
-                                                </Label>
-                                                <Input
-                                                    id="maxQuantity"
-                                                    type="number"
-                                                    placeholder="999999"
-                                                    value={
-                                                        searchParams.maxQuantity ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            "maxQuantity",
-                                                            Number(
-                                                                e.target.value
-                                                            ) || undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
+                                        {quantityOpen ? (
+                                            <ChevronUp className="h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="mt-4 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label
+                                                htmlFor="minQuantity"
+                                                className="text-sm font-medium"
+                                            >
+                                                Số lượng từ
+                                            </Label>
+                                            <Input
+                                                id="minQuantity"
+                                                type="number"
+                                                placeholder="0"
+                                                value={
+                                                    searchParams.minQuantity ||
+                                                    ""
+                                                }
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        "minQuantity",
+                                                        Number(
+                                                            e.target.value
+                                                        ) || undefined
+                                                    )
+                                                }
+                                                className="mt-1"
+                                            />
                                         </div>
-                                    </AccordionContent>
-                                </AccordionItem>
+                                        <div>
+                                            <Label
+                                                htmlFor="maxQuantity"
+                                                className="text-sm font-medium"
+                                            >
+                                                Số lượng đến
+                                            </Label>
+                                            <Input
+                                                id="maxQuantity"
+                                                type="number"
+                                                placeholder="999999"
+                                                value={
+                                                    searchParams.maxQuantity ||
+                                                    ""
+                                                }
+                                                onChange={(e) =>
+                                                    handleInputChange(
+                                                        "maxQuantity",
+                                                        Number(
+                                                            e.target.value
+                                                        ) || undefined
+                                                    )
+                                                }
+                                                className="mt-1"
+                                            />
+                                        </div>
+                                    </div>
 
-                                {/* Date Range */}
-                                <AccordionItem value="date">
-                                    <AccordionTrigger>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="h-4 w-4" />
-                                            Khoảng thời gian
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <Label htmlFor="createdAfter">
-                                                        Tạo sau ngày
-                                                    </Label>
-                                                    <Input
-                                                        id="createdAfter"
-                                                        type="datetime-local"
-                                                        value={
-                                                            searchParams.createdAfter ||
-                                                            ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleInputChange(
-                                                                "createdAfter",
-                                                                e.target
-                                                                    .value ||
-                                                                    undefined
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="createdBefore">
-                                                        Tạo trước ngày
-                                                    </Label>
-                                                    <Input
-                                                        id="createdBefore"
-                                                        type="datetime-local"
-                                                        value={
-                                                            searchParams.createdBefore ||
-                                                            ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleInputChange(
-                                                                "createdBefore",
-                                                                e.target
-                                                                    .value ||
-                                                                    undefined
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <Label htmlFor="updatedAfter">
-                                                        Cập nhật sau ngày
-                                                    </Label>
-                                                    <Input
-                                                        id="updatedAfter"
-                                                        type="datetime-local"
-                                                        value={
-                                                            searchParams.updatedAfter ||
-                                                            ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleInputChange(
-                                                                "updatedAfter",
-                                                                e.target
-                                                                    .value ||
-                                                                    undefined
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="updatedBefore">
-                                                        Cập nhật trước ngày
-                                                    </Label>
-                                                    <Input
-                                                        id="updatedBefore"
-                                                        type="datetime-local"
-                                                        value={
-                                                            searchParams.updatedBefore ||
-                                                            ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleInputChange(
-                                                                "updatedBefore",
-                                                                e.target
-                                                                    .value ||
-                                                                    undefined
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
+                                    {/* Stock Status */}
+                                    <div className="flex items-center space-x-2">
+                                        <Switch
+                                            id="inStock"
+                                            checked={
+                                                searchParams.inStock || false
+                                            }
+                                            onCheckedChange={(checked) =>
+                                                handleInputChange(
+                                                    "inStock",
+                                                    checked || undefined
+                                                )
+                                            }
+                                        />
+                                        <Label
+                                            htmlFor="inStock"
+                                            className="text-sm"
+                                        >
+                                            Chỉ hiển thị sản phẩm còn hàng
+                                        </Label>
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
 
-                                {/* Status & Settings */}
-                                <AccordionItem value="status">
-                                    <AccordionTrigger>
-                                        <div className="flex items-center gap-2">
-                                            <Tag className="h-4 w-4" />
-                                            Trạng thái & Cài đặt
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <Label htmlFor="inStock">
-                                                    Chỉ sản phẩm còn hàng
-                                                </Label>
-                                                <Switch
-                                                    id="inStock"
-                                                    checked={
-                                                        searchParams.inStock ||
-                                                        false
-                                                    }
-                                                    onCheckedChange={(
-                                                        checked: boolean
-                                                    ) =>
-                                                        handleInputChange(
-                                                            "inStock",
-                                                            checked
-                                                                ? true
-                                                                : undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <Label htmlFor="hasReviews">
-                                                    Có đánh giá
-                                                </Label>
-                                                <Switch
-                                                    id="hasReviews"
-                                                    checked={
-                                                        searchParams.hasReviews ||
-                                                        false
-                                                    }
-                                                    onCheckedChange={(
-                                                        checked: boolean
-                                                    ) =>
-                                                        handleInputChange(
-                                                            "hasReviews",
-                                                            checked
-                                                                ? true
-                                                                : undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <Label htmlFor="isDeleted">
-                                                    Sản phẩm đã xóa
-                                                </Label>
-                                                <Switch
-                                                    id="isDeleted"
-                                                    checked={
-                                                        searchParams.isDeleted ||
-                                                        false
-                                                    }
-                                                    onCheckedChange={(
-                                                        checked: boolean
-                                                    ) =>
-                                                        handleInputChange(
-                                                            "isDeleted",
-                                                            checked
-                                                                ? true
-                                                                : undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
+                            <Separator />
 
-                                {/* Rating Range */}
-                                <AccordionItem value="rating">
-                                    <AccordionTrigger>
+                            {/* Status & Options */}
+                            <Collapsible
+                                open={statusOpen}
+                                onOpenChange={setStatusOpen}
+                            >
+                                <CollapsibleTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-between p-0 h-auto"
+                                    >
                                         <div className="flex items-center gap-2">
-                                            <Tag className="h-4 w-4" />
-                                            Xếp hạng đánh giá
+                                            <Archive className="h-4 w-4 text-purple-600" />
+                                            <span className="font-medium">
+                                                Trạng thái & Tùy chọn
+                                            </span>
                                         </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <Label htmlFor="minRating">
-                                                    Xếp hạng từ
-                                                </Label>
-                                                <Input
-                                                    id="minRating"
-                                                    type="number"
-                                                    min="0"
-                                                    max="5"
-                                                    step="0.1"
-                                                    placeholder="0"
-                                                    value={
-                                                        searchParams.minRating ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            "minRating",
-                                                            Number(
-                                                                e.target.value
-                                                            ) || undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label htmlFor="maxRating">
-                                                    Xếp hạng đến
-                                                </Label>
-                                                <Input
-                                                    id="maxRating"
-                                                    type="number"
-                                                    min="0"
-                                                    max="5"
-                                                    step="0.1"
-                                                    placeholder="5"
-                                                    value={
-                                                        searchParams.maxRating ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleInputChange(
-                                                            "maxRating",
-                                                            Number(
-                                                                e.target.value
-                                                            ) || undefined
-                                                        )
-                                                    }
-                                                />
-                                            </div>
+                                        {statusOpen ? (
+                                            <ChevronUp className="h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="mt-4 space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex items-center space-x-2">
+                                            <Switch
+                                                id="hasReviews"
+                                                checked={
+                                                    searchParams.hasReviews ||
+                                                    false
+                                                }
+                                                onCheckedChange={(checked) =>
+                                                    handleInputChange(
+                                                        "hasReviews",
+                                                        checked || undefined
+                                                    )
+                                                }
+                                            />
+                                            <Label
+                                                htmlFor="hasReviews"
+                                                className="text-sm"
+                                            >
+                                                Có đánh giá từ khách hàng
+                                            </Label>
                                         </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
+
+                                        <div className="flex items-center space-x-2">
+                                            <Switch
+                                                id="isDeleted"
+                                                checked={
+                                                    searchParams.isDeleted ||
+                                                    false
+                                                }
+                                                onCheckedChange={(checked) =>
+                                                    handleInputChange(
+                                                        "isDeleted",
+                                                        checked || undefined
+                                                    )
+                                                }
+                                            />
+                                            <Label
+                                                htmlFor="isDeleted"
+                                                className="text-sm"
+                                            >
+                                                Hiển thị sản phẩm đã xóa
+                                            </Label>
+                                        </div>
+                                    </div>
+
+                                    {/* Rating Range */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label
+                                                htmlFor="minRating"
+                                                className="text-sm font-medium flex items-center gap-1"
+                                            >
+                                                <Star className="h-3 w-3" />
+                                                Đánh giá từ
+                                            </Label>
+                                            <Select
+                                                value={
+                                                    searchParams.minRating?.toString() ||
+                                                    ""
+                                                }
+                                                onValueChange={(value) =>
+                                                    handleInputChange(
+                                                        "minRating",
+                                                        value
+                                                            ? Number(value)
+                                                            : undefined
+                                                    )
+                                                }
+                                            >
+                                                <SelectTrigger className="mt-1">
+                                                    <SelectValue placeholder="Chọn sao tối thiểu" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="1">
+                                                        1 sao
+                                                    </SelectItem>
+                                                    <SelectItem value="2">
+                                                        2 sao
+                                                    </SelectItem>
+                                                    <SelectItem value="3">
+                                                        3 sao
+                                                    </SelectItem>
+                                                    <SelectItem value="4">
+                                                        4 sao
+                                                    </SelectItem>
+                                                    <SelectItem value="5">
+                                                        5 sao
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div>
+                                            <Label
+                                                htmlFor="maxRating"
+                                                className="text-sm font-medium flex items-center gap-1"
+                                            >
+                                                <Star className="h-3 w-3" />
+                                                Đánh giá đến
+                                            </Label>
+                                            <Select
+                                                value={
+                                                    searchParams.maxRating?.toString() ||
+                                                    ""
+                                                }
+                                                onValueChange={(value) =>
+                                                    handleInputChange(
+                                                        "maxRating",
+                                                        value
+                                                            ? Number(value)
+                                                            : undefined
+                                                    )
+                                                }
+                                            >
+                                                <SelectTrigger className="mt-1">
+                                                    <SelectValue placeholder="Chọn sao tối đa" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="1">
+                                                        1 sao
+                                                    </SelectItem>
+                                                    <SelectItem value="2">
+                                                        2 sao
+                                                    </SelectItem>
+                                                    <SelectItem value="3">
+                                                        3 sao
+                                                    </SelectItem>
+                                                    <SelectItem value="4">
+                                                        4 sao
+                                                    </SelectItem>
+                                                    <SelectItem value="5">
+                                                        5 sao
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
                         </div>
 
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="outline" onClick={handleReset}>
-                                <X className="h-4 w-4 mr-2" />
-                                Xóa bộ lọc
+                        {/* Action Buttons */}
+                        <div className="flex justify-between pt-4 border-t">
+                            <Button
+                                variant="outline"
+                                onClick={handleReset}
+                                className="flex items-center gap-2"
+                            >
+                                <X className="h-4 w-4" />
+                                Đặt lại tất cả
                             </Button>
-                            <Button onClick={handleSearch} disabled={loading}>
-                                <Search className="h-4 w-4 mr-2" />
-                                Tìm kiếm
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    Hủy
+                                </Button>
+                                <Button
+                                    onClick={handleSearch}
+                                    disabled={loading}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Search className="h-4 w-4" />
+                                    {loading ? "Đang tìm..." : "Tìm kiếm"}
+                                </Button>
+                            </div>
                         </div>
                     </DialogContent>
                 </Dialog>
             </div>
 
-            {/* Active Filters Display */}
+            {/* Active Filters Bar */}
             {activeFilters.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    <span className="text-sm text-muted-foreground">
-                        Bộ lọc:
+                <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/30 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground">
+                        Đang lọc:
                     </span>
                     {activeFilters.map((filter) => (
                         <Badge
@@ -693,7 +816,7 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={handleReset}
-                        className="h-6 px-2 text-xs"
+                        className="ml-auto text-xs h-6"
                     >
                         <X className="h-3 w-3 mr-1" />
                         Xóa tất cả

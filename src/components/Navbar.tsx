@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import {
     MagnifyingGlassIcon,
     ShoppingBagIcon,
@@ -15,128 +15,128 @@ import {
     MenuItems,
     Transition,
 } from "@headlessui/react";
-import {useCart} from "@/contexts/CartContext.tsx";
-import {useAuth} from "@/hooks/useAuthContext.ts";
-import {Link, useNavigate} from "react-router-dom";
-import {fetchCategories} from "@/services/categoryService.ts";
-import {useTheme} from "@/components/theme-provider"
+import { useCart } from "@/contexts/CartContext.tsx";
+import { useAuth } from "@/hooks/useAuthContext.ts";
+import { Link, useNavigate } from "react-router-dom";
+import { fetchCategories } from "@/services/categoryService.ts";
+import { useTheme } from "@/components/theme-provider";
 
 const navbarParams = [
     {
         name: "Cửa hàng",
         href: "#",
         childLinks: [
-            {name: "Mac", href: "/products/mac"},
-            {name: "iPad", href: "/products/ipad"},
-            {name: "iPhone", href: "/products/iphone"},
-            {name: "Watch", href: "/products/watch"},
-            {name: "AirPods", href: "/products/airpods"},
+            { name: "Mac", href: "/products/mac" },
+            { name: "iPad", href: "/products/ipad" },
+            { name: "iPhone", href: "/products/iphone" },
+            { name: "Watch", href: "/products/watch" },
+            { name: "AirPods", href: "/products/airpods" },
         ],
     },
     {
         name: "Mac",
         href: "#",
         childLinks: [
-            {name: "Tất cả Mac", href: "/products/mac"},
-            {name: "MacBook", href: "#"},
-            {name: "MacBook Air", href: "#"},
-            {name: "MacBook Pro", href: "#"},
-            {name: "iMac", href: "#"},
-            {name: "Mac Mini", href: "#"},
-            {name: "Mac Pro", href: "#"},
+            { name: "Tất cả Mac", href: "/products/mac" },
+            { name: "MacBook", href: "#" },
+            { name: "MacBook Air", href: "#" },
+            { name: "MacBook Pro", href: "#" },
+            { name: "iMac", href: "#" },
+            { name: "Mac Mini", href: "#" },
+            { name: "Mac Pro", href: "#" },
         ],
         accessories: [
-            {name: "MacBook Cases", href: "#"},
-            {name: "MacBook Chargers", href: "#"},
-            {name: "MacBook Keyboards", href: "#"},
-            {name: "MacBook Screen Protectors", href: "#"},
-            {name: "Mac Accessories", href: "#"},
+            { name: "MacBook Cases", href: "#" },
+            { name: "MacBook Chargers", href: "#" },
+            { name: "MacBook Keyboards", href: "#" },
+            { name: "MacBook Screen Protectors", href: "#" },
+            { name: "Mac Accessories", href: "#" },
         ],
     },
     {
         name: "Watch",
         href: "#",
         childLinks: [
-            {name: "Tất cả Apple Watch", href: "/products/watch"},
-            {name: "Apple Watch Series 9", href: "#"},
-            {name: "Apple Watch Ultra 2", href: "#"},
-            {name: "Apple Watch SE", href: "#"},
+            { name: "Tất cả Apple Watch", href: "/products/watch" },
+            { name: "Apple Watch Series 9", href: "#" },
+            { name: "Apple Watch Ultra 2", href: "#" },
+            { name: "Apple Watch SE", href: "#" },
         ],
         accessories: [
-            {name: "Apple Watch Bands", href: "#"},
-            {name: "Apple Watch Chargers", href: "#"},
-            {name: "Apple Watch Cases", href: "#"},
-            {name: "Apple Watch Screen Protectors", href: "#"},
+            { name: "Apple Watch Bands", href: "#" },
+            { name: "Apple Watch Chargers", href: "#" },
+            { name: "Apple Watch Cases", href: "#" },
+            { name: "Apple Watch Screen Protectors", href: "#" },
         ],
     },
     {
         name: "iPad",
         href: "#",
         childLinks: [
-            {name: "Tất cả iPad", href: "/products/ipad"},
-            {name: "iPad Pro", href: "#"},
-            {name: "iPad Air", href: "#"},
-            {name: "iPad", href: "#"},
-            {name: "iPad mini", href: "#"},
+            { name: "Tất cả iPad", href: "/products/ipad" },
+            { name: "iPad Pro", href: "#" },
+            { name: "iPad Air", href: "#" },
+            { name: "iPad", href: "#" },
+            { name: "iPad mini", href: "#" },
         ],
         accessories: [
-            {name: "iPad Cases", href: "#"},
-            {name: "iPad Keyboards", href: "#"},
-            {name: "Apple Pencil", href: "#"},
-            {name: "iPad Chargers", href: "#"},
-            {name: "iPad Cables", href: "#"},
+            { name: "iPad Cases", href: "#" },
+            { name: "iPad Keyboards", href: "#" },
+            { name: "Apple Pencil", href: "#" },
+            { name: "iPad Chargers", href: "#" },
+            { name: "iPad Cables", href: "#" },
         ],
     },
     {
         name: "iPhone",
         href: "#",
         childLinks: [
-            {name: "Tất cả iPhone", href: "/products/iphone"},
-            {name: "iPhone 15 Pro", href: "#"},
-            {name: "iPhone 15 Pro Max", href: "#"},
-            {name: "iPhone 15", href: "#"},
-            {name: "iPhone 15 Plus", href: "#"},
+            { name: "Tất cả iPhone", href: "/products/iphone" },
+            { name: "iPhone 15 Pro", href: "#" },
+            { name: "iPhone 15 Pro Max", href: "#" },
+            { name: "iPhone 15", href: "#" },
+            { name: "iPhone 15 Plus", href: "#" },
         ],
         accessories: [
-            {name: "iPhone Cases", href: "#"},
-            {name: "iPhone Screen Protectors", href: "#"},
-            {name: "iPhone Chargers", href: "#"},
-            {name: "iPhone Cables", href: "#"},
+            { name: "iPhone Cases", href: "#" },
+            { name: "iPhone Screen Protectors", href: "#" },
+            { name: "iPhone Chargers", href: "#" },
+            { name: "iPhone Cables", href: "#" },
         ],
     },
     {
         name: "AirPods",
         href: "#",
         childLinks: [
-            {name: "Tất cả AirPods", href: "/products/airpods"},
-            {name: "AirPods Pro", href: "#"},
-            {name: "AirPods (3rd generation)", href: "#"},
-            {name: "AirPods Max", href: "#"},
+            { name: "Tất cả AirPods", href: "/products/airpods" },
+            { name: "AirPods Pro", href: "#" },
+            { name: "AirPods (3rd generation)", href: "#" },
+            { name: "AirPods Max", href: "#" },
         ],
         accessories: [
-            {name: "AirPods Case", href: "#"},
-            {name: "AirPods Pro Case", href: "#"},
-            {name: "AirPods Max Case", href: "#"},
+            { name: "AirPods Case", href: "#" },
+            { name: "AirPods Pro Case", href: "#" },
+            { name: "AirPods Max Case", href: "#" },
         ],
     },
     {
         name: "Blog",
         href: "/blog",
         childLinks: [
-            {name: "Tất cả bài viết", href: "/blog"},
-            {name: "Tin tức", href: "/blog?category=1"},
-            {name: "Đánh giá sản phẩm", href: "/blog?category=2"},
-            {name: "Hướng dẫn", href: "/blog?category=3"},
-            {name: "Khuyến mãi", href: "/blog?category=4"},
+            { name: "Tất cả bài viết", href: "/blog" },
+            { name: "Tin tức", href: "/blog?category=1" },
+            { name: "Đánh giá sản phẩm", href: "/blog?category=2" },
+            { name: "Hướng dẫn", href: "/blog?category=3" },
+            { name: "Khuyến mãi", href: "/blog?category=4" },
         ],
     },
     {
         name: "Liên hệ",
         href: "#",
         childLinks: [
-            {name: "Hỗ trợ", href: "/support"},
-            {name: "Bảo hành", href: "/support"},
-            {name: "Đổi trả", href: "/support"},
+            { name: "Hỗ trợ", href: "/support" },
+            { name: "Bảo hành", href: "/support" },
+            { name: "Đổi trả", href: "/support" },
         ],
     },
 ];
@@ -145,15 +145,15 @@ interface NavbarProps {
     onMenuToggle?: (isOpen: boolean) => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
+const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     const [openMenuIndex, setOpenMenuIndex] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const {getCartCount} = useCart();
-    const {user, isAuthenticated, logout} = useAuth();
+    const { getCartCount } = useCart();
+    const { user, isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
-    const {theme} = useTheme();
+    const { theme } = useTheme();
 
     const cartCount = getCartCount();
     const [categories, setCategories] = useState([]);
@@ -228,16 +228,15 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                             aria-label="Toggle menu"
                         >
                             {mobileMenuOpen ? (
-                                <XMarkIcon className="size-6"/>
+                                <XMarkIcon className="size-6" />
                             ) : (
-                                <Bars3Icon className="size-6"/>
+                                <Bars3Icon className="size-6" />
                             )}
                         </button>
                     </div>
 
-                    <div
-                        className="flex-1 xl:flex-none absolute left-1/2 xl:left-0 xl:relative flex justify-center xl:justify-start">
-                        <a href="/public" className="text-foreground">
+                    <div className="flex-1 xl:flex-none absolute left-1/2 xl:left-0 xl:relative flex justify-center xl:justify-start">
+                        <a href="/" className="text-foreground">
                             <svg
                                 height="44"
                                 viewBox="0 0 14 44"
@@ -247,8 +246,14 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                 <path
                                     d="m13.0729 17.6825a3.61 3.61 0 0 0 -1.7248 3.0365 3.5132 3.5132 0 0 0 2.1379 3.2223 8.394 8.394 0 0 1 -1.0948 2.2618c-.6816.9812-1.3943 1.9623-2.4787 1.9623s-1.3633-.63-2.613-.63c-1.2187 0-1.6525.6507-2.644.6507s-1.6834-.9089-2.4787-2.0243a9.7842 9.7842 0 0 1 -1.6628-5.2776c0-3.0984 2.014-4.7405 3.9969-4.7405 1.0535 0 1.9314.6919 2.5924.6919.63 0 1.6112-.7333 2.8092-.7333a3.7579 3.7579 0 0 1 3.1604 1.5802zm-3.7284-2.8918a3.5615 3.5615 0 0 0 .8469-2.22 1.5353 1.5353 0 0 0 -.031-.32 3.5686 3.5686 0 0 0 -2.3445 1.2084 3.4629 3.4629 0 0 0 -.8779 2.1585 1.419 1.419 0 0 0 .031.2892 1.19 1.19 0 0 0 .2169.0207 3.0935 3.0935 0 0 0 2.1586-1.1368z"
                                     fill={
-                                        theme === "dark" ? "#ffffff" : theme === "light" ? "#000000" :
-                                            new Date().getHours() >= 6 && new Date().getHours() <= 18 ? "#000000" : "#ffffff"
+                                        theme === "dark"
+                                            ? "#ffffff"
+                                            : theme === "light"
+                                            ? "#000000"
+                                            : new Date().getHours() >= 6 &&
+                                              new Date().getHours() <= 18
+                                            ? "#000000"
+                                            : "#ffffff"
                                     }
                                 />
                             </svg>
@@ -256,12 +261,12 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                     </div>
 
                     <div className="hidden xl:flex items-center py-0 h-[44px] w-full px-36">
-                        <Link
-                            to="/"
+                        <a
+                            href="/"
                             className="text-left h-[44px] flex-1 text-xs flex items-center"
                         >
                             Trang chủ
-                        </Link>
+                        </a>
                         {categories.map((link, index) => {
                             return (
                                 <Menu
@@ -276,8 +281,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                     <div
                                         className={"flex justify-center w-full"}
                                     >
-                                        <MenuButton
-                                            className="text-xs font-normal focus:outline-none bg-transparent h-[44px]">
+                                        <MenuButton className="text-xs font-normal focus:outline-none bg-transparent h-[44px]">
                                             {link.name}
                                         </MenuButton>
                                     </div>
@@ -347,7 +351,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                 </div>
                                                 {link.accessories &&
                                                     link.accessories.length >
-                                                    0 && (
+                                                        0 && (
                                                         <div
                                                             className={
                                                                 "space-y-4"
@@ -396,12 +400,12 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                 </Menu>
                             );
                         })}
-                        <Link
-                            to="/blog"
+                        <a
+                            href="/blog"
                             className="justify-center h-[44px] flex-1 text-xs flex items-center"
                         >
-                            Blog
-                        </Link>
+                            Newsroom
+                        </a>
                     </div>
 
                     <div className="flex items-center space-x-12">
@@ -410,7 +414,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                             aria-label="Search"
                             className="text-foreground bg-transparent focus:outline-none px-0"
                         >
-                            <MagnifyingGlassIcon className="size-4"/>
+                            <MagnifyingGlassIcon className="size-4" />
                         </button>
                         <div className="hidden xl:block">
                             <Menu
@@ -427,7 +431,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                         aria-label="User Account"
                                         className="bg-transparent focus:outline-none px-0"
                                     >
-                                        <UserIcon className="size-4"/>
+                                        <UserIcon className="size-4" />
                                     </MenuButton>
                                 </div>
                                 <Transition
@@ -445,11 +449,9 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                         className="absolute right-0 w-80 origin-top-right bg-background shadow-lg focus:outline-none z-40 md:right-auto md:left-1/2 md:-translate-x-1/2 md:w-screen"
                                     >
                                         {isAuthenticated && user ? (
-                                            <div
-                                                className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col items-end">
+                                            <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col items-end">
                                                 <div className="flex items-start space-x-4">
-                                                    <div
-                                                        className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                                                         {user.imageUrl ? (
                                                             <img
                                                                 src={
@@ -461,7 +463,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                                 className="w-full h-full object-cover"
                                                             />
                                                         ) : (
-                                                            <UserIcon className="w-8 h-8 text-gray-400"/>
+                                                            <UserIcon className="w-8 h-8 text-gray-400" />
                                                         )}
                                                     </div>
                                                     <div className="flex-1">
@@ -476,7 +478,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                 </div>
                                                 <div className="flex flex-col gap-2">
                                                     <MenuItem>
-                                                        {({active}) => (
+                                                        {({ active }) => (
                                                             <Link
                                                                 to="/order-history"
                                                                 className={`${
@@ -487,7 +489,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                                     flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md`}
                                                             >
                                                                 <span className="text-base">
-                                                                    <InboxStackIcon className="w-4 h-4"/>
+                                                                    <InboxStackIcon className="w-4 h-4" />
                                                                 </span>
                                                                 <span className="ml-3">
                                                                     Đơn hàng
@@ -496,7 +498,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                         )}
                                                     </MenuItem>
                                                     <MenuItem>
-                                                        {({active}) => (
+                                                        {({ active }) => (
                                                             <Link
                                                                 to="/profile"
                                                                 className={`${
@@ -507,7 +509,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                                     flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md`}
                                                             >
                                                                 <span className="text-base">
-                                                                    <UserIcon className="w-4 h-4"/>
+                                                                    <UserIcon className="w-4 h-4" />
                                                                 </span>
                                                                 <span className="ml-3">
                                                                     Tài khoản
@@ -516,7 +518,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                         )}
                                                     </MenuItem>
                                                     <MenuItem>
-                                                        {({active}) => (
+                                                        {({ active }) => (
                                                             <button
                                                                 onClick={async () =>
                                                                     await logout()
@@ -528,7 +530,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                                 }
                                                                     flex items-center w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md`}
                                                             >
-                                                                <ArrowRightStartOnRectangleIcon className="w-4 h-4"/>
+                                                                <ArrowRightStartOnRectangleIcon className="w-4 h-4" />
                                                                 <span className="ml-3">
                                                                     Đăng xuất
                                                                 </span>
@@ -538,8 +540,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div
-                                                className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col space-y-4">
+                                            <div className="py-6 md:py-10 px-4 md:px-0 md:max-w-7xl md:mx-auto flex flex-col space-y-4">
                                                 <div
                                                     className={
                                                         "text-xs text-gray-500"
@@ -553,7 +554,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                     }
                                                 >
                                                     <MenuItem>
-                                                        {({active}) => (
+                                                        {({ active }) => (
                                                             <a
                                                                 href="/login"
                                                                 className={`${
@@ -567,7 +568,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                         )}
                                                     </MenuItem>
                                                     <MenuItem>
-                                                        {({active}) => (
+                                                        {({ active }) => (
                                                             <a
                                                                 href="/register"
                                                                 className={`${
@@ -593,10 +594,9 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                 aria-label="Shopping Bag"
                                 className="text-foreground bg-transparent focus:outline-none"
                             >
-                                <ShoppingBagIcon className="size-4"/>
+                                <ShoppingBagIcon className="size-4" />
                                 {cartCount > 0 && (
-                                    <span
-                                        className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                                         {cartCount > 9 ? "9+" : cartCount}
                                     </span>
                                 )}
@@ -630,7 +630,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                             onClick={toggleMobileMenu}
                             className="text-foreground focus:outline-none bg-transparent pr-0"
                         >
-                            <XMarkIcon className="size-6"/>
+                            <XMarkIcon className="size-6" />
                         </button>
                     </div>
 
@@ -638,8 +638,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                         {/* Mobile Search */}
                         <div className="border-b border-gray-200 pb-6">
                             <form onSubmit={handleSearch} className="relative">
-                                <MagnifyingGlassIcon
-                                    className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"/>
+                                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
                                     value={searchTerm}
@@ -656,8 +655,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                             {isAuthenticated && user ? (
                                 <div>
                                     <div className="flex items-center space-x-3 mb-4">
-                                        <div
-                                            className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                                             {user.imageUrl ? (
                                                 <img
                                                     src={user.imageUrl}
@@ -665,7 +663,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <UserIcon className="w-6 h-6 text-gray-400"/>
+                                                <UserIcon className="w-6 h-6 text-gray-400" />
                                             )}
                                         </div>
                                         <div>
@@ -696,7 +694,7 @@ const Navbar: React.FC<NavbarProps> = ({onMenuToggle}) => {
                                             onClick={async () => await logout()}
                                             className="flex items-center text-lg font-semibold w-fit hover:underline text-left"
                                         >
-                                            <ArrowRightStartOnRectangleIcon className="w-5 h-5 mr-2"/>
+                                            <ArrowRightStartOnRectangleIcon className="w-5 h-5 mr-2" />
                                             Đăng xuất
                                         </button>
                                     </div>

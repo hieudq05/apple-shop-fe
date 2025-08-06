@@ -5,6 +5,7 @@ import blogService, {type Blog} from "../../services/blogService";
 import {Button} from "@/components/ui/button.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
 import MarkdownRenderer from "@/components/MarkdownRenderer.tsx";
+import { Helmet } from "react-helmet-async";
 
 const BlogDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -138,6 +139,9 @@ const BlogDetailPage: React.FC = () => {
 
     return (
         <div className="p-6">
+            <Helmet>
+                <title>{blog.title} - Apple</title>
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">

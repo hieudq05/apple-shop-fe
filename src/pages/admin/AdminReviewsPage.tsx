@@ -8,6 +8,9 @@ import {
     Eye,
     Check,
     X,
+    Star,
+    Send,
+    XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +44,7 @@ import StarRating from "@/components/StarRating";
 import { useToast } from "@/hooks/use-toast";
 import reviewService from "@/services/reviewService";
 import type { Review, ReviewDetails } from "@/types/review";
+import { Helmet } from "react-helmet-async";
 
 const AdminReviewsPage: React.FC = () => {
     const { toast } = useToast();
@@ -124,12 +128,7 @@ const AdminReviewsPage: React.FC = () => {
 
     const handleApproveReview = async (reviewId: number, approve: boolean) => {
         try {
-            const response = approve
-                ? await reviewService.approveReview(reviewId)
-                : await reviewService.rejectReview(
-                      reviewId,
-                      "Nội dung không phù hợp"
-                  );
+            const response = await reviewService.approveReview(reviewId);
 
             if (response.success) {
                 toast({
@@ -211,9 +210,13 @@ const AdminReviewsPage: React.FC = () => {
 
     const getStatusBadge = (isApproved: boolean) => {
         return isApproved ? (
-            <Badge className="bg-green-100 text-green-800">Đã duyệt</Badge>
+            <Badge className="bg-green-500/10 text-green-500 border">
+                Đã duyệt
+            </Badge>
         ) : (
-            <Badge className="bg-yellow-100 text-yellow-800">Chờ duyệt</Badge>
+            <Badge className="bg-yellow-500/10 text-yellow-500">
+                Chờ duyệt
+            </Badge>
         );
     };
 
@@ -225,6 +228,9 @@ const AdminReviewsPage: React.FC = () => {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <Helmet>
+                <title>Quản lý đánh giá - Apple</title>
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">
@@ -406,12 +412,13 @@ const AdminReviewsPage: React.FC = () => {
                                     {filteredReviews.map((review) => (
                                         <div
                                             key={review.id}
-                                            className="border rounded-lg p-4 space-y-4"
+                                            className="border rounded-2xl hover:bg-foreground/3 p-4 space-y-4"
                                         >
                                             <div className="flex items-start justify-between">
                                                 <div className="flex items-center space-x-4">
-                                                    <Avatar>
+                                                    <Avatar className="size-12">
                                                         <AvatarImage
+                                                            className="object-cover size-12"
                                                             src={
                                                                 review.user
                                                                     .image
@@ -428,27 +435,32 @@ const AdminReviewsPage: React.FC = () => {
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <h4 className="font-medium">
-                                                            {
-                                                                review.user
-                                                                    .firstName
-                                                            }{" "}
-                                                            {
-                                                                review.user
-                                                                    .lastName
-                                                            }
-                                                        </h4>
-                                                        <p className="text-sm text-gray-600">
-                                                            {review.user.email}
-                                                        </p>
-                                                        <div className="flex items-center space-x-2 mt-1">
-                                                            <StarRating
-                                                                rating={
-                                                                    review.rating
+                                                        <div className="flex gap-1 items-end-safe flex-wrap">
+                                                            <h4 className="font-medium">
+                                                                {
+                                                                    review.user
+                                                                        .firstName
+                                                                }{" "}
+                                                                {
+                                                                    review.user
+                                                                        .lastName
                                                                 }
-                                                                size="sm"
-                                                            />
-                                                            <span className="text-sm text-gray-600">
+                                                            </h4>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                (
+                                                                {
+                                                                    review.user
+                                                                        .email
+                                                                }
+                                                                )
+                                                            </p>
+                                                        </div>
+                                                        <div className="space-x-2 mt-1">
+                                                            <span className="flex items-center gap-1">
+                                                                {review.rating}{" "}
+                                                                <Star className="size-4 text-blue-500 fill-current" />
+                                                            </span>
+                                                            <span className="text-sm text-muted-foreground">
                                                                 {formatDate(
                                                                     review.createdAt
                                                                 )}
@@ -495,13 +507,14 @@ const AdminReviewsPage: React.FC = () => {
                                                                 <div className="space-y-4">
                                                                     {/* User info */}
                                                                     <div className="flex items-center space-x-4">
-                                                                        <Avatar>
+                                                                        <Avatar className="size-12">
                                                                             <AvatarImage
                                                                                 src={
                                                                                     selectedReview
                                                                                         .user
                                                                                         .image
                                                                                 }
+                                                                                className="object-cover size-12"
                                                                                 alt={`${selectedReview.user.firstName} ${selectedReview.user.lastName}`}
                                                                             />
                                                                             <AvatarFallback>
@@ -526,7 +539,7 @@ const AdminReviewsPage: React.FC = () => {
                                                                                         .lastName
                                                                                 }
                                                                             </h4>
-                                                                            <p className="text-sm text-gray-600">
+                                                                            <p className="text-sm text-muted-foreground">
                                                                                 {
                                                                                     selectedReview
                                                                                         .user
@@ -582,7 +595,7 @@ const AdminReviewsPage: React.FC = () => {
                                                                                 }
                                                                                 size="sm"
                                                                             />
-                                                                            <span className="text-sm text-gray-600">
+                                                                            <span className="text-sm text-muted-foreground">
                                                                                 {formatDate(
                                                                                     selectedReview.createdAt
                                                                                 )}
@@ -591,7 +604,7 @@ const AdminReviewsPage: React.FC = () => {
                                                                                 selectedReview.isApproved
                                                                             )}
                                                                         </div>
-                                                                        <p className="text-gray-700">
+                                                                        <p className="text-foreground">
                                                                             {
                                                                                 selectedReview.content
                                                                             }
@@ -600,21 +613,21 @@ const AdminReviewsPage: React.FC = () => {
 
                                                                     {/* Admin reply */}
                                                                     {selectedReview.replyContent && (
-                                                                        <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-500">
-                                                                            <p className="text-sm font-medium text-blue-700">
+                                                                        <div className="bg-blue-500/10 p-3 rounded border-l-4 border-blue-500">
+                                                                            <p className="text-sm font-medium text-blue-400">
                                                                                 Phản
                                                                                 hồi
                                                                                 từ
                                                                                 cửa
                                                                                 hàng:
                                                                             </p>
-                                                                            <p className="text-sm text-gray-700 mt-1">
+                                                                            <p className="text-sm text-foreground mt-1">
                                                                                 {
                                                                                     selectedReview.replyContent
                                                                                 }
                                                                             </p>
                                                                             {selectedReview.repliedBy && (
-                                                                                <p className="text-xs text-gray-500 mt-1">
+                                                                                <p className="text-xs text-muted-foreground mt-1">
                                                                                     Bởi:{" "}
                                                                                     {
                                                                                         selectedReview
@@ -633,38 +646,6 @@ const AdminReviewsPage: React.FC = () => {
 
                                                                     {/* Action buttons */}
                                                                     <div className="flex justify-between items-center pt-4 border-t">
-                                                                        <div className="flex space-x-2">
-                                                                            {!selectedReview.isApproved && (
-                                                                                <Button
-                                                                                    onClick={() =>
-                                                                                        handleApproveReview(
-                                                                                            selectedReview.id,
-                                                                                            true
-                                                                                        )
-                                                                                    }
-                                                                                    className="bg-green-600 hover:bg-green-700"
-                                                                                >
-                                                                                    <Check className="w-4 h-4 mr-1" />
-                                                                                    Duyệt
-                                                                                </Button>
-                                                                            )}
-                                                                            {selectedReview.isApproved && (
-                                                                                <Button
-                                                                                    variant="destructive"
-                                                                                    onClick={() =>
-                                                                                        handleApproveReview(
-                                                                                            selectedReview.id,
-                                                                                            false
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <X className="w-4 h-4 mr-1" />
-                                                                                    Từ
-                                                                                    chối
-                                                                                </Button>
-                                                                            )}
-                                                                        </div>
-
                                                                         {/* Reply section */}
                                                                         <div className="flex-1 ml-4">
                                                                             <div className="flex space-x-2">
@@ -684,16 +665,52 @@ const AdminReviewsPage: React.FC = () => {
                                                                                     }
                                                                                     className="min-h-[60px]"
                                                                                 />
-                                                                                <Button
-                                                                                    onClick={
-                                                                                        handleReplyToReview
-                                                                                    }
-                                                                                    disabled={
-                                                                                        !replyContent.trim()
-                                                                                    }
-                                                                                >
-                                                                                    Gửi
-                                                                                </Button>
+                                                                                <div className="flex flex-col items-end gap-2">
+                                                                                    <Button
+                                                                                        onClick={
+                                                                                            handleReplyToReview
+                                                                                        }
+                                                                                        disabled={
+                                                                                            !replyContent.trim()
+                                                                                        }
+                                                                                        className="w-full flex justify-start gap-2"
+                                                                                    >
+                                                                                        <Send className="w-4 h-4" />
+                                                                                        Gửi
+                                                                                    </Button>
+                                                                                    <div className="flex space-x-2">
+                                                                                        {!selectedReview.isApproved && (
+                                                                                            <Button
+                                                                                                onClick={() =>
+                                                                                                    handleApproveReview(
+                                                                                                        selectedReview.id,
+                                                                                                        true
+                                                                                                    )
+                                                                                                }
+                                                                                                className="bg-green-600 text-white hover:bg-green-700 flex justify-start gap-2"
+                                                                                            >
+                                                                                                <Check className="w-4 h-4" />
+                                                                                                Duyệt
+                                                                                            </Button>
+                                                                                        )}
+                                                                                        {selectedReview.isApproved && (
+                                                                                            <Button
+                                                                                                variant="destructive"
+                                                                                                onClick={() =>
+                                                                                                    handleApproveReview(
+                                                                                                        selectedReview.id,
+                                                                                                        false
+                                                                                                    )
+                                                                                                }
+                                                                                                className="flex justify-start gap-2"
+                                                                                            >
+                                                                                                <XCircle className="w-4 h-4 text-white " />
+                                                                                                Từ
+                                                                                                chối
+                                                                                            </Button>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -714,7 +731,7 @@ const AdminReviewsPage: React.FC = () => {
                                                                 }
                                                                 className="bg-green-600 hover:bg-green-700"
                                                             >
-                                                                <Check className="w-4 h-4" />
+                                                                <Check className="w-4 h-4 text-white" />
                                                             </Button>
                                                             <Button
                                                                 size="sm"

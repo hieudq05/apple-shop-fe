@@ -9,6 +9,7 @@ import {
 import type { OrderHistory } from "../types/order";
 import type { MetadataResponse } from "../types/api";
 import { getUserData } from "../utils/storage";
+import { Helmet } from "react-helmet-async";
 
 const OrderHistoryPage: React.FC = () => {
     const [orders, setOrders] = useState<OrderHistory[]>([]);
@@ -159,6 +160,9 @@ const OrderHistoryPage: React.FC = () => {
 
     return (
         <>
+            <Helmet>
+                <title>Lịch sử đơn hàng</title>
+            </Helmet>
             <div className={"py-6 bg-muted"}>
                 <div className={"container mx-auto"}>
                     <div className={"text-lg font-semibold"}>Đơn hàng</div>

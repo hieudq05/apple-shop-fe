@@ -1,12 +1,18 @@
-import React, {useState} from "react";
-import {ArrowUpRightIcon, CreditCardIcon} from "@heroicons/react/24/outline";
-import {Link} from "react-router-dom";
-import type {OrderHistory} from "../types/order";
-import {ORDER_STATUS_MAP, PAYMENT_METHOD_MAP} from "../types/order";
+import React, { useState } from "react";
+import { ArrowUpRightIcon, CreditCardIcon } from "@heroicons/react/24/outline";
+import { Link } from "react-router-dom";
+import type { OrderHistory } from "../types/order";
+import { ORDER_STATUS_MAP, PAYMENT_METHOD_MAP } from "../types/order";
 import paymentService from "../services/paymentService";
-import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge.tsx";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge.tsx";
 import ReviewFormDialog from "@/components/ReviewFormDialog.tsx";
 
 export interface OrderHistoryCardProps {
@@ -16,10 +22,10 @@ export interface OrderHistoryCardProps {
 }
 
 const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
-                                                               order,
-                                                               index,
-                                                               onOrderCancelled: _onOrderCancelled,
-                                                           }) => {
+    order,
+    index,
+    onOrderCancelled: _onOrderCancelled,
+}) => {
     const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>(
         {}
     );
@@ -63,9 +69,8 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                 paymentResponse =
                     await paymentService.createVNPayPaymentForOrder(order.id);
             } else if (paymentMethod === "paypal") {
-                paymentResponse = await paymentService.createPayPalPaymentForOrder(
-                    order.id
-                );
+                paymentResponse =
+                    await paymentService.createPayPalPaymentForOrder(order.id);
             } else {
                 alert("Phương thức thanh toán không hỗ trợ");
                 return;
@@ -114,7 +119,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                             className="bg-blue-600 text-white hover:bg-blue-700 text-sm font-normal"
                             size="sm"
                         >
-                            <CreditCardIcon className="w-4 h-4 mr-1"/>
+                            <CreditCardIcon className="w-4 h-4 mr-1" />
                             Thanh toán ngay
                         </Button>
                     )}
@@ -125,7 +130,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                         }
                     >
                         Xem chi tiết đơn hàng{" "}
-                        <ArrowUpRightIcon className={"size-3"}/>
+                        <ArrowUpRightIcon className={"size-3"} />
                     </Link>
                 </div>
             </div>
@@ -145,15 +150,20 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                     {item.productName} - {item.colorName}
                                 </p>
                                 {item.versionName && (
-                                    <p className={"text-sm text-muted-foreground"}>
+                                    <p
+                                        className={
+                                            "text-sm text-muted-foreground"
+                                        }
+                                    >
                                         Phiên bản: {item.versionName}
                                     </p>
                                 )}
                                 <p className={"text-sm text-muted-foreground"}>
                                     Số lượng: {item.quantity}
                                 </p>
-                                <p className={"text-sm text-muted-foreground"}>
-                                </p>
+                                <p
+                                    className={"text-sm text-muted-foreground"}
+                                ></p>
 
                                 <div
                                     className={
@@ -203,12 +213,44 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                     )}
                                 </div>
 
-                                {!order.isReviewed && order.status === "DELIVERED" && (
-                                    <div className={"text-sm text-muted-foreground flex items-center gap-1"}>
-                                        <p>Bạn chưa thực hiện đánh giá sản phẩm này.</p>
-                                        <Link className={"text-blue-500 hover:underline"} to={"#"}>Đánh giá ngay!</Link>
-                                    </div>
-                                )}
+                                {!item.isReviewed &&
+                                    order.status === "DELIVERED" &&
+                                    item.stockId && (
+                                        <div
+                                            className={
+                                                "text-sm text-muted-foreground flex items-center gap-1"
+                                            }
+                                        >
+                                            <p>
+                                                Bạn chưa thực hiện đánh giá sản
+                                                phẩm này.
+                                            </p>
+                                            <button
+                                                className={
+                                                    "text-blue-500 hover:underline"
+                                                }
+                                                onClick={() => {
+                                                    if (item.stockId) {
+                                                        setStockId(
+                                                            item.stockId
+                                                        );
+                                                        setShowCreateReviewDialog(
+                                                            true
+                                                        );
+                                                        console.log(
+                                                            "Dialog should open now"
+                                                        );
+                                                    } else {
+                                                        console.log(
+                                                            "No stockId available"
+                                                        );
+                                                    }
+                                                }}
+                                            >
+                                                Đánh giá ngay!
+                                            </button>
+                                        </div>
+                                    )}
 
                                 {order.status === "DELIVERED" &&
                                     expandedItems[itemIndex] && (
@@ -251,7 +293,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                             </div>
                         </div>
                         {itemIndex < order.items.length - 1 && (
-                            <hr className={"bg-muted"}/>
+                            <hr className={"bg-muted"} />
                         )}
                     </React.Fragment>
                 ))}
@@ -328,8 +370,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                     })}
                                 </span>
                             </p>
-                            <p className="text-sm text-muted-foreground">
-                            </p>
+                            <p className="text-sm text-muted-foreground"></p>
                         </div>
 
                         {/* Phương thức thanh toán */}
@@ -339,8 +380,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                             </h4>
 
                             <div className="space-y-2">
-                                <label
-                                    className="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-muted">
+                                <label className="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-muted">
                                     <input
                                         type="radio"
                                         name="paymentMethod"
@@ -369,8 +409,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                     </div>
                                 </label>
 
-                                <label
-                                    className="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-muted">
+                                <label className="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-muted">
                                     <input
                                         type="radio"
                                         name="paymentMethod"
@@ -426,10 +465,24 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
             </Dialog>
             <ReviewFormDialog
                 open={showCreateReviewDialog}
-                onOpenChange={setShowCreateReviewDialog}
-                stockId={stockId}
-                orderId={Number.parseInt(order.orderNumber)}
-                onSuccess={() => {order.isReviewed = true}}
+                onOpenChange={(open) => {
+                    console.log("Dialog onOpenChange called", { open });
+                    setShowCreateReviewDialog(open);
+                }}
+                stockId={stockId?.toString() || ""}
+                orderId={order.orderNumber || order.id.toString()}
+                onSuccess={() => {
+                    console.log("Review submitted successfully");
+                    // Mark the specific item as reviewed
+                    const itemToUpdate = order.items.find(
+                        (item) => item.stockId === stockId
+                    );
+                    if (itemToUpdate) {
+                        itemToUpdate.isReviewed = true;
+                    }
+                    setShowCreateReviewDialog(false);
+                    setStockId(null);
+                }}
             />
         </div>
     );

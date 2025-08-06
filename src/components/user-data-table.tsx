@@ -149,7 +149,6 @@ export function UserDataTable({
                         <div className="space-y-1">
                             <p className="text-sm font-medium">{fullName}</p>
                             <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                                <Mail className="h-3 w-3" />
                                 <span>{user.email}</span>
                             </div>
                         </div>
@@ -166,22 +165,22 @@ export function UserDataTable({
                 return (
                     <Badge
                         className={
-                            "text-xs border border-gray-200" +
+                            "text-xs border border-foreground/7" +
                             (user.enabled
-                                ? " bg-green-50 text-green-800"
-                                : " bg-red-50 text-red-800")
+                                ? " bg-green-500/10 text-green-500"
+                                : " bg-red-500/10 text-red-500")
                         }
                     >
                         {user.enabled ? (
                             <>
-                                <div className="size-3 bg-green-200 rounded-full relative">
+                                <div className="size-3 bg-green-500/35 rounded-full relative">
                                     <div className="size-1.5 bg-green-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                                 </div>
                                 Hoạt động
                             </>
                         ) : (
                             <>
-                                <div className="size-3 bg-red-200 rounded-full relative">
+                                <div className="size-3 bg-red-500/35 rounded-full relative">
                                     <div className="size-1.5 bg-red-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                                 </div>
                                 Đã khóa
@@ -264,16 +263,30 @@ export function UserDataTable({
                                 className="text-right w-full"
                                 onClick={() => onView?.(user.id)}
                             >
-                                <Eye className="mr-2 h-4 w-4 text-black" />
+                                <Eye className="mr-2 h-4 w-4 text-foreground" />
                                 Xem chi tiết
                             </DropdownMenuItem>
                             {user.email !== getUserData().email ? (
                                 <DropdownMenuItem
-                                    className="text-end"
+                                    className={
+                                        "text-end" +
+                                        (user.enabled
+                                            ? "text-red-500"
+                                            : "text-green-500")
+                                    }
                                     onClick={() => onToggleStatus?.(user.id)}
                                 >
-                                    <Lock className="mr-2 h-4 w-4 text-red-600" />
-                                    <span className="text-red-600">Khoá</span>
+                                    {user.enabled ? (
+                                        <>
+                                            <Lock className="mr-2 h-4 w-4 text-red-500" />
+                                            Khóa tài khoản
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Unlock className="mr-2 h-4 w-4 text-green-500" />
+                                            Mở khóa tài khoản
+                                        </>
+                                    )}
                                 </DropdownMenuItem>
                             ) : (
                                 ""
@@ -306,7 +319,7 @@ export function UserDataTable({
 
     return (
         <div className="w-full">
-            <div className="rounded-md border">
+            <div className="rounded-2xl border">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

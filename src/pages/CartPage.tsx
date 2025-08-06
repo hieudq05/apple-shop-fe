@@ -4,6 +4,7 @@ import ProductCart from "../components/ProductCart.tsx";
 import AccessoryCard from "../components/AccessoryCard.tsx";
 import type { ProductCardProps } from "../components/ProductCard.tsx";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 // Mock accessory data for "Có thể bạn cũng sẽ thích" section
 
@@ -195,6 +196,9 @@ const CartPage: React.FC = () => {
 
     return (
         <div className={"py-12 container mx-auto"}>
+            <Helmet>
+                <title>Giỏ hàng</title>
+            </Helmet>
             {cartItems.length > 0 ? (
                 <div>
                     <div className={"space-y-10 text-center pb-12"}>
@@ -304,7 +308,7 @@ const CartPage: React.FC = () => {
                     </div>
                 </>
             )}
-            <div className={"pb-12 pt-20 px-4"}>
+            {/* <div className={"pb-12 pt-20 px-4"}>
                 <h2 className={"text-5xl font-semibold text-center"}>
                     Có thể bạn cũng sẽ thích
                 </h2>
@@ -316,7 +320,7 @@ const CartPage: React.FC = () => {
                         "grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
                     }
                 >
-                    {/* {" "}
+                    {" "}
                     {accessoryDatas.map((accessory) => (
                         <AccessoryCard
                             key={accessory.id}
@@ -326,9 +330,9 @@ const CartPage: React.FC = () => {
                             stocks={accessory.stocks}
                             category={accessory.category}
                         />
-                    ))} */}
+                    ))}
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 };

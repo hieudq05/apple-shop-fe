@@ -8,11 +8,12 @@ import {
 } from "@heroicons/react/24/outline";
 import blogService, { type Blog } from "../../services/blogService";
 import { Button } from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge.tsx";
-import {Input} from "@/components/ui/input.tsx";
-import {Trash} from "lucide-react";
-import {Textarea} from "@/components/ui/textarea.tsx";
+import { Badge } from "@/components/ui/badge.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { Trash } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea.tsx";
 import MarkdownEditor from "@/components/MarkdownEditor.tsx";
+import { Helmet } from "react-helmet-async";
 
 interface BlogForm {
     title: string;
@@ -163,20 +164,20 @@ const EditBlogPage: React.FC = () => {
     };
 
     // Event handlers
-    const handleInputChange = useCallback((
-        field: keyof BlogForm,
-        value: string | boolean
-    ) => {
-        setFormData((prev) => {
-            // Prevent unnecessary updates
-            if (prev[field] === value) return prev;
+    const handleInputChange = useCallback(
+        (field: keyof BlogForm, value: string | boolean) => {
+            setFormData((prev) => {
+                // Prevent unnecessary updates
+                if (prev[field] === value) return prev;
 
-            return {
-                ...prev,
-                [field]: value,
-            };
-        });
-    }, []);
+                return {
+                    ...prev,
+                    [field]: value,
+                };
+            });
+        },
+        []
+    );
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -269,7 +270,16 @@ const EditBlogPage: React.FC = () => {
         } catch (error) {
             console.error("Auto-save failed:", error);
         }
-    }, [formData.title, formData.content, formData.thumbnail, formData.isPublished, hasChanges, isSaving, id, thumbnailFile]);
+    }, [
+        formData.title,
+        formData.content,
+        formData.thumbnail,
+        formData.isPublished,
+        hasChanges,
+        isSaving,
+        id,
+        thumbnailFile,
+    ]);
 
     // Auto-save every 30 seconds when there are changes - Fixed dependencies
     useEffect(() => {
@@ -346,6 +356,13 @@ const EditBlogPage: React.FC = () => {
 
     return (
         <div className="p-6">
+            <Helmet>
+                <title>Chỉnh sửa bài viết - Apple</title>
+                <meta
+                    name="description"
+                    content="Chỉnh sửa thông tin bài viết, nội dung và ảnh đại diện"
+                />
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
@@ -511,7 +528,9 @@ const EditBlogPage: React.FC = () => {
                                                     onClick={handleRemoveImage}
                                                     className="px-3 py-2 text-destructive hover:text-destructive rounded-lg transition-colors"
                                                 >
-                                                    <Trash className={"size-5"}/>
+                                                    <Trash
+                                                        className={"size-5"}
+                                                    />
                                                 </Button>
                                             )}
                                         </div>

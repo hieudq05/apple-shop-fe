@@ -1,18 +1,19 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import {
     ArrowUpRightIcon,
     ChevronRightIcon,
     ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import axios from "axios";
-import {setAccessToken, setRefreshToken} from "../utils/storage.ts";
-import {GoogleLogin} from "@react-oauth/google";
-import {useAuth} from "../hooks/useAuthContext.ts";
-import {useNavigate, Navigate, Link} from "react-router-dom";
-import {Home} from "lucide-react";
+import { setAccessToken, setRefreshToken } from "../utils/storage.ts";
+import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../hooks/useAuthContext.ts";
+import { useNavigate, Navigate, Link } from "react-router-dom";
+import { Home } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 const LoginPage: React.FC = () => {
-    const {login, isAuthenticated, isUser, isAuthLoading} = useAuth();
+    const { login, isAuthenticated, isUser, isAuthLoading } = useAuth();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -31,7 +32,7 @@ const LoginPage: React.FC = () => {
     }
 
     if (isAuthenticated && isUser) {
-        return <Navigate to="/" replace/>;
+        return <Navigate to="/" replace />;
     }
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -69,7 +70,7 @@ const LoginPage: React.FC = () => {
                 } else {
                     setErrors([
                         responseData?.error?.message ||
-                        "An unexpected error occurred.",
+                            "An unexpected error occurred.",
                     ]);
                 }
             } else {
@@ -124,8 +125,17 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className={"w-full h-screen bg-background flex items-center gap-12"}>
-            <div className={"mx-auto container text-foreground px-20 max-w-7xl w-[40rem] lg:w-[50rem]"}>
+        <div
+            className={"w-full h-screen bg-background flex items-center gap-12"}
+        >
+            <Helmet>
+                <title>Đăng nhập - Apple Shop</title>
+            </Helmet>
+            <div
+                className={
+                    "mx-auto container text-foreground px-20 max-w-7xl w-[40rem] lg:w-[50rem]"
+                }
+            >
                 <div
                     aria-label={"Title"}
                     className={
@@ -134,7 +144,11 @@ const LoginPage: React.FC = () => {
                 >
                     Đăng nhập để thanh toán nhanh hơn.
                 </div>
-                <div className={"text-2xl font-semibold text-muted-foreground pb-12"}>
+                <div
+                    className={
+                        "text-2xl font-semibold text-muted-foreground pb-12"
+                    }
+                >
                     Đăng nhập vào Apple Store
                 </div>
                 <div className={"flex w-full h-fit space-x-12"}>
@@ -147,15 +161,15 @@ const LoginPage: React.FC = () => {
                             onError={handleError}
                         />
                         <div className={"flex items-center"}>
-                            <hr className={"border-gray-300 w-full"}/>
+                            <hr className={"border-gray-300 w-full"} />
                             <span className={"px-4 text-gray-500 text-xs"}>
                                 Hoặc
                             </span>
-                            <hr className={"border-gray-300 w-full"}/>
+                            <hr className={"border-gray-300 w-full"} />
                         </div>
                         {errors.length > 0 && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-2">
-                                <ExclamationCircleIcon className="h-5 w-5 text-red-400"/>
+                                <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
                                 <>
                                     {errors.map((error, index) => (
                                         <p
@@ -254,7 +268,7 @@ const LoginPage: React.FC = () => {
                                         "p-2 pl-2.5 rounded-full border absolute right-4 top-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                                     }
                                 >
-                                    <ChevronRightIcon className={"size-6"}/>
+                                    <ChevronRightIcon className={"size-6"} />
                                 </button>
                             </div>
                         </form>
@@ -266,7 +280,7 @@ const LoginPage: React.FC = () => {
                                 }
                             >
                                 Bạn đã quên mật khẩu?
-                                <ArrowUpRightIcon className={"size-3"}/>
+                                <ArrowUpRightIcon className={"size-3"} />
                             </a>
                             <div className={"flex items-center gap-1 mb-4"}>
                                 <span className={"text-gray-500 text-sm"}>
@@ -279,13 +293,17 @@ const LoginPage: React.FC = () => {
                                     }
                                 >
                                     Đăng ký ngay
-                                    <ArrowUpRightIcon className={"size-3"}/>
+                                    <ArrowUpRightIcon className={"size-3"} />
                                 </a>
                             </div>
-                            <Link to={'/'}
-                                  className={"size-16 bg-transparent transition hover:bg-muted border flex items-center justify-center rounded-full"}>
-                                <Home className={"w-6 h-6 text-foreground"}/>
-                            </Link>
+                            <a
+                                href={"/"}
+                                className={
+                                    "size-16 bg-transparent transition hover:bg-muted border flex items-center justify-center rounded-full"
+                                }
+                            >
+                                <Home className={"w-6 h-6 text-foreground"} />
+                            </a>
                         </div>
                     </div>
                 </div>

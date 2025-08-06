@@ -4,6 +4,7 @@ import ProductCard, {
 } from "../components/ProductCard.tsx";
 import productService from "@/services/productService.ts";
 import { getCategoryById } from "@/services/categoryService.ts";
+import { Helmet } from "react-helmet-async";
 
 export interface Category {
     id: string;
@@ -242,6 +243,9 @@ const ProductsPage: React.FC = () => {
 
     return (
         <>
+            <Helmet>
+                <title>{category?.name}</title>
+            </Helmet>
             <div>
                 <div
                     className={
@@ -258,7 +262,9 @@ const ProductsPage: React.FC = () => {
                 </div>
                 <img
                     src={category?.image}
-                    className={"container h-[35rem] mx-auto rounded-3xl my-6 object-cover object-center"}
+                    className={
+                        "container h-[35rem] mx-auto rounded-3xl my-6 object-cover object-center"
+                    }
                 ></img>
                 <div className={"container mx-auto py-24"}>
                     <div
@@ -267,7 +273,12 @@ const ProductsPage: React.FC = () => {
                         }
                     >
                         Khám phá dòng sản phẩm {category?.name} mới nhất.
-                        <div className={"text-3xl mt-2"}>Mọi phiên bản. <span className={"text-muted-foreground"}>Hãy chọn mẫu bạn thích.</span></div>
+                        <div className={"text-3xl mt-2"}>
+                            Mọi phiên bản.{" "}
+                            <span className={"text-muted-foreground"}>
+                                Hãy chọn mẫu bạn thích.
+                            </span>
+                        </div>
                     </div>
                     <div
                         className={

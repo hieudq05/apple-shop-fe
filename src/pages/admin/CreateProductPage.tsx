@@ -68,6 +68,7 @@ import {
 } from "@/services/instanceService.ts";
 import adminProductService from "@/services/adminProductService.ts";
 import { set } from "zod";
+import { Helmet } from "react-helmet-async";
 
 interface ProductPhoto {
     imageUrl: string;
@@ -1220,6 +1221,13 @@ const CreateProductPage: React.FC = () => {
 
     return (
         <div className="min-h-screen">
+            <Helmet>
+                <title>Thêm sản phẩm mới - Apple</title>
+                <meta
+                    name="description"
+                    content="Tạo sản phẩm mới cho cửa hàng với đầy đủ thông tin chi tiết"
+                />
+            </Helmet>
             <div className="container mx-auto px-4 py-8 max-w-5xl">
                 {/* Header */}
                 <Card className="mb-8 rounded-2xl">
@@ -1273,7 +1281,7 @@ const CreateProductPage: React.FC = () => {
                                         )}
                                     >
                                         {currentStep > index ? (
-                                            <Check className="w-5 h-5" />
+                                            <Check className="w-5 h-5 text-white" />
                                         ) : stepErrors[index]?.length > 0 ? (
                                             <AlertCircle className="w-5 h-5 text-destructive" />
                                         ) : (

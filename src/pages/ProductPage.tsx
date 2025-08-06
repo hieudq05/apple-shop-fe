@@ -14,6 +14,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {AlertCircle} from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 // Define a more flexible stock interface to handle API responses
 interface ApiStock {
@@ -245,6 +246,13 @@ const ProductPage: React.FC = () => {
 
     return (
         <div className="py-12 text-start lg:px-72">
+            <Helmet>
+                <title>{product?.name || "Sản phẩm"}</title>
+                <meta
+                    name="description"
+                    content={product?.description || "Mua sản phẩm này tại cửa hàng của chúng tôi."}
+                />
+            </Helmet>
             <div className={"container mx-auto flex flex-col space-y-12 mb-12"}>
                 <div>
                     <h1 className="text-5xl font-medium mb-4">

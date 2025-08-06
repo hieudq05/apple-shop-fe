@@ -8,7 +8,8 @@ import axios from "axios";
 import { setAccessToken, setRefreshToken } from "../../utils/storage";
 import { useAuth } from "@/hooks/useAuthContext";
 import { useNavigate, Navigate } from "react-router-dom";
-import {Button} from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Helmet } from "react-helmet-async";
 
 const AdminLoginPage: React.FC = () => {
     const { login, canAccessAdminPanel, isAuthLoading } = useAuth();
@@ -82,7 +83,16 @@ const AdminLoginPage: React.FC = () => {
     };
 
     return (
-        <div className={"w-full h-screen bg-background flex items-center gap-6"}>
+        <div
+            className={"w-full h-screen bg-background flex items-center gap-6"}
+        >
+            <Helmet>
+                <title>Đăng nhập quản trị viên</title>
+                <meta
+                    name="description"
+                    content="Đăng nhập vào trang quản trị Apple Store"
+                />
+            </Helmet>
             <div className={"max-w-xl mx-auto container text-foreground"}>
                 <div
                     aria-label={"Title"}
@@ -92,7 +102,11 @@ const AdminLoginPage: React.FC = () => {
                 >
                     Đăng nhập vào trang quản trị.
                 </div>
-                <div className={"text-xl font-medium text-center text-muted-foreground pb-12"}>
+                <div
+                    className={
+                        "text-xl font-medium text-center text-muted-foreground pb-12"
+                    }
+                >
                     Hệ thống quản trị cửa hàng Apple Store.
                 </div>
                 <div className={"flex w-full h-fit space-x-12"}>

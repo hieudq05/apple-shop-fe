@@ -2,12 +2,13 @@ import {
     ArrowUpRightIcon,
     ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import AccountInfo from "../components/AccountInfo.tsx";
 import UserReviews from "../components/UserReviews.tsx";
-import type {MyInfo} from "@/services/userService.ts";
+import type { MyInfo } from "@/services/userService.ts";
 import userService from "@/services/userService.ts";
 import { useAuth } from "@/hooks/useAuthContext.ts";
+import { Helmet } from "react-helmet-async";
 
 const ProfilePage: React.FC = () => {
     const [myInfo, setMyInfo] = React.useState<MyInfo | null>(null);
@@ -42,23 +43,24 @@ const ProfilePage: React.FC = () => {
 
     return (
         <>
+            <Helmet>
+                <title>Thông tin tài khoản</title>
+            </Helmet>
             <div className={"bg-muted py-6"}>
                 <div className={"container mx-auto space-y-4"}>
                     <div className={"flex justify-between items-center"}>
                         <div className={"text-lg font-semibold"}>Tài khoản</div>
                         <button
-                            onClick={async () =>
-                                await logout()
-                            }
+                            onClick={async () => await logout()}
                             className={
                                 "text-blue-600 text-sm flex gap-1 items-center p-2 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                             }
                         >
                             <span>Đăng xuất</span>
-                            <ChevronRightIcon className={"size-4"}/>
+                            <ChevronRightIcon className={"size-4"} />
                         </button>
                     </div>
-                    <hr/>
+                    <hr />
                     <div className={"py-10 text-4xl font-semibold"}>
                         Xin chào, <span>{myInfo?.lastName}</span>!
                     </div>
@@ -103,7 +105,7 @@ const ProfilePage: React.FC = () => {
                             }
                         >
                             <span>Xem lịch sử đơn đặt hàng của tôi</span>
-                            <ArrowUpRightIcon className={"size-4"}/>
+                            <ArrowUpRightIcon className={"size-4"} />
                         </a>
                     </div>
                 </div>
@@ -129,7 +131,7 @@ const ProfilePage: React.FC = () => {
                             <span>
                                 Quản lý quyền riêng tư và bảo mật của bạn
                             </span>
-                            <ArrowUpRightIcon className={"size-4"}/>
+                            <ArrowUpRightIcon className={"size-4"} />
                         </button>
                     </div>
                 </div>

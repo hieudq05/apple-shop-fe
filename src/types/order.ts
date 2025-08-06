@@ -6,6 +6,7 @@ export interface ApiOrderDetail {
     product: {
         id: number;
     };
+    stockId?: number; // Added for review functionality
     productName: string;
     quantity: number;
     price: number;
@@ -13,6 +14,7 @@ export interface ApiOrderDetail {
     colorName: string;
     versionName: string;
     image_url: string;
+    isReviewed?: boolean; // Added to track if this item has been reviewed
 }
 
 export interface ApiOrderHistory {
@@ -64,6 +66,7 @@ export interface ApiOrderDetailResponse {
 export interface OrderHistoryItem {
     id: number;
     productId: number;
+    stockId?: number; // Added stockId for review functionality
     productName: string;
     productImage: string;
     storageName?: string;
@@ -73,6 +76,7 @@ export interface OrderHistoryItem {
     price: number;
     total: number;
     note?: string;
+    isReviewed?: boolean; // Added to track if this item has been reviewed
 }
 
 export interface OrderHistory {
@@ -87,13 +91,13 @@ export interface OrderHistory {
     paymentStatus?: string;
     shippingAddress:
         | {
-        fullName?: string;
-        phone?: string;
-        address: string;
-        ward?: string;
-        district?: string;
-        province?: string;
-    }
+              fullName?: string;
+              phone?: string;
+              address: string;
+              ward?: string;
+              district?: string;
+              province?: string;
+          }
         | string;
     items: OrderHistoryItem[];
     createdAt: string;
@@ -187,6 +191,7 @@ export function transformApiOrderToOrderHistory(
     const items: OrderHistoryItem[] = apiOrder.orderDetails.map((detail) => ({
         id: detail.id,
         productId: detail.product.id,
+        stockId: detail.stockId, // Added for review functionality
         productName: detail.productName,
         productImage: detail.image_url,
         colorName: detail.colorName,
@@ -195,6 +200,7 @@ export function transformApiOrderToOrderHistory(
         price: detail.price,
         total: detail.price * detail.quantity,
         note: detail.note,
+        isReviewed: detail.isReviewed || false, // Added for review functionality
     }));
 
     const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
@@ -212,7 +218,7 @@ export function transformApiOrderToOrderHistory(
         createdAt: apiOrder.createdAt,
         updatedAt: apiOrder.createdAt, // API không có updatedAt, dùng createdAt
         trackingNumber: apiOrder.shippingTrackingCode,
-        vat: apiOrder.vat
+        vat: apiOrder.vat,
     };
 }
 
@@ -224,6 +230,7 @@ export function transformApiOrderDetailToOrderDetail(
         (detail) => ({
             id: detail.id,
             productId: detail.product.id,
+            stockId: detail.stockId, // Added for review functionality
             productName: detail.productName,
             productImage: detail.image_url,
             colorName: detail.colorName,
@@ -232,6 +239,7 @@ export function transformApiOrderDetailToOrderDetail(
             price: detail.price,
             total: detail.price * detail.quantity,
             note: detail.note,
+            isReviewed: detail.isReviewed || false, // Added for review functionality
         })
     );
 
@@ -265,6 +273,6 @@ export function transformApiOrderDetailToOrderDetail(
             shippingPromotion: apiOrderDetail.shippingShippingPromotion,
         },
         shippingTrackingCode: apiOrderDetail.shippingTrackingCode,
-        vat: apiOrderDetail.vat
+        vat: apiOrderDetail.vat,
     };
 }

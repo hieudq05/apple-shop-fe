@@ -21,6 +21,7 @@ import {type Product, ProductDataTable,} from "@/components/product-data-table";
 import AdvancedProductSearch from "@/components/AdvancedProductSearch";
 
 import type {MetadataResponse} from "@/types/api.ts";
+import { Helmet } from "react-helmet-async";
 
 // Transform AdminProduct to Product interface for the data table
 const transformToProduct = (adminProduct: AdminProduct): Product => {
@@ -311,6 +312,9 @@ const AdminProductsPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <Helmet>
+                <title>Quản lý sản phẩm - Apple</title>
+            </Helmet>
             {/* Header */}
             <Card>
                 <CardHeader>

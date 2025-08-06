@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RevenueChart } from "@/components/charts/RevenueChart";
 import statisticsService from "@/services/statisticsService";
 import { Badge } from "@/components/ui/badge";
+import { Helmet } from "react-helmet-async";
 
 interface DashboardStats {
     totalOrders: number;
@@ -240,10 +241,14 @@ const AdminDashboard: React.FC = () => {
                         "01T00:00",
                         date.getDate().toString().padStart(2, "0") + "T00:00"
                     );
-                    const dayEnd = formatLastDayOfMonth(date).replace(
-                        formatLastDayOfMonth(date).split("T")[0].split("-")[2],
-                        date.getDate().toString().padStart(2, "0")
-                    );
+                    const dayEnd =
+                        date.getDate() === new Date().getDate()
+                            ? formatLastDayOfMonth(date)
+                            : formatFirstDayOfMonth(date).replace(
+                                  "01T00:00",
+                                  date.getDate().toString().padStart(2, "0") +
+                                      "T23:59"
+                              );
 
                     try {
                         const dayRevenue = await fetchTotalRevenue(
@@ -377,6 +382,13 @@ const AdminDashboard: React.FC = () => {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <Helmet>
+                <title>Dashboard - Apple</title>
+                <meta
+                    name="description"
+                    content="Quản lý và theo dõi thống kê cửa hàng"
+                />
+            </Helmet>
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
                 <div className="flex items-center space-x-2">
