@@ -214,15 +214,14 @@ const AdminProductsPage: React.FC = () => {
                     error: null,
                 });
 
+                console.log("metadata:", response.meta);
+
                 setMetadata({
-                    currentPage: searchParams.page || 0,
-                    pageSize: searchParams.size || 10,
+                    currentPage: response.meta?.currentPage || 0,
+                    pageSize: response.meta?.pageSize || 10,
                     totalElements:
                         response.meta?.totalElements || mappedProducts.length,
-                    totalPage: Math.ceil(
-                        (response.meta?.totalElements ||
-                            mappedProducts.length) / (searchParams.size || 10)
-                    ),
+                    totalPage: response.meta?.totalPage || 1,
                 });
             }
         } catch (error) {

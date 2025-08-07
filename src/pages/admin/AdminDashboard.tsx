@@ -315,34 +315,6 @@ const AdminDashboard: React.FC = () => {
                 });
 
                 setRevenueChartData(chartData);
-
-                setRecentActivities([
-                    {
-                        id: "1",
-                        type: "order",
-                        title: "Đơn hàng mới #1234",
-                        description:
-                            "Nguyễn Văn A đã đặt đơn hàng iPhone 15 Pro",
-                        time: "2 phút trước",
-                        status: "success",
-                    },
-                    {
-                        id: "2",
-                        type: "user",
-                        title: "Người dùng mới đăng ký",
-                        description: "Trần Thị B đã tạo tài khoản mới",
-                        time: "5 phút trước",
-                        status: "info",
-                    },
-                    {
-                        id: "3",
-                        type: "product",
-                        title: "Sản phẩm sắp hết hàng",
-                        description: "iPhone 14 Pro Max chỉ còn 5 sản phẩm",
-                        time: "10 phút trước",
-                        status: "warning",
-                    },
-                ]);
             } catch (error) {
                 console.error("Error fetching dashboard stats:", error);
             } finally {
@@ -392,9 +364,9 @@ const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
                 <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
+                    {/* <Button variant="outline" size="sm">
                         Xuất báo cáo
-                    </Button>
+                    </Button> */}
                     <Button size="sm">
                         <Link
                             to="/admin/products/create"
@@ -438,7 +410,9 @@ const AdminDashboard: React.FC = () => {
                                         ) : (
                                             <TrendingDown className="w-3 h-3 mr-1" />
                                         )}
-                                        +
+                                        {parseFloat(stats.revenueGrowth) >= 0
+                                            ? "+"
+                                            : "-"}
                                         {Math.abs(
                                             parseFloat(stats.revenueGrowth)
                                         )}
@@ -472,7 +446,9 @@ const AdminDashboard: React.FC = () => {
                                         ) : (
                                             <TrendingDown className="w-3 h-3 mr-1" />
                                         )}
-                                        +
+                                        {parseFloat(stats.ordersGrowth) >= 0
+                                            ? "+"
+                                            : "-"}
                                         {Math.abs(
                                             parseFloat(stats.ordersGrowth)
                                         )}
@@ -506,7 +482,9 @@ const AdminDashboard: React.FC = () => {
                                         ) : (
                                             <TrendingDown className="w-3 h-3 mr-1" />
                                         )}
-                                        +
+                                        {parseFloat(stats.usersGrowth) >= 0
+                                            ? "+"
+                                            : "-"}
                                         {Math.abs(
                                             parseFloat(stats.usersGrowth)
                                         )}

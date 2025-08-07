@@ -32,7 +32,7 @@ import {
 import { fetchAdminColors, type Color } from "@/services/colorService";
 import { fetchAdminFeatures, type Feature } from "@/services/featureService";
 import { fetchAdminInstances, type Instance } from "@/services/instanceService";
-import {Textarea} from "@/components/ui/textarea.tsx";
+import { Textarea } from "@/components/ui/textarea.tsx";
 
 interface ProductPhoto {
     id?: number;
@@ -78,8 +78,8 @@ const productService = new AdminProductService();
 
 // Utility function to convert base64 data URL to File object
 const dataURLtoFile = (dataurl: string, filename: string): File => {
-    const arr = dataurl.split(',');
-    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const arr = dataurl.split(",");
+    const mime = arr[0].match(/:(.*?);/)?.[1] || "image/jpeg";
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
@@ -215,22 +215,33 @@ const SimpleEditProductPage: React.FC = () => {
             setSaving(true);
 
             // Prepare new image files and process photos
-            const updatedFileUploads: { [key: string]: File } = { ...fileUploads };
+            const updatedFileUploads: { [key: string]: File } = {
+                ...fileUploads,
+            };
 
             // Process photos to separate URLs from File objects and base64 data URLs
             formData.stocks.forEach((stock, stockIndex) => {
                 stock.productPhotos.forEach((photo, photoIndex) => {
                     // Handle base64 data URLs (convert to File)
-                    if (typeof photo.imageUrl === 'string' && photo.imageUrl.startsWith('data:image/')) {
+                    if (
+                        typeof photo.imageUrl === "string" &&
+                        photo.imageUrl.startsWith("data:image/")
+                    ) {
                         try {
                             const fileKey = `stock_${stockIndex}_photo_${photoIndex}_${Date.now()}`;
-                            const file = dataURLtoFile(photo.imageUrl, `image_${fileKey}.jpg`);
+                            const file = dataURLtoFile(
+                                photo.imageUrl,
+                                `image_${fileKey}.jpg`
+                            );
                             updatedFileUploads[fileKey] = file;
 
                             // Update the photo to use FILE_UPLOAD marker
                             photo.imageUrl = fileKey;
                         } catch (error) {
-                            console.error('Error converting base64 to file:', error);
+                            console.error(
+                                "Error converting base64 to file:",
+                                error
+                            );
                         }
                     }
                     // File objects are already handled in addPhoto function
@@ -263,7 +274,10 @@ const SimpleEditProductPage: React.FC = () => {
                     price: stock.price,
                     productPhotos: stock.productPhotos.map((photo) => ({
                         id: photo.id,
-                        imageUrl: typeof photo.imageUrl === 'string' ? photo.imageUrl : `FILE_UPLOAD:temp_${Date.now()}`, // ✅ Đảm bảo imageUrl luôn là string
+                        imageUrl:
+                            typeof photo.imageUrl === "string"
+                                ? photo.imageUrl
+                                : `FILE_UPLOAD:temp_${Date.now()}`, // ✅ Đảm bảo imageUrl luôn là string
                         alt: photo.alt,
                     })),
                     instanceProperties: stock.instanceProperties.map(
@@ -475,7 +489,9 @@ const SimpleEditProductPage: React.FC = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <Label htmlFor="name" className={"mb-2"}>Tên sản phẩm *</Label>
+                            <Label htmlFor="name" className={"mb-2"}>
+                                Tên sản phẩm *
+                            </Label>
                             <Input
                                 id="name"
                                 value={formData.name}
@@ -490,7 +506,9 @@ const SimpleEditProductPage: React.FC = () => {
                         </div>
 
                         <div>
-                            <Label htmlFor="description" className={"mb-2"}>Mô tả</Label>
+                            <Label htmlFor="description" className={"mb-2"}>
+                                Mô tả
+                            </Label>
                             <Textarea
                                 id="description"
                                 rows={3}
@@ -553,7 +571,11 @@ const SimpleEditProductPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <CardTitle>
                                 <div className={"mb-2"}>Tính năng</div>
-                                <div className={"text-xs text-muted-foreground font-normal"}>
+                                <div
+                                    className={
+                                        "text-xs text-muted-foreground font-normal"
+                                    }
+                                >
                                     {formData.features.length} tính năng
                                 </div>
                             </CardTitle>
@@ -976,9 +998,12 @@ const SimpleEditProductPage: React.FC = () => {
                                                                 >
                                                                     <img
                                                                         src={
-                                                                            typeof photo.imageUrl === 'string'
+                                                                            typeof photo.imageUrl ===
+                                                                            "string"
                                                                                 ? photo.imageUrl
-                                                                                : URL.createObjectURL(photo.imageUrl as File)
+                                                                                : URL.createObjectURL(
+                                                                                      photo.imageUrl as File
+                                                                                  )
                                                                         }
                                                                         alt={
                                                                             photo.alt

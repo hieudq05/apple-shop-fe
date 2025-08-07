@@ -12,6 +12,7 @@ import CartPage from "../pages/CartPage.tsx";
 import PaymentPage from "../pages/PaymentPage";
 import PaymentResultPage from "../pages/PaymentResultPage";
 import ProfilePage from "../pages/ProfilePage.tsx";
+import SavedProductsPage from "../pages/SavedProductsPage.tsx";
 import OrderHistoryPage from "../pages/OrderHistoryPage.tsx";
 import UserOrderDetailPage from "../pages/OrderDetailPage.tsx";
 import AdminLoginPage from "../pages/admin/AdminLoginPage";
@@ -81,8 +82,8 @@ export const routesConfig: RouteObject[] = [
             },
             {
                 path: "chatbot",
-                element: <Chatbot />
-            }
+                element: <Chatbot />,
+            },
         ],
     },
     {
@@ -108,6 +109,10 @@ export const routesConfig: RouteObject[] = [
             {
                 path: "profile",
                 element: <ProfilePage />,
+            },
+            {
+                path: "saved-products",
+                element: <SavedProductsPage />,
             },
             {
                 path: "order-history",

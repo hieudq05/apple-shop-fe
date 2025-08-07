@@ -128,6 +128,10 @@ const PaymentPage: React.FC = () => {
     // Payment processing state
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
+    // Payment confirmation dialog state
+    const [isPaymentConfirmDialogOpen, setIsPaymentConfirmDialogOpen] =
+        useState(false);
+
     // Notification dialog state
     const [notificationDialog, setNotificationDialog] = useState<{
         isOpen: boolean;
@@ -493,7 +497,7 @@ const PaymentPage: React.FC = () => {
         setCurrentStep(1);
     };
 
-    const handleSubmitOrder = async (e: React.FormEvent) => {
+    const handlePaymentSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!selectedShippingAddress) {
@@ -515,7 +519,20 @@ const PaymentPage: React.FC = () => {
             return;
         }
 
-        // Calculate cart totals
+        // Show confirmation dialog
+        setIsPaymentConfirmDialogOpen(true);
+    };
+
+    const handleConfirmPayment = () => {
+        setIsPaymentConfirmDialogOpen(false);
+        handleSubmitOrder();
+    };
+
+    const handleCancelPayment = () => {
+        setIsPaymentConfirmDialogOpen(false);
+    };
+
+    const handleSubmitOrder = async () => {
         const subtotal = cartItems.reduce(
             (total, item) => total + item.total,
             0
@@ -849,7 +866,11 @@ const PaymentPage: React.FC = () => {
                                                         alt={item.productName}
                                                         className="w-[10rem] object-cover aspect-[8/10] rounded-xl"
                                                     />
-                                                    <div className={"flex-col flex gap-1"}>
+                                                    <div
+                                                        className={
+                                                            "flex-col flex gap-1"
+                                                        }
+                                                    >
                                                         <p className="font-medium">
                                                             {item.productName}{" "}
                                                             {item.instances
@@ -1011,7 +1032,7 @@ const PaymentPage: React.FC = () => {
                                         </div>
                                     )}
                                 <form
-                                    onSubmit={handleSubmitOrder}
+                                    onSubmit={handlePaymentSubmit}
                                     className="space-y-6"
                                 >
                                     <div
@@ -1745,6 +1766,131 @@ const PaymentPage: React.FC = () => {
                                 className="bg-red-600 hover:bg-red-700"
                             >
                                 Xóa
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Payment Confirmation Dialog */}
+                <AlertDialog
+                    open={isPaymentConfirmDialogOpen}
+                    onOpenChange={setIsPaymentConfirmDialogOpen}
+                >
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Xác nhận thanh toán
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Bạn có chắc chắn muốn tiến hành thanh toán đơn
+                                hàng này? Sau khi xác nhận, bạn sẽ được chuyển
+                                hướng đến trang thanh toán.
+                                {selectedShippingAddress && (
+                                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                                        <p className="text-sm font-medium text-gray-900 mb-2">
+                                            Thông tin đơn hàng:
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            <strong>Địa chỉ giao hàng:</strong>{" "}
+                                            {fullName}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            <strong>Số điện thoại:</strong>{" "}
+                                            {phone}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            <strong>
+                                                Phương thức thanh toán:
+                                            </strong>{" "}
+                                            {paymentMethod === "vnpay"
+                                                ? "VNPay"
+                                                : paymentMethod === "paypal"
+                                                ? "PayPal"
+                                                : paymentMethod === "momo"
+                                                ? "MoMo"
+                                                : "COD"}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            <strong>Tổng tiền:</strong>{" "}
+                                            {(
+                                                cartItems.reduce(
+                                                    (total, item) =>
+                                                        total + item.total,
+                                                    0
+                                                ) +
+                                                40000 +
+                                                (cartItems.reduce(
+                                                    (total, item) =>
+                                                        total + item.total,
+                                                    0
+                                                ) -
+                                                    calculatePromotionDiscount(
+                                                        selectedProductPromotion,
+                                                        cartItems.reduce(
+                                                            (total, item) =>
+                                                                total +
+                                                                item.total,
+                                                            0
+                                                        )
+                                                    )) *
+                                                    0.1 -
+                                                calculatePromotionDiscount(
+                                                    selectedProductPromotion,
+                                                    cartItems.reduce(
+                                                        (total, item) =>
+                                                            total + item.total,
+                                                        0
+                                                    )
+                                                ) -
+                                                calculateShippingDiscount(
+                                                    selectedShippingPromotion,
+                                                    40000
+                                                )
+                                            ).toLocaleString("vi-VN", {
+                                                style: "currency",
+                                                currency: "VND",
+                                            })}
+                                        </p>
+                                    </div>
+                                )}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel className="rounded-lg" onClick={handleCancelPayment}>
+                                Hủy
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleConfirmPayment}
+                                className="bg-blue-600 rounded-lg hover:bg-blue-700"
+                                disabled={isProcessingPayment}
+                            >
+                                {isProcessingPayment ? (
+                                    <>
+                                        <svg
+                                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        Đang xử lý...
+                                    </>
+                                ) : (
+                                    "Xác nhận thanh toán"
+                                )}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

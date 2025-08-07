@@ -7,6 +7,7 @@ import {
     XMarkIcon,
     ArrowRightStartOnRectangleIcon,
     InboxStackIcon,
+    HeartIcon,
 } from "@heroicons/react/24/outline";
 import {
     Menu,
@@ -500,6 +501,26 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                     <MenuItem>
                                                         {({ active }) => (
                                                             <Link
+                                                                to="/saved-products"
+                                                                className={`${
+                                                                    active
+                                                                        ? "bg-gray-50"
+                                                                        : ""
+                                                                }
+                                                                    flex items-center px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md`}
+                                                            >
+                                                                <span className="text-base">
+                                                                    <HeartIcon className="w-4 h-4" />
+                                                                </span>
+                                                                <span className="ml-3">
+                                                                    Yêu thích
+                                                                </span>
+                                                            </Link>
+                                                        )}
+                                                    </MenuItem>
+                                                    <MenuItem>
+                                                        {({ active }) => (
+                                                            <Link
                                                                 to="/profile"
                                                                 className={`${
                                                                     active
@@ -636,26 +657,21 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
                     <div className="space-y-6">
                         {/* Mobile Search */}
-                        <div className="border-b border-gray-200 pb-6">
-                            <form onSubmit={handleSearch} className="relative">
-                                <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) =>
-                                        setSearchTerm(e.target.value)
-                                    }
-                                    placeholder="Tìm kiếm sản phẩm..."
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                />
-                            </form>
+                        <div className="border-b pb-6">
+                            <Link
+                                to="/search"
+                                className="flex bg-foreground/5 px-4 py-3 rounded-lg transition items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
+                            >
+                                <MagnifyingGlassIcon className="w-5 h-5" />
+                                <span>Tìm kiếm sản phẩm...</span>
+                            </Link>
                         </div>
 
-                        <div className="border-b border-gray-200 pb-6 text-start">
+                        <div className="border-b pb-6 text-start">
                             {isAuthenticated && user ? (
                                 <div>
                                     <div className="flex items-center space-x-3 mb-4">
-                                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                        <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden">
                                             {user.imageUrl ? (
                                                 <img
                                                     src={user.imageUrl}
@@ -663,14 +679,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <UserIcon className="w-6 h-6 text-gray-400" />
+                                                <UserIcon className="w-6 h-6 text-muted-foreground" />
                                             )}
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-gray-900">
+                                            <div className="font-semibold text-foreground">
                                                 {user.fullName || "Người dùng"}
                                             </div>
-                                            <div className="text-sm text-gray-500">
+                                            <div className="text-sm text-muted-foreground">
                                                 {user.email}
                                             </div>
                                         </div>
@@ -680,14 +696,21 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                             href="/order-history"
                                             className="flex items-center text-lg font-semibold w-fit hover:underline"
                                         >
-                                            <span className="mr-2">📦</span>
+                                            <InboxStackIcon className="w-5 h-5 mr-2" />
                                             Đơn hàng
+                                        </a>
+                                        <a
+                                            href="/saved-products"
+                                            className="flex items-center text-lg font-semibold w-fit hover:underline"
+                                        >
+                                            <HeartIcon className="w-5 h-5 mr-2" />
+                                            Yêu thích
                                         </a>
                                         <a
                                             href="/profile"
                                             className="flex items-center text-lg font-semibold w-fit hover:underline"
                                         >
-                                            <span className="mr-2">👤</span>
+                                            <UserIcon className="w-5 h-5 mr-2" />
                                             Tài khoản
                                         </a>
                                         <button
@@ -723,7 +746,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                         </div>
 
                         <div>
-                            {navbarParams.map((link, index) => (
+                            {categories.map((link, index) => (
                                 <div key={index}>
                                     <button
                                         onClick={() =>
@@ -731,7 +754,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                 index.toString()
                                             )
                                         }
-                                        className="flex justify-between items-center w-full text-left bg-transparent px-0 focus:outline-none"
+                                        className="flex justify-between items-center w-full text-left bg-transparent px-0 focus:outline-none py-3"
                                     >
                                         <span className="text-sm font-medium">
                                             {link.name}
@@ -757,65 +780,60 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                     </button>
 
                                     {openMenuIndex === index.toString() && (
-                                        <div className="pl-4 space-y-4 text-start border-l border-gray-200 mb-4">
+                                        <div className="pl-4 space-y-4 text-start border-l mb-4 py-3">
                                             <div>
                                                 <div className="text-xs text-gray-500 mb-2">
                                                     Mua hàng
                                                 </div>
                                                 <div className="space-y-2 flex flex-col w-fit">
-                                                    {link.childLinks.map(
-                                                        (
-                                                            childLink,
-                                                            childIndex
-                                                        ) => (
-                                                            <a
-                                                                key={childIndex}
-                                                                href={
-                                                                    childLink.href
-                                                                }
-                                                                className="text-2xl font-semibold hover:underline"
-                                                            >
-                                                                {childLink.name}
-                                                            </a>
-                                                        )
-                                                    )}
+                                                    <a
+                                                        href={`/products/${link.id}`}
+                                                        className="text-lg font-semibold hover:underline"
+                                                    >
+                                                        Khám Phá Tất Cả{" "}
+                                                        {link.name}
+                                                    </a>
+                                                    {link.products &&
+                                                        link.products.map(
+                                                            (
+                                                                product,
+                                                                productIndex
+                                                            ) => (
+                                                                <a
+                                                                    key={
+                                                                        productIndex
+                                                                    }
+                                                                    href={`/product/${link.id}/${product.id}`}
+                                                                    className="text-lg font-semibold hover:underline"
+                                                                >
+                                                                    {
+                                                                        product.name
+                                                                    }
+                                                                </a>
+                                                            )
+                                                        )}
                                                 </div>
                                             </div>
-
-                                            {link.accessories &&
-                                                link.accessories.length > 0 && (
-                                                    <div className="mt-4">
-                                                        <div className="text-xs text-gray-500 mb-2">
-                                                            Phụ kiện
-                                                        </div>
-                                                        <div className="space-y-2 flex flex-col w-fit">
-                                                            {link.accessories.map(
-                                                                (
-                                                                    accessory,
-                                                                    accIndex
-                                                                ) => (
-                                                                    <a
-                                                                        key={
-                                                                            accIndex
-                                                                        }
-                                                                        href={
-                                                                            accessory.href
-                                                                        }
-                                                                        className="text-xs font-semibold hover:underline"
-                                                                    >
-                                                                        {
-                                                                            accessory.name
-                                                                        }
-                                                                    </a>
-                                                                )
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
                                         </div>
                                     )}
                                 </div>
                             ))}
+
+                            {/* Static navigation items */}
+                            <div className="border-t pt-4 mt-6">
+                                <a
+                                    href="/blog"
+                                    className="block py-3 text-sm font-medium"
+                                >
+                                    Newsroom
+                                </a>
+                                <a
+                                    href="/support"
+                                    className="block py-3 text-sm font-medium"
+                                >
+                                    Hỗ trợ
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -369,26 +369,6 @@ const ProductsPage: React.FC = () => {
                             </div>
                         )}
                 </div>
-                {/* <div className={"bg-gray-100 mt-12 pb-12"}>
-                    <div className={"container mx-auto"}>
-                        <div className={"text-start py-12 text-5xl font-semibold"}>
-                            Phụ kiện thiết yếu cho {productPageProps.category.name}.
-                        </div>
-                        <div className={"grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"}>
-                            {
-                                accessoryDatas.map((accessory) => (
-                                    <AccessoryCard
-                                        key={accessory.id}
-                                        id={accessory.id}
-                                        name={accessory.name}
-                                        title={accessory.title}
-                                        stock={accessory.stock} category={""}
-                                    />
-                                ))
-                            }
-                        </div>
-                    </div>
-                </div> */}
             </div>
         </>
     );
