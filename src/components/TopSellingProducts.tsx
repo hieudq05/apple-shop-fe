@@ -127,11 +127,13 @@ const TopSellingProducts: React.FC<TopSellingProductsProps> = ({
                                           0 ? (
                                         <img
                                             src={
-                                                product.stocks.sort(
-                                                    (a, b) => a.id - b.id
-                                                )[0].productPhotos.sort(
-                                                    (a, b) => b.id - a.id
-                                                )[0].imageUrl
+                                                product.stocks
+                                                    .sort(
+                                                        (a, b) => a.id - b.id
+                                                    )[0]
+                                                    .productPhotos.sort(
+                                                        (a, b) => b.id - a.id
+                                                    )[0].imageUrl
                                             }
                                             alt={product.name}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

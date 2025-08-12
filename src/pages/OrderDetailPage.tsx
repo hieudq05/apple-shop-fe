@@ -129,7 +129,7 @@ const OrderDetailPage: React.FC = () => {
                 return;
             }
 
-            if (paymentResponse.success && paymentResponse.data.paymentUrl) {
+            if (paymentResponse.success && paymentResponse.data?.paymentUrl) {
                 // Show payment URL and QR code instead of redirecting
                 setPaymentUrl(paymentResponse.data.paymentUrl);
                 setShowPaymentModal(false);
@@ -351,7 +351,7 @@ const OrderDetailPage: React.FC = () => {
                         <OrderStatusTimeline
                             currentStatus={orderDetail.status}
                             orderDate={orderDetail.createdAt}
-                            trackingCode={orderDetail.trackingCode}
+                            trackingCode={orderDetail.shippingTrackingCode}
                         />
 
                         {/* Order items */}

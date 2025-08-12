@@ -132,24 +132,15 @@ const ProductsPage: React.FC = () => {
                                                             if (
                                                                 response.success
                                                             ) {
-                                                                setProducts(
-                                                                    products.concat(
-                                                                        response.data.map(
-                                                                            (
-                                                                                product
-                                                                            ) => ({
-                                                                                id: product.id,
-                                                                                name: product.name,
-                                                                                description:
-                                                                                    product.description,
-                                                                                stocks: product.stocks,
-                                                                                category:
-                                                                                    category?.name ||
-                                                                                    "",
-                                                                            })
+                                                                if (
+                                                                    response.data
+                                                                ) {
+                                                                    setProducts(
+                                                                        products.concat(
+                                                                            response.data
                                                                         )
-                                                                    )
-                                                                );
+                                                                    );
+                                                                }
                                                                 setMetaData(
                                                                     response.meta
                                                                 );

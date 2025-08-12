@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Trash2, Heart, ShoppingCart, Package } from "lucide-react";
+import { Trash2, Heart, Package } from "lucide-react";
 import { toast } from "sonner";
 import savedProductService, {
     type SavedProduct,
@@ -31,12 +31,10 @@ const SavedProductsPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isAddingToCart, setIsAddingToCart] = useState<number | null>(null);
     const [isRemoving, setIsRemoving] = useState<number | null>(null);
-    const [showClearAllDialog, setShowClearAllDialog] = useState(false);
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
     const [productToRemove, setProductToRemove] = useState<SavedProduct | null>(
         null
     );
-    const [isClearingAll, setIsClearingAll] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Fetch saved products
@@ -93,8 +91,7 @@ const SavedProductsPage: React.FC = () => {
             const err = error as { message?: string };
             toast.error("Lỗi", {
                 description:
-                    err.response.data.error.message ||
-                    "Không thể thêm sản phẩm vào giỏ hàng",
+                    err.message || "Không thể thêm sản phẩm vào giỏ hàng",
                 duration: 5000,
             });
         } finally {
@@ -143,29 +140,6 @@ const SavedProductsPage: React.FC = () => {
             await handleRemoveFromSaved(productToRemove.stock.id);
             setShowRemoveDialog(false);
             setProductToRemove(null);
-        }
-    };
-
-    // Clear all saved products
-    const handleClearAll = async () => {
-        try {
-            setIsClearingAll(true);
-            await savedProductService.clearAllSavedProducts();
-            setSavedProducts([]);
-            setShowClearAllDialog(false);
-
-            toast.success("Đã xóa tất cả sản phẩm yêu thích", {
-                duration: 3000,
-            });
-        } catch (error: unknown) {
-            console.error("Error clearing all saved products:", error);
-            const err = error as { message?: string };
-            toast.error("Lỗi", {
-                description: err.message || "Không thể xóa tất cả sản phẩm",
-                duration: 5000,
-            });
-        } finally {
-            setIsClearingAll(false);
         }
     };
 
@@ -252,7 +226,10 @@ const SavedProductsPage: React.FC = () => {
                             /* Empty State */
                             <Card>
                                 <CardContent className="p-12 text-center">
-                                    <Heart strokeWidth={1} className="w-16 h-16 mx-auto mb-4 text-foreground" />
+                                    <Heart
+                                        strokeWidth={1}
+                                        className="w-16 h-16 mx-auto mb-4 text-foreground"
+                                    />
                                     <h3 className="text-2xl font-semibold text-foreground mb-2">
                                         Chưa có sản phẩm yêu thích
                                     </h3>

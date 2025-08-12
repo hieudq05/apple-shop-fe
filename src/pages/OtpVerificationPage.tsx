@@ -48,12 +48,6 @@ const OtpVerificationPage: React.FC = () => {
         }
     }, [timeLeft]);
 
-    const formatTime = (seconds: number) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-    };
-
     const handleVerifyOtp = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);

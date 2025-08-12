@@ -10,11 +10,9 @@ import {
     PencilIcon,
     PlusIcon,
     TrashIcon,
-    UserIcon,
     XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
@@ -142,9 +140,9 @@ const PromotionManagementPage: React.FC = () => {
                     searchParams
                 );
                 if (response.success) {
-                    setPromotions(response.data);
-                    setTotalPages(response.meta.totalPage);
-                    setTotalElements(response.meta.totalElements);
+                    setPromotions(response.data || []);
+                    setTotalPages(response.meta?.totalPage || 0);
+                    setTotalElements(response.meta?.totalElements || 0);
                 }
             } else {
                 // Use simple search API (fallback)
@@ -157,9 +155,9 @@ const PromotionManagementPage: React.FC = () => {
 
                 const response = await promotionService.getPromotions(params);
                 if (response.success) {
-                    setPromotions(response.data);
-                    setTotalPages(response.meta.totalPage);
-                    setTotalElements(response.meta.totalElements);
+                    setPromotions(response.data || []);
+                    setTotalPages(response.meta?.totalPage || 0);
+                    setTotalElements(response.meta?.totalElements || 0);
                 }
             }
         } catch (error) {
@@ -305,7 +303,12 @@ const PromotionManagementPage: React.FC = () => {
                 );
                 if (response.success) {
                     // Add new promotion to local state
-                    setPromotions((prev) => [response.data, ...prev]);
+                    if (response.data) {
+                        setPromotions((prev) => [
+                            response.data as Promotion,
+                            ...prev,
+                        ]);
+                    }
                     // Update total elements count
                     setTotalElements((prev) => prev + 1);
                     toast.dismiss(loadingToast);

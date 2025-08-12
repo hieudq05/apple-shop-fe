@@ -69,7 +69,7 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
 
                 // Gọi callback để cập nhật data ở parent component
                 if (onUserInfoUpdate && response.data) {
-                    onUserInfoUpdate(response.data);
+                    onUserInfoUpdate(response.data!);
                 }
 
                 // Gọi callback bổ sung nếu có
@@ -121,12 +121,12 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
                 // Cập nhật dữ liệu hiển thị local
                 setDisplayInfo((prev) => ({
                     ...prev,
-                    image: response.data.image,
+                    image: response.data?.image || "",
                 }));
 
                 // Gọi callback để cập nhật data ở parent component
-                if (onUserInfoUpdate) {
-                    onUserInfoUpdate(response.data);
+                if (onUserInfoUpdate && response.data) {
+                    onUserInfoUpdate(response.data!);
                 }
             } else {
                 throw new Error(response.message || "Cập nhật ảnh thất bại");
@@ -168,7 +168,12 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
                         <EditAvatarDialog
                             currentImage={displayInfo.image}
                             onSave={handleAvatarUpdate}
-                            currentInfo={currentUserInfo}
+                            currentInfo={{
+                                firstName: displayInfo.firstName,
+                                lastName: displayInfo.lastName || "",
+                                phone: displayInfo.phone || "",
+                                birth: displayInfo.birth || "",
+                            }}
                         >
                             <button
                                 type="button"

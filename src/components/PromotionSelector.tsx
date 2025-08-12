@@ -59,7 +59,7 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
                 });
 
                 if (response.success) {
-                    const newPromotions = response.data?.data.filter(
+                    const newPromotions = response.data?.filter(
                         (promotion) =>
                             promotion.isActive &&
                             new Date(promotion.startDate) <= new Date() &&

@@ -3,7 +3,7 @@ import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
 import type { Product } from "@/services/productService";
 
-interface ProductCardProps {
+export interface ProductCardProps {
     product: Product;
 }
 

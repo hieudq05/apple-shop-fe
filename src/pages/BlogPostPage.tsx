@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-    ArrowLeftIcon,
-    CalendarIcon,
-    ShareIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ShareIcon } from "@heroicons/react/24/outline";
 import publicBlogService, {
     type BlogDetail,
 } from "../services/publicBlogService";
 import MarkdownRenderer from "@/components/MarkdownRenderer.tsx";
-import { ChevronLeft, ChevronUp, Clock } from "lucide-react";
+import { ChevronLeft, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Helmet } from "react-helmet-async";
 
@@ -33,7 +29,7 @@ const BlogPostPage: React.FC = () => {
             const response = await publicBlogService.getBlogById(blogId);
 
             if (response.success) {
-                setPost(response.data);
+                setPost(response.data || null);
             } else {
                 setError("Không thể tải bài viết");
             }
@@ -117,7 +113,7 @@ const BlogPostPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-background">
             <Helmet>
-            <title>{post.title}</title>
+                <title>{post.title}</title>
             </Helmet>
             {/* Header */}
             <div className="bg-foreground/5 shadow-sm">

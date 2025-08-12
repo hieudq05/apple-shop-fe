@@ -36,7 +36,7 @@ import { Textarea } from "@/components/ui/textarea.tsx";
 
 interface ProductPhoto {
     id?: number;
-    imageUrl: string | File; // ✅ Cho phép cả string và File
+    imageUrl: string | File;
     alt: string;
 }
 
@@ -159,9 +159,8 @@ const SimpleEditProductPage: React.FC = () => {
                             name: product.name,
                             description: product.description || "",
                             category: {
-                                id: product.category.id,
-                                name: product.category.name,
-                                image: product.category.image,
+                                id: product.categoryId,
+                                name: product.categoryName,
                             },
                             features:
                                 product.features?.map((f) => ({
@@ -174,16 +173,21 @@ const SimpleEditProductPage: React.FC = () => {
                                 product.stocks?.map((stock) => ({
                                     id: stock.id,
                                     color: {
-                                        id: stock.color.id,
-                                        name: stock.color.name,
-                                        hexCode: stock.color.hexCode, // Convert hex to hexCode
+                                        id: stock.colorId,
+                                        name: stock.colorName,
+                                        hexCode: stock.hexCode, // Convert hex to hexCode
                                     },
                                     quantity: stock.quantity,
                                     price: stock.price,
                                     productPhotos: stock.productPhotos.map(
                                         (photo) => ({
                                             id: photo.id,
-                                            imageUrl: photo.imageUrl,
+                                            imageUrl:
+                                                typeof photo.imageUrl ===
+                                                    "string" ||
+                                                photo.imageUrl instanceof File
+                                                    ? photo.imageUrl
+                                                    : String(photo.imageUrl),
                                             alt: photo.alt,
                                         })
                                     ),
@@ -526,7 +530,7 @@ const SimpleEditProductPage: React.FC = () => {
                         <div>
                             <Label className={"mb-2"}>Danh mục *</Label>
                             <Select
-                                value={formData.category.id.toString()}
+                                value={formData.category.id?.toString()}
                                 onValueChange={(value) => {
                                     setFormData((prev) => ({
                                         ...prev,
@@ -731,7 +735,7 @@ const SimpleEditProductPage: React.FC = () => {
                                                 <div>
                                                     <Label>Màu sắc</Label>
                                                     <Select
-                                                        value={stock.color.id.toString()}
+                                                        value={stock.color.id?.toString()}
                                                         onValueChange={(
                                                             value
                                                         ) => {

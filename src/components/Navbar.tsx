@@ -201,7 +201,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                             Khám Phá Tất Cả{" "}
                                                             {link.name}
                                                         </a>
-                                                        {link.products.map(
+                                                        {link.products?.map(
                                                             (
                                                                 product,
                                                                 index

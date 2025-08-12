@@ -24,18 +24,6 @@ export interface BlogDetail extends PublicBlog {
     isPublished: boolean;
 }
 
-export interface BlogListResponse {
-    success: boolean;
-    msg: string;
-    data: PublicBlog[];
-    meta: {
-        currentPage: number;
-        pageSize: number;
-        totalPage: number;
-        totalElements: number;
-    };
-}
-
 export interface BlogDetailResponse {
     success: boolean;
     msg: string;
@@ -52,8 +40,8 @@ const publicBlogService = {
     // Lấy danh sách blog public
     getBlogs: async (
         params?: BlogListParams
-    ): Promise<ApiResponse<BlogListResponse>> => {
-        const response = await publicAPI.get<ApiResponse<BlogListResponse>>(
+    ): Promise<ApiResponse<PublicBlog[]>> => {
+        const response = await publicAPI.get<ApiResponse<PublicBlog[]>>(
             "/blogs",
             {
                 params: {

@@ -8,7 +8,11 @@ export interface Product {
     price: number;
     originalPrice?: number;
     discount?: number;
-    images: string[];
+    images: Array<{
+        id: number;
+        imageUrl: string;
+        alt: string;
+    }>;
     categoryId: number;
     features: Array<{
         id: number;
