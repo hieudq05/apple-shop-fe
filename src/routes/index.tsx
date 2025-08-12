@@ -5,6 +5,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import OtpVerificationPage from "../pages/OtpVerificationPage";
 import ProductsPage from "../pages/ProductsPage.tsx";
 import ProductPage from "../pages/ProductPage.tsx";
@@ -132,6 +133,10 @@ export const routesConfig: RouteObject[] = [
     {
         path: "/register",
         element: <RegisterPage />,
+    },
+    {
+        path: "/reset-password",
+        element: <ResetPasswordPage />,
     },
     {
         path: "/verify-otp",

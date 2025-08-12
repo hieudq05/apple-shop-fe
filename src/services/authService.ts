@@ -129,6 +129,48 @@ const AuthService = {
         }
     },
 
+    forgotPassword: async (
+        email: string
+    ): Promise<ApiResponse<{ message: string }>> => {
+        try {
+            const response = await axiosInstance.post(
+                `/auth/forgot-password?email=${email}`
+            );
+            return response.data;
+        } catch (error: any) {
+            return {
+                success: false,
+                message:
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    "Gửi email khôi phục mật khẩu thất bại",
+                data: undefined,
+            };
+        }
+    },
+
+    resetPassword: async (
+        token: string,
+        newPassword: string,
+        confirmNewPassword: string
+    ): Promise<ApiResponse<{ message: string }>> => {
+        try {
+            const response = await axiosInstance.post(
+                `/auth/reset-password?token=${token}&password=${newPassword}&confirmPassword=${confirmNewPassword}`
+            );
+            return response.data;
+        } catch (error: any) {
+            return {
+                success: false,
+                message:
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    "Đặt lại mật khẩu thất bại",
+                data: undefined,
+            };
+        }
+    },
+
     // getCurrentUser: () => {
     //     // Logic to get user from localStorage or context
     // }

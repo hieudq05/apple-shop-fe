@@ -7,6 +7,7 @@ import TopSellingProducts from "@/components/TopSellingProducts";
 // import ProductReviews from "@/components/ProductReviews";
 import {
     AlertDialog,
+    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -748,7 +749,7 @@ const ProductPage: React.FC = () => {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                        <AlertDialogTitle className="text-destructive flex items-center gap-2">
                             <AlertCircle className="size-5" />
                             Lỗi khi thêm vào giỏ hàng
                         </AlertDialogTitle>
@@ -759,6 +760,16 @@ const ProductPage: React.FC = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Đóng</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setIsDialogErrorOpen(false);
+                                setErrorWhenAddingToCart("");
+                                // Navigate to cart page
+                                window.location.href = "/cart";
+                            }}
+                        >
+                            Giỏ hàng
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

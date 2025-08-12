@@ -252,19 +252,19 @@ const SavedProductsPage: React.FC = () => {
                             /* Empty State */
                             <Card>
                                 <CardContent className="p-12 text-center">
-                                    <Heart className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                                    <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                                    <Heart strokeWidth={1} className="w-16 h-16 mx-auto mb-4 text-foreground" />
+                                    <h3 className="text-2xl font-semibold text-foreground mb-2">
                                         Chưa có sản phẩm yêu thích
                                     </h3>
-                                    <p className="text-gray-600 mb-6">
+                                    <p className="text-muted-foreground mb-6">
                                         Hãy khám phá và lưu những sản phẩm bạn
                                         yêu thích
                                     </p>
                                     <Button
                                         onClick={() =>
-                                            (window.location.href = "/products")
+                                            (window.location.href = "/")
                                         }
-                                        className="bg-blue-600 hover:bg-blue-700"
+                                        className="bg-blue-500 hover:bg-blue-700 text-white hover:text-white"
                                     >
                                         Khám phá sản phẩm
                                     </Button>

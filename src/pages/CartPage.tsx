@@ -5,6 +5,7 @@ import AccessoryCard from "../components/AccessoryCard.tsx";
 import type { ProductCardProps } from "../components/ProductCard.tsx";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { ArrowUpRight } from "lucide-react";
 
 // Mock accessory data for "Có thể bạn cũng sẽ thích" section
 
@@ -240,9 +241,31 @@ const CartPage: React.FC = () => {
                     </div>
                 </div>
             ) : (
-                <p className={"text-center mt-10"}>
-                    Giỏ hàng của bạn hiện đang trống.
-                </p>
+                <div className="mx-auto w-fit flex flex-col items-center">
+                    <img
+                        src="/public/Page Not Found.png"
+                        className="h-80 object-cover w-max-80 mx-auto object-center"
+                    />
+                    <h2 className="text-3xl lg:text-4xl font-semibold text-foreground text-center">
+                        Giỏ hàng của bạn hiện đang trống.
+                    </h2>
+                    <p
+                        className={
+                            "text-center mt-4 mb-10 text-muted-foreground"
+                        }
+                    >
+                        Hãy thêm sản phẩm vào giỏ hàng để bắt đầu mua sắm.
+                    </p>
+                    <Link
+                        to={"/"}
+                        className={
+                            "mx-auto flex items-center w-fit font-light hover:bg-blue-600 transition bg-blue-500 text-white py-3 px-6 rounded-full"
+                        }
+                    >
+                        Tiếp tục mua sắm
+                        <ArrowUpRight className={"inline-block size-5 ml-1"} />
+                    </Link>
+                </div>
             )}
             {cartItems.length > 0 && (
                 <>

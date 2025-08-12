@@ -4,15 +4,16 @@ import {
 } from "@heroicons/react/24/outline";
 import React, { useEffect } from "react";
 import AccountInfo from "../components/AccountInfo.tsx";
-import UserReviews from "../components/UserReviews.tsx";
 import type { MyInfo } from "@/services/userService.ts";
 import userService from "@/services/userService.ts";
-import { useAuth } from "@/hooks/useAuthContext.ts";
 import { Helmet } from "react-helmet-async";
+import { Bookmark, Package } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuthContext.ts";
 
 const ProfilePage: React.FC = () => {
     const [myInfo, setMyInfo] = React.useState<MyInfo | null>(null);
-
+    const { logout } = useAuth();
     const fetchMyInfo = async () => {
         try {
             const response = await userService.getMe();
@@ -53,7 +54,7 @@ const ProfilePage: React.FC = () => {
                         <button
                             onClick={async () => await logout()}
                             className={
-                                "text-blue-600 text-sm flex gap-1 items-center p-2 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                "text-blue-600 cursor-pointer text-sm flex gap-1 items-center p-2 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                             }
                         >
                             <span>Đăng xuất</span>
@@ -87,9 +88,13 @@ const ProfilePage: React.FC = () => {
             >
                 <div
                     className={
-                        "border p-10 rounded-2xl hover:shadow-lg transition-shadow duration-300 space-y-4"
+                        "border p-10 rounded-4xl hover:shadow-lg transition-shadow duration-300 space-y-4"
                     }
                 >
+                    <Package
+                        className="size-16 drop-shadow-xl"
+                        strokeWidth={1.6}
+                    />
                     <h2 className={"text-4xl font-semibold"}>
                         Đơn hàng của bạn
                     </h2>
@@ -101,7 +106,7 @@ const ProfilePage: React.FC = () => {
                         <a
                             href="/order-history"
                             className={
-                                "mt-4 flex gap-1 items-center text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
+                                "mt-4 flex gap-1 items-center text-blue-500 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
                             }
                         >
                             <span>Xem lịch sử đơn đặt hàng của tôi</span>
@@ -111,28 +116,29 @@ const ProfilePage: React.FC = () => {
                 </div>
                 <div
                     className={
-                        "border p-10 rounded-2xl hover:shadow-lg transition-shadow duration-300 space-y-4"
+                        "border p-10 rounded-4xl hover:shadow-lg transition-shadow duration-300 space-y-4"
                     }
                 >
-                    <h2 className={"text-4xl font-semibold"}>
-                        Kiểm soát tài khoản của bạn
-                    </h2>
+                    <Bookmark
+                        className="size-16 drop-shadow-xl"
+                        strokeWidth={1.6}
+                    />
+                    <h2 className={"text-4xl font-semibold"}>Đã lưu</h2>
                     <div className={"space-y-1"}>
                         <p>
-                            Bạn giữ quyền kiểm soát thông tin cá nhân của mình
-                            và có thể quản lý dữ liệu hoặc xóa tài khoản của
-                            mình bất cứ lúc nào.
+                            Bạn đã lưu sản phẩm này. Chúng tôi đã ghi nhớ lựa
+                            chọn của bạn. Tiếp tục mua sắm hoặc xem lại sản phẩm
+                            đã lưu của bạn.
                         </p>
-                        <button
+                        <Link
+                            to="/saved-products"
                             className={
-                                "mt-4 flex gap-1 items-center text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
+                                "mt-4 flex gap-1 items-center text-blue-500 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
                             }
                         >
-                            <span>
-                                Quản lý quyền riêng tư và bảo mật của bạn
-                            </span>
+                            <span>Xem đơn hàng tôi đã lưu</span>
                             <ArrowUpRightIcon className={"size-4"} />
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -177,7 +177,7 @@ const RegisterPage: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                        <form onSubmit={handleRegister} className="space-y-8">
+                        <form onSubmit={handleRegister} className="space-y-4">
                             {/* First Name and Last Name */}
                             <div className="flex">
                                 <div

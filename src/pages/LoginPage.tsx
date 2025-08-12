@@ -11,10 +11,13 @@ import { useAuth } from "../hooks/useAuthContext.ts";
 import { useNavigate, Navigate, Link } from "react-router-dom";
 import { Home } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { useTheme } from "@/components/theme-provider.tsx";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog.tsx";
 
 const LoginPage: React.FC = () => {
     const { login, isAuthenticated, isUser, isAuthLoading } = useAuth();
     const navigate = useNavigate();
+    const theme = useTheme();
 
     const [formData, setFormData] = useState({
         email: "",
@@ -155,11 +158,18 @@ const LoginPage: React.FC = () => {
                     <div
                         className={"flex-1 size-full flex flex-col space-y-12"}
                     >
-                        <GoogleLogin
-                            theme={"outline"}
-                            onSuccess={handleLoginSuccess}
-                            onError={handleError}
-                        />
+                        <div>
+                            <GoogleLogin
+                                theme={
+                                    theme.theme === "dark"
+                                        ? "filled_black"
+                                        : "outline"
+                                }
+                                onSuccess={handleLoginSuccess}
+                                onError={handleError}
+                                shape={"circle"}
+                            />
+                        </div>
                         <div className={"flex items-center"}>
                             <hr className={"border-gray-300 w-full"} />
                             <span className={"px-4 text-gray-500 text-xs"}>
@@ -273,15 +283,17 @@ const LoginPage: React.FC = () => {
                             </div>
                         </form>
                         <div className={"flex flex-col space-y-2 items-center"}>
-                            <a
-                                href={"#"}
-                                className={
-                                    "text-blue-500 text-sm hover:underline flex gap-1 items-center w-fit"
-                                }
-                            >
-                                Bạn đã quên mật khẩu?
-                                <ArrowUpRightIcon className={"size-3"} />
-                            </a>
+                            <ForgotPasswordDialog>
+                                <button
+                                    type="button"
+                                    className={
+                                        "text-blue-500 text-sm hover:underline flex gap-1 items-center w-fit"
+                                    }
+                                >
+                                    Bạn đã quên mật khẩu?
+                                    <ArrowUpRightIcon className={"size-3"} />
+                                </button>
+                            </ForgotPasswordDialog>
                             <div className={"flex items-center gap-1 mb-4"}>
                                 <span className={"text-gray-500 text-sm"}>
                                     Bạn không có tài khoản Apple?{" "}
