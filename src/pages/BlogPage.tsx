@@ -1,14 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import {
-    MagnifyingGlassIcon,
-    CalendarIcon,
-    UserIcon,
-    ChatBubbleLeftIcon,
-} from "@heroicons/react/24/outline";
+import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import publicBlogService, {
     type PublicBlog,
 } from "../services/publicBlogService";
+import { Helmet } from "react-helmet-async";
 
 const BlogPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -77,7 +73,7 @@ const BlogPage: React.FC = () => {
         return date.toLocaleDateString("vi-VN", {
             year: "numeric",
             month: "long",
-            day: "numeric",
+            day: "2-digit",
         });
     };
 
@@ -87,22 +83,57 @@ const BlogPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-foreground/3">
+            <Helmet>
+                <title>Apple Newsroom</title>
+                <link rel="icon" type="image/svg+xml" href="/apple.svg" />
+            </Helmet>
+            <div className="bg-muted/90 backdrop-blur-md shadow py-6 sticky top-[48px] z-10">
+                <div className="container mx-auto">
+                    <div className="text-xl font-medium">Newsroom</div>
+                </div>
+            </div>
             {/* Header Section */}
-            <div className="bg-white shadow-sm">
-                <div className="container mx-auto px-4 py-16">
-                    <div className="text-center">
-                        <h1 className="text-6xl font-bold text-gray-900 mb-4">
-                            Apple Blog
-                        </h1>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                            Khám phá những bài viết mới nhất về sản phẩm Apple,
-                            tin tức công nghệ và hướng dẫn sử dụng
-                        </p>
+            {/* <div className="pt-16">
+                <div className="container overflow-hidden mx-auto bg-muted rounded-4xl border">
+                    <div
+                        style={{
+                            backgroundPosition: "center",
+                            backgroundImage:
+                                "url('https://images.unsplash.com/photo-1657886708649-eda40992a10f?q=80&w=2532&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+                            boxShadow: "inset 0 0 30px 10px #00000020",
+                        }}
+                        className="relative text-center flex flex-col items-center justify-center gap-4"
+                    >
+                        <svg
+                            style={{
+                                filter: "drop-shadow(0 0 30px #ffffff90)",
+                            }}
+                            className={"size-80 mb-30"}
+                            viewBox="0 0 14 44"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="m13.0729 17.6825a3.61 3.61 0 0 0 -1.7248 3.0365 3.5132 3.5132 0 0 0 2.1379 3.2223 8.394 8.394 0 0 1 -1.0948 2.2618c-.6816.9812-1.3943 1.9623-2.4787 1.9623s-1.3633-.63-2.613-.63c-1.2187 0-1.6525.6507-2.644.6507s-1.6834-.9089-2.4787-2.0243a9.7842 9.7842 0 0 1 -1.6628-5.2776c0-3.0984 2.014-4.7405 3.9969-4.7405 1.0535 0 1.9314.6919 2.5924.6919.63 0 1.6112-.7333 2.8092-.7333a3.7579 3.7579 0 0 1 3.1604 1.5802zm-3.7284-2.8918a3.5615 3.5615 0 0 0 .8469-2.22 1.5353 1.5353 0 0 0 -.031-.32 3.5686 3.5686 0 0 0 -2.3445 1.2084 3.4629 3.4629 0 0 0 -.8779 2.1585 1.419 1.419 0 0 0 .031.2892 1.19 1.19 0 0 0 .2169.0207 3.0935 3.0935 0 0 0 2.1586-1.1368z"
+                                fill={
+                                    // useTheme().theme === "light" ? "#000" : useTheme().theme === "dark" ? "#fff" :
+                                    //     useTheme().theme === "system" ? window.matchMedia("(prefers-color-scheme: light)").matches ? "#000" : "#fff" : "#000"
+                                    "#ffffff"
+                                }
+                            ></path>
+                        </svg>
+                        <div className={"absolute bottom-14"}>
+                            <h1 className="text-6xl font-bold text-white mb-4">
+                                Apple Newsroom
+                            </h1>
+                            <p className="text-lg font-light text-white/70 max-w-2xl mx-auto">
+                                Khám phá những bài viết mới nhất về sản phẩm
+                                Apple, tin tức công nghệ và hướng dẫn sử dụng
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Search Bar */}
-                    {/* <div className="max-w-2xl mx-auto mt-8">
+                    <div className="max-w-2xl mx-auto mt-8">
                         <form onSubmit={handleSearch} className="relative">
                             <div className="relative">
                                 <input
@@ -123,15 +154,15 @@ const BlogPage: React.FC = () => {
                                 Tìm kiếm
                             </button>
                         </form>
-                    </div> */}
+                    </div>
                 </div>
-            </div>
+            </div> */}
 
             {/* Main Content */}
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto py-8 xl:px-64 mt-14 px-18">
                 {/* Results Info */}
-                {!isLoading && (
-                    <div className="mb-6 text-gray-600">
+                {/* {!isLoading && (
+                    <div className="mb-6 text-muted-foreground">
                         {searchTerm ? (
                             <p>
                                 Tìm thấy {totalElements} kết quả cho "
@@ -141,7 +172,7 @@ const BlogPage: React.FC = () => {
                             <p>Tổng cộng {totalElements} bài viết</p>
                         )}
                     </div>
-                )}
+                )} */}
 
                 {/* Loading State */}
                 {isLoading && (
@@ -154,47 +185,39 @@ const BlogPage: React.FC = () => {
                 {!isLoading && (
                     <>
                         {posts.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                                {posts.map((post) => (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                                {posts.map((post, idx) => (
                                     <div
                                         key={post.id}
-                                        className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                                        className={
+                                            "bg-background justify-between grid rounded-[2.3rem] overflow-hidden hover:shadow-lg transition-shadow duration-300" +
+                                            (idx === 0
+                                                ? " col-span-2"
+                                                : " grid-cols-1")
+                                        }
                                     >
-                                        {/* Featured Image */}
-                                        {post.thumbnail && (
-                                            <div className="aspect-w-16 aspect-h-9">
-                                                <img
-                                                    src={post.thumbnail}
-                                                    alt={post.title}
-                                                    className="w-full h-48 object-cover"
-                                                    onError={(e) => {
-                                                        e.currentTarget.src =
-                                                            "/placeholder-image.jpg";
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
-
-                                        {/* Content */}
-                                        <div className="p-6">
-                                            <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
-                                                <Link
-                                                    to={`/blog/${post.id}`}
-                                                    className="hover:text-blue-600 transition-colors"
-                                                >
-                                                    {post.title}
-                                                </Link>
-                                            </h2>
-
-                                            <p className="text-gray-600 mb-4 line-clamp-3">
-                                                {getExcerpt(post.content)}
-                                            </p>
-
-                                            {/* Meta Info */}
-                                            <div className="flex items-center justify-between text-sm text-gray-500">
-                                                <div className="flex items-center space-x-4">
-                                                    <div className="flex items-center">
-                                                        <UserIcon className="h-4 w-4 mr-1" />
+                                        <div
+                                            className={idx === 0 ? "flex" : ""}
+                                        >
+                                            {/* Featured Image */}
+                                            {post.thumbnail && (
+                                                <div className={""}>
+                                                    <img
+                                                        src={post.thumbnail}
+                                                        alt={post.title}
+                                                        className={
+                                                            "aspect-14/9 object-cover"
+                                                        }
+                                                    />
+                                                </div>
+                                            )}
+                                            <div
+                                                className={
+                                                    "py-6 px-6 space-y-4 flex flex-col justify-between"
+                                                }
+                                            >
+                                                <div className="flex justify-between flex-col gap-2">
+                                                    <div className="text-muted-foreground uppercase font-semibold text-sm">
                                                         <span>
                                                             {
                                                                 post.author
@@ -206,38 +229,31 @@ const BlogPage: React.FC = () => {
                                                             }
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center">
-                                                        <CalendarIcon className="h-4 w-4 mr-1" />
-                                                        <span>
-                                                            {formatDate(
-                                                                post.publishedAt
-                                                            )}
-                                                        </span>
-                                                    </div>
+                                                    <h2 className="text-2xl font-semibold text-foreground">
+                                                        <Link
+                                                            to={`/blog/${post.id}`}
+                                                            className="hover:text-blue-500 transition-colors"
+                                                        >
+                                                            {post.title}
+                                                        </Link>
+                                                    </h2>
                                                 </div>
-                                            </div>
-
-                                            {/* Read More */}
-                                            <div className="mt-4">
-                                                <Link
-                                                    to={`/blog/${post.id}`}
-                                                    className="flex justify-end items-center text-blue-600 hover:text-blue-800 font-medium"
-                                                >
-                                                    Đọc thêm
-                                                    <svg
-                                                        className="ml-1 h-4 w-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={2}
-                                                            d="M9 5l7 7-7 7"
-                                                        />
-                                                    </svg>
-                                                </Link>
+                                                <div className="flex items-center">
+                                                    <span className="text-muted-foreground font-medium text-lg">
+                                                        {new Date(
+                                                            post.publishedAt
+                                                        ).getDate() +
+                                                            " tháng " +
+                                                            (new Date(
+                                                                post.publishedAt
+                                                            ).getMonth() +
+                                                                1) +
+                                                            " " +
+                                                            new Date(
+                                                                post.publishedAt
+                                                            ).getFullYear()}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

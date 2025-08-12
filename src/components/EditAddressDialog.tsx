@@ -11,6 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { type MyShippingAddress } from "@/services/userService";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select.tsx";
 
 // API response interfaces for provinces.open-api.vn
 interface ApiProvince {
@@ -199,8 +208,7 @@ const EditAddressDialog: React.FC<EditAddressDialogProps> = ({
         }));
     };
 
-    const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const provinceId = e.target.value;
+    const handleProvinceChange = (provinceId: string) => {
         setFormData((prev) => ({
             ...prev,
             province: provinceId,
@@ -215,8 +223,7 @@ const EditAddressDialog: React.FC<EditAddressDialogProps> = ({
         }
     };
 
-    const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const districtId = e.target.value;
+    const handleDistrictChange = (districtId: string) => {
         setFormData((prev) => ({
             ...prev,
             district: districtId,
@@ -317,67 +324,79 @@ const EditAddressDialog: React.FC<EditAddressDialogProps> = ({
 
                         <div className="grid gap-2">
                             <Label htmlFor="province">Tỉnh/Thành phố</Label>
-                            <select
-                                id="province"
-                                name="province"
+                            <Select
                                 value={formData.province}
-                                onChange={handleProvinceChange}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                onValueChange={(value) => {
+                                    handleProvinceChange(value);
+                                }}
+                                name="province"
                                 required
                             >
-                                <option value="">Chọn Tỉnh/Thành phố</option>
-                                {provinces.map((province) => (
-                                    <option
-                                        key={province.id}
-                                        value={province.id}
-                                    >
-                                        {province.name}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger className={"w-full"}>
+                                    <SelectValue placeholder={"Chọn Tỉnh/Thành phố"}/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Tỉnh/Thành phố</SelectLabel>
+                                        {provinces.map((province) => (
+                                            <SelectItem value={province.id}>{province.name}</SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="district">Quận/Huyện</Label>
-                            <select
-                                id="district"
-                                name="district"
+                            <Select
                                 value={formData.district}
-                                onChange={handleDistrictChange}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                disabled={!formData.province}
+                                disabled={provinces.length === 0 || !formData.province}
+                                onValueChange={(value) => {
+                                    handleDistrictChange(value);
+                                }}
+                                name="district"
                                 required
                             >
-                                <option value="">Chọn Quận/Huyện</option>
-                                {districts.map((district) => (
-                                    <option
-                                        key={district.id}
-                                        value={district.id}
-                                    >
-                                        {district.name}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger className={"w-full"}>
+                                    <SelectValue placeholder={"Chọn Quận/Huyện"}/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Quận/Huyện</SelectLabel>
+                                        {districts.map((district) => (
+                                            <SelectItem value={district.id}>{district.name}</SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="ward">Phường/Xã</Label>
-                            <select
-                                id="ward"
-                                name="ward"
+                            <Select
                                 value={formData.ward}
-                                onChange={handleInputChange}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                disabled={!formData.district}
+                                onValueChange={(value) => {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        ward: value,
+                                    }));
+                                }}
+                                disabled={districts.length === 0 || !formData.district}
+                                name="ward"
                                 required
                             >
-                                <option value="">Chọn Phường/Xã</option>
-                                {wards.map((ward) => (
-                                    <option key={ward.id} value={ward.id}>
-                                        {ward.name}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger className={"w-full"}>
+                                    <SelectValue placeholder={"Chọn Phường/Xã"}/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Phường/Xã</SelectLabel>
+                                        {wards.map((ward) => (
+                                            <SelectItem value={ward.id}>{ward.name}</SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="grid gap-2">

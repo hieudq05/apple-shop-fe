@@ -71,6 +71,7 @@ import {
     DialogTitle,
 } from "../../components/ui/dialog";
 import { Textarea } from "../../components/ui/textarea";
+import { Helmet } from "react-helmet-async";
 
 interface ProductForm {
     id: number;
@@ -82,7 +83,7 @@ interface ProductForm {
         colorId: number | string; // Can be actual ID (number) or temp ID (string)
         quantity: number;
         price: number;
-        photos: string[]; // URLs
+        photos: Object[]; // URLs
         instances: Array<{
             id: number | string | null; // Can be actual ID (number), temp ID (string), or null for new
             name: string;
@@ -910,6 +911,13 @@ const EditProductPage: React.FC = () => {
 
     return (
         <div className="p-6">
+            <Helmet>
+                <title>Chỉnh sửa {formData.name}</title>
+                <meta
+                    name="description"
+                    content="Chỉnh sửa thông tin sản phẩm trong trang quản trị"
+                />
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
@@ -1029,7 +1037,7 @@ const EditProductPage: React.FC = () => {
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        <div className="space-y-2">
+                                        <div className="">
                                             <Label htmlFor="name">
                                                 Tên sản phẩm *
                                             </Label>

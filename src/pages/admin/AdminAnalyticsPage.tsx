@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     Card,
     CardContent,
@@ -7,7 +7,6 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
     Select,
     SelectContent,
@@ -16,26 +15,35 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
     BarChart3,
-    TrendingUp,
-    TrendingDown,
-    Calendar,
+    Calendar as CalendarIcon,
     DollarSign,
     ShoppingBag,
+    TrendingDown,
+    TrendingUp,
     Users,
-    Eye,
-    Package,
-    Activity,
 } from "lucide-react";
 import { RevenueChart } from "@/components/charts/RevenueChart";
+import { OrderStatusPieChart } from "@/components/charts/OrderStatusPieChart";
 import statisticsService from "@/services/statisticsService";
 import type { ProductSelling } from "@/pages/admin/AdminDashboard";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { Helmet } from "react-helmet-async";
 
-interface AnalyticsData {
+export interface AnalyticsData {
     revenue: {
         current: number;
         previous: number;
@@ -177,13 +185,68 @@ const AdminAnalyticsPage: React.FC = () => {
     );
     const [isLoading, setIsLoading] = useState(true);
     const [selectedPeriod, setSelectedPeriod] = useState("30d");
+    const [customDateRange, setCustomDateRange] = useState({
+        startDate: undefined as Date | undefined,
+        endDate: undefined as Date | undefined,
+    });
+    const [isCustomDate, setIsCustomDate] = useState(false);
+
+    // Helper function to format date for API
+    const formatDateForAPI = (
+        date: Date | undefined,
+        isEndDate = false
+    ): string => {
+        if (!date) return "";
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        const day = date.getDate().toString().padStart(2, "0");
+
+        if (isEndDate) {
+            return `${year}-${month}-${day}T23:59`;
+        } else {
+            return `${year}-${month}-${day}T00:00`;
+        }
+    };
+
+    // Function to get custom date range
+    const getCustomDateRange = (
+        startDate: Date | undefined,
+        endDate: Date | undefined
+    ) => {
+        if (!startDate || !endDate) return null;
+
+        const fromDate = formatDateForAPI(startDate);
+        const toDate = formatDateForAPI(endDate, true);
+
+        // Calculate previous period for comparison
+        const periodLength = endDate.getTime() - startDate.getTime();
+        const previousStart = new Date(startDate.getTime() - periodLength);
+        const previousEnd = new Date(startDate.getTime());
+
+        return {
+            fromDate,
+            toDate,
+            previousFromDate: formatDateForAPI(previousStart),
+            previousToDate: formatDateForAPI(previousEnd, true),
+        };
+    };
 
     const fetchAnalyticsData = useCallback(async () => {
         try {
             setIsLoading(true);
 
-            const { fromDate, toDate, previousFromDate, previousToDate } =
-                getDateRange(selectedPeriod);
+            let fromDate, toDate, previousFromDate, previousToDate;
+
+            if (isCustomDate) {
+                ({ fromDate, toDate, previousFromDate, previousToDate } =
+                    getCustomDateRange(
+                        customDateRange.startDate,
+                        customDateRange.endDate
+                    ));
+            } else {
+                ({ fromDate, toDate, previousFromDate, previousToDate } =
+                    getDateRange(selectedPeriod));
+            }
 
             // Fetch current period data
             const [currentRevenue, currentOrders, currentUsers, topProducts] =
@@ -427,11 +490,13 @@ const AdminAnalyticsPage: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [selectedPeriod]);
+    }, [selectedPeriod, customDateRange, isCustomDate]);
 
     useEffect(() => {
         fetchAnalyticsData();
     }, [fetchAnalyticsData]);
+
+    console.log(analyticsData);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat("vi-VN", {
@@ -541,66 +606,251 @@ const AdminAnalyticsPage: React.FC = () => {
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <Helmet>
+                <title>Thống kê - Apple</title>
+                <meta
+                    name="description"
+                    content="Xem thống kê chi tiết cho bảng điều khiển quản trị."
+                />
+            </Helmet>
             {/* Header */}
-            <div className="flex items-center justify-between space-y-2">
-                <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
-                <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <Select
-                        value={selectedPeriod}
-                        onValueChange={setSelectedPeriod}
-                    >
-                        <SelectTrigger className="w-40">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="7d">7 ngày qua</SelectItem>
-                            <SelectItem value="30d">30 ngày qua</SelectItem>
-                            <SelectItem value="90d">90 ngày qua</SelectItem>
-                            <SelectItem value="1y">1 năm qua</SelectItem>
-                        </SelectContent>
-                    </Select>
+            <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        Analytics
+                    </h2>
                 </div>
-            </div>
 
-            {/* Metrics Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <MetricCard
-                    title="Doanh thu"
-                    current={analyticsData.revenue.current}
-                    previous={analyticsData.revenue.previous}
-                    growth={analyticsData.revenue.growth}
-                    icon={
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    }
-                    formatter={formatCurrency}
-                />
-                <MetricCard
-                    title="Đơn hàng"
-                    current={analyticsData.orders.current}
-                    previous={analyticsData.orders.previous}
-                    growth={analyticsData.orders.growth}
-                    icon={
-                        <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                    }
-                />
-                <MetricCard
-                    title="Khách hàng"
-                    current={analyticsData.customers.current}
-                    previous={analyticsData.customers.previous}
-                    growth={analyticsData.customers.growth}
-                    icon={<Users className="h-4 w-4 text-muted-foreground" />}
-                />
-                <MetricCard
-                    title="Giá trị đơn hàng TB"
-                    current={analyticsData.avgOrderValue.current}
-                    previous={analyticsData.avgOrderValue.previous}
-                    growth={analyticsData.avgOrderValue.growth}
-                    icon={
-                        <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                    }
-                    formatter={formatCurrency}
-                />
+                {/* Metrics Cards */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <MetricCard
+                        title="Doanh thu"
+                        current={analyticsData.revenue.current}
+                        previous={analyticsData.revenue.previous}
+                        growth={analyticsData.revenue.growth}
+                        icon={
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                        }
+                        formatter={formatCurrency}
+                    />
+                    <MetricCard
+                        title="Đơn hàng"
+                        current={analyticsData.orders.current}
+                        previous={analyticsData.orders.previous}
+                        growth={analyticsData.orders.growth}
+                        icon={
+                            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                        }
+                    />
+                    <MetricCard
+                        title="Khách hàng"
+                        current={analyticsData.customers.current}
+                        previous={analyticsData.customers.previous}
+                        growth={analyticsData.customers.growth}
+                        icon={
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                        }
+                    />
+                    <MetricCard
+                        title="Giá trị đơn hàng TB"
+                        current={analyticsData.avgOrderValue.current}
+                        previous={analyticsData.avgOrderValue.previous}
+                        growth={analyticsData.avgOrderValue.growth}
+                        icon={
+                            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                        }
+                        formatter={formatCurrency}
+                    />
+                </div>
+
+                {/* Date Selection Controls */}
+                <Card>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">
+                            Chọn khoảng thời gian
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                                <Input
+                                    type="radio"
+                                    id="preset"
+                                    name="dateMode"
+                                    checked={!isCustomDate}
+                                    onChange={() => setIsCustomDate(false)}
+                                    className="w-4 h-4"
+                                />
+                                <Label htmlFor="preset">Chọn nhanh</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Input
+                                    type="radio"
+                                    id="custom"
+                                    name="dateMode"
+                                    checked={isCustomDate}
+                                    onChange={() => setIsCustomDate(true)}
+                                    className="w-4 h-4"
+                                />
+                                <Label htmlFor="custom">Tùy chỉnh</Label>
+                            </div>
+                        </div>
+
+                        {!isCustomDate ? (
+                            <div className="flex items-center space-x-2">
+                                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                                <Select
+                                    value={selectedPeriod}
+                                    onValueChange={setSelectedPeriod}
+                                >
+                                    <SelectTrigger className="w-40">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="7d">
+                                            7 ngày qua
+                                        </SelectItem>
+                                        <SelectItem value="30d">
+                                            30 ngày qua
+                                        </SelectItem>
+                                        <SelectItem value="90d">
+                                            90 ngày qua
+                                        </SelectItem>
+                                        <SelectItem value="1y">
+                                            1 năm qua
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col xl:flex-row xl:items-end gap-4">
+                                <div className="space-y-2">
+                                    <Label>Ngày bắt đầu</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !customDateRange.startDate &&
+                                                        "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {customDateRange.startDate ? (
+                                                    format(
+                                                        customDateRange.startDate,
+                                                        "PPP",
+                                                        { locale: vi }
+                                                    )
+                                                ) : (
+                                                    <span>
+                                                        Chọn ngày bắt đầu
+                                                    </span>
+                                                )}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={
+                                                    customDateRange.startDate
+                                                }
+                                                onSelect={(date) =>
+                                                    setCustomDateRange(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            startDate: date,
+                                                        })
+                                                    )
+                                                }
+                                                disabled={(date) =>
+                                                    date > new Date() ||
+                                                    date <
+                                                        new Date("1900-01-01")
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Ngày kết thúc</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !customDateRange.endDate &&
+                                                        "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {customDateRange.endDate ? (
+                                                    format(
+                                                        customDateRange.endDate,
+                                                        "PPP",
+                                                        { locale: vi }
+                                                    )
+                                                ) : (
+                                                    <span>
+                                                        Chọn ngày kết thúc
+                                                    </span>
+                                                )}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={
+                                                    customDateRange.endDate
+                                                }
+                                                onSelect={(date) =>
+                                                    setCustomDateRange(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            endDate: date,
+                                                        })
+                                                    )
+                                                }
+                                                disabled={(date) =>
+                                                    date > new Date() ||
+                                                    date <
+                                                        new Date(
+                                                            "1900-01-01"
+                                                        ) ||
+                                                    (customDateRange.startDate &&
+                                                        date <
+                                                            customDateRange.startDate)
+                                                }
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <Button
+                                    onClick={() => {
+                                        if (
+                                            customDateRange.startDate &&
+                                            customDateRange.endDate
+                                        ) {
+                                            fetchAnalyticsData();
+                                        }
+                                    }}
+                                    disabled={
+                                        !customDateRange.startDate ||
+                                        !customDateRange.endDate
+                                    }
+                                    className="w-full md:w-auto"
+                                >
+                                    <CalendarIcon className="w-4 h-4 mr-2" />
+                                    Áp dụng
+                                </Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Charts and Analytics */}
@@ -615,7 +865,7 @@ const AdminAnalyticsPage: React.FC = () => {
                 <TabsContent value="overview" className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                         {/* Revenue Chart */}
-                        <Card>
+                        <Card className={"col-span-4"}>
                             <CardHeader>
                                 <CardTitle>Doanh thu theo tháng</CardTitle>
                                 <CardDescription>
@@ -637,73 +887,6 @@ const AdminAnalyticsPage: React.FC = () => {
                                     type="area"
                                     height={300}
                                 />
-                            </CardContent>
-                        </Card>
-
-                        {/* Order Status */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Trạng thái đơn hàng</CardTitle>
-                                <CardDescription>
-                                    Phân bố trạng thái đơn hàng hiện tại
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {analyticsData.ordersByStatus.map(
-                                    (item, index) => (
-                                        <div key={index} className="space-y-2">
-                                            <div className="flex items-center justify-between text-sm">
-                                                <div className="flex items-center space-x-2">
-                                                    <div
-                                                        className={`size-4 rounded-full flex items-center justify-center ${
-                                                            index === 0
-                                                                ? "bg-green-100"
-                                                                : index === 1
-                                                                ? "bg-blue-100"
-                                                                : index === 2
-                                                                ? "bg-yellow-100"
-                                                                : index === 3
-                                                                ? "bg-orange-100"
-                                                                : "bg-red-100"
-                                                        }`}
-                                                    >
-                                                        <div
-                                                            className={`size-2 rounded-full ${
-                                                                index === 0
-                                                                    ? "bg-green-500"
-                                                                    : index ===
-                                                                      1
-                                                                    ? "bg-blue-500"
-                                                                    : index ===
-                                                                      2
-                                                                    ? "bg-yellow-500"
-                                                                    : index ===
-                                                                      3
-                                                                    ? "bg-orange-500"
-                                                                    : "bg-red-500"
-                                                            }`}
-                                                        />
-                                                    </div>
-                                                    <span>{item.status}</span>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <span className="font-medium">
-                                                        {formatNumber(
-                                                            item.count
-                                                        )}
-                                                    </span>
-                                                    <Badge variant="secondary">
-                                                        {item.percentage}%
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                            <Progress
-                                                value={item.percentage}
-                                                className="h-2"
-                                            />
-                                        </div>
-                                    )
-                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -796,73 +979,117 @@ const AdminAnalyticsPage: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="orders" className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-3">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    Đơn hàng hôm nay
-                                </CardTitle>
-                                <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {formatNumber(
-                                        analyticsData.todayOrders.count
-                                    )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    <span
-                                        className={`${
-                                            analyticsData.todayOrders.growth >=
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {/* Order Status Pie Chart */}
+                        <OrderStatusPieChart
+                            data={analyticsData.ordersByStatus}
+                        />
+
+                        {/* Order Statistics Summary */}
+                        <div className="space-y-4 grid-cols-2 grid gap-4 h-fit">
+                            <Card className={"h-full col-span-2 pb-0"}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">
+                                        Đơn hàng hôm nay
+                                    </CardTitle>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">
+                                        {formatNumber(
+                                            analyticsData.todayOrders.count
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        <span
+                                            className={`${
+                                                analyticsData.todayOrders
+                                                    .growth >= 0
+                                                    ? "text-green-600"
+                                                    : "text-red-600"
+                                            }`}
+                                        >
+                                            {analyticsData.todayOrders.growth >=
                                             0
-                                                ? "text-green-600"
-                                                : "text-red-600"
-                                        }`}
-                                    >
-                                        {analyticsData.todayOrders.growth >= 0
-                                            ? "+"
-                                            : ""}
-                                        {analyticsData.todayOrders.growth}%
-                                    </span>{" "}
-                                    so với hôm qua
-                                </p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    Đơn hàng chờ thanh toán
-                                </CardTitle>
-                                <Package className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {formatNumber(analyticsData.pendingOrders)}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Cần xử lý
-                                </p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">
-                                    Tỷ lệ hoàn thành
-                                </CardTitle>
-                                <Activity className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">
-                                    {analyticsData.ordersByStatus.find(
-                                        (item) => item.status === "Đã giao"
-                                    )?.percentage || 0}
-                                    %
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Đơn hàng đã giao thành công
-                                </p>
-                            </CardContent>
-                        </Card>
+                                                ? "+"
+                                                : ""}
+                                            {analyticsData.todayOrders.growth}%
+                                        </span>{" "}
+                                        so với hôm qua
+                                    </p>
+                                </CardContent>
+                            </Card>
+
+                            <Card className={"h-full pb-0"}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">
+                                        Tỷ lệ giao hàng thành công
+                                    </CardTitle>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">
+                                        {
+                                            analyticsData.ordersByStatus[0]
+                                                .percentage
+                                        }
+                                        %
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className={"h-full pb-0"}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">
+                                        Tỷ lệ huỷ đơn
+                                    </CardTitle>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">
+                                        {
+                                            analyticsData.ordersByStatus[1]
+                                                .percentage
+                                        }
+                                        %
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className={"h-full pb-0"}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">
+                                        Tỷ lệ đơn hàng đang chờ xử lý
+                                    </CardTitle>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">
+                                        {
+                                            analyticsData.ordersByStatus[2]
+                                                .percentage
+                                        }
+                                        %
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className={"h-full pb-0"}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">
+                                        Tỷ lệ đơn hàng đã thanh toán
+                                    </CardTitle>
+                                    <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">
+                                        {
+                                            analyticsData.ordersByStatus[3]
+                                                .percentage
+                                        }
+                                        %
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </TabsContent>
             </Tabs>

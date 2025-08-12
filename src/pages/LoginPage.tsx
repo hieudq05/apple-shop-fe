@@ -8,11 +8,16 @@ import axios from "axios";
 import { setAccessToken, setRefreshToken } from "../utils/storage.ts";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../hooks/useAuthContext.ts";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, Navigate, Link } from "react-router-dom";
+import { Home } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { useTheme } from "@/components/theme-provider.tsx";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog.tsx";
 
 const LoginPage: React.FC = () => {
     const { login, isAuthenticated, isUser, isAuthLoading } = useAuth();
     const navigate = useNavigate();
+    const theme = useTheme();
 
     const [formData, setFormData] = useState({
         email: "",
@@ -123,27 +128,48 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <>
-            <div className={"max-w-7xl mx-auto container text-black"}>
+        <div
+            className={"w-full h-screen bg-background flex items-center gap-12"}
+        >
+            <Helmet>
+                <title>Đăng nhập - Apple Shop</title>
+            </Helmet>
+            <div
+                className={
+                    "mx-auto container text-foreground px-20 max-w-7xl w-[40rem] lg:w-[50rem]"
+                }
+            >
                 <div
                     aria-label={"Title"}
                     className={
-                        "md:text-5xl text-3xl font-semibold text-start md:py-12 py-6"
+                        "md:text-5xl text-3xl font-semibold text-start pt-6 pb-4"
                     }
                 >
                     Đăng nhập để thanh toán nhanh hơn.
+                </div>
+                <div
+                    className={
+                        "text-2xl font-semibold text-muted-foreground pb-12"
+                    }
+                >
+                    Đăng nhập vào Apple Store
                 </div>
                 <div className={"flex w-full h-fit space-x-12"}>
                     <div
                         className={"flex-1 size-full flex flex-col space-y-12"}
                     >
-                        <div className={"text-2xl font-semibold text-gray-700"}>
-                            Đăng nhập vào Apple Store
+                        <div>
+                            <GoogleLogin
+                                theme={
+                                    theme.theme === "dark"
+                                        ? "filled_black"
+                                        : "outline"
+                                }
+                                onSuccess={handleLoginSuccess}
+                                onError={handleError}
+                                shape={"circle"}
+                            />
                         </div>
-                        <GoogleLogin
-                            onSuccess={handleLoginSuccess}
-                            onError={handleError}
-                        />
                         <div className={"flex items-center"}>
                             <hr className={"border-gray-300 w-full"} />
                             <span className={"px-4 text-gray-500 text-xs"}>
@@ -171,7 +197,7 @@ const LoginPage: React.FC = () => {
                                 <label
                                     htmlFor={"email"}
                                     className={
-                                        "absolute left-4 top-2 text-xs text-gray-500"
+                                        "absolute left-4 top-2 text-xs text-muted-foreground"
                                     }
                                 >
                                     Email
@@ -199,7 +225,7 @@ const LoginPage: React.FC = () => {
                                             ?.classList.remove("z-10")
                                     }
                                     className={
-                                        "w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-b-none rounded-ee-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                        "w-full text-lg px-4 pb-3 pt-6 border rounded-xl rounded-b-none rounded-ee-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                                     }
                                 />
                             </div>
@@ -242,14 +268,14 @@ const LoginPage: React.FC = () => {
                                             ?.classList.remove("z-10")
                                     }
                                     className={
-                                        "w-full text-lg px-4 pb-3 pt-6 border border-gray-300 rounded-xl rounded-ss-none rounded-se-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                        "w-full text-lg px-4 pb-3 pt-6 border rounded-xl rounded-ss-none rounded-se-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                                     }
                                 />
                                 <button
                                     type={"submit"}
                                     disabled={isLoading}
                                     className={
-                                        "p-2 pl-2.5 rounded-full border border-gray-300 absolute right-4 top-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                        "p-2 pl-2.5 rounded-full border absolute right-4 top-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                                     }
                                 >
                                     <ChevronRightIcon className={"size-6"} />
@@ -257,16 +283,18 @@ const LoginPage: React.FC = () => {
                             </div>
                         </form>
                         <div className={"flex flex-col space-y-2 items-center"}>
-                            <a
-                                href={"#"}
-                                className={
-                                    "text-blue-500 text-sm hover:underline flex gap-1 items-center w-fit"
-                                }
-                            >
-                                Bạn đã quên mật khẩu?
-                                <ArrowUpRightIcon className={"size-3"} />
-                            </a>
-                            <div className={"flex items-center gap-1"}>
+                            <ForgotPasswordDialog>
+                                <button
+                                    type="button"
+                                    className={
+                                        "text-blue-500 text-sm hover:underline flex gap-1 items-center w-fit"
+                                    }
+                                >
+                                    Bạn đã quên mật khẩu?
+                                    <ArrowUpRightIcon className={"size-3"} />
+                                </button>
+                            </ForgotPasswordDialog>
+                            <div className={"flex items-center gap-1 mb-4"}>
                                 <span className={"text-gray-500 text-sm"}>
                                     Bạn không có tài khoản Apple?{" "}
                                 </span>
@@ -280,20 +308,28 @@ const LoginPage: React.FC = () => {
                                     <ArrowUpRightIcon className={"size-3"} />
                                 </a>
                             </div>
+                            <a
+                                href={"/"}
+                                className={
+                                    "size-16 bg-transparent transition hover:bg-muted border flex items-center justify-center rounded-full"
+                                }
+                            >
+                                <Home className={"w-6 h-6 text-foreground"} />
+                            </a>
                         </div>
                     </div>
-                    <div
-                        className={"flex-1 size-[35rem] rounded-2xl"}
-                        style={{
-                            backgroundImage:
-                                "url('https://www.apple.com/v/home/ce/images/promos/airpods-4/promo_airpods_4_avail__bl22kvpg6ez6_large_2x.jpg')",
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                        }}
-                    ></div>
                 </div>
             </div>
-        </>
+            <div
+                className={"flex-1 h-full w-full rounded-4xl"}
+                style={{
+                    backgroundImage:
+                        "url('https://www.apple.com/v/home/ce/images/promos/airpods-4/promo_airpods_4_avail__bl22kvpg6ez6_large_2x.jpg')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                }}
+            ></div>
+        </div>
     );
 };
 

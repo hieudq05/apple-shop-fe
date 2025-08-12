@@ -102,6 +102,53 @@ export interface OrdersParams extends PaginationParams {
     toDate?: string;
 }
 
+export interface OrderSearchCriteria {
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    shippingAddress?: string;
+    province?: string;
+    district?: string;
+    ward?: string;
+    country?: string;
+    shippingTrackingCode?: string;
+    createdAtFrom?: string; // ISO datetime string
+    createdAtTo?: string; // ISO datetime string
+    searchTerm?: string; // Tìm kiếm tổng quát
+    status?: string; // OrderStatus
+    paymentType?: string; // PaymentType
+    approveAtFrom?: string; // ISO datetime string
+    approveAtTo?: string; // ISO datetime string
+    createdByName?: string;
+    approvedByName?: string;
+    createdById?: number;
+    approvedById?: number;
+}
+
+export interface OrderSearchParams extends PaginationParams {
+    // Criteria fields
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    shippingAddress?: string;
+    province?: string;
+    district?: string;
+    ward?: string;
+    country?: string;
+    shippingTrackingCode?: string;
+    createdAtFrom?: string;
+    createdAtTo?: string;
+    searchTerm?: string;
+    status?: string;
+    paymentType?: string;
+    approveAtFrom?: string;
+    approveAtTo?: string;
+    createdByName?: string;
+    approvedByName?: string;
+    createdById?: number;
+    approvedById?: number;
+}
+
 class OrderService {
     /**
      * Create a new order
@@ -157,6 +204,66 @@ class OrderService {
             return response;
         } catch (error) {
             console.error("Error fetching my orders:", error);
+            throw error;
+        }
+    }
+
+    /**
+     * Search orders with advanced criteria for admin
+     */
+    async searchOrders(
+        params: OrderSearchParams = {}
+    ): Promise<ApiResponse<Order[]>> {
+        try {
+            // Build criteria object for request body
+            const criteria: OrderSearchCriteria = {};
+
+            // Map all search criteria fields
+            if (params.customerName)
+                criteria.customerName = params.customerName;
+            if (params.customerEmail)
+                criteria.customerEmail = params.customerEmail;
+            if (params.customerPhone)
+                criteria.customerPhone = params.customerPhone;
+            if (params.shippingAddress)
+                criteria.shippingAddress = params.shippingAddress;
+            if (params.province) criteria.province = params.province;
+            if (params.district) criteria.district = params.district;
+            if (params.ward) criteria.ward = params.ward;
+            if (params.country) criteria.country = params.country;
+            if (params.shippingTrackingCode)
+                criteria.shippingTrackingCode = params.shippingTrackingCode;
+            if (params.createdAtFrom)
+                criteria.createdAtFrom = params.createdAtFrom;
+            if (params.createdAtTo) criteria.createdAtTo = params.createdAtTo;
+            if (params.searchTerm) criteria.searchTerm = params.searchTerm;
+            if (params.status) criteria.status = params.status;
+            if (params.paymentType) criteria.paymentType = params.paymentType;
+            if (params.approveAtFrom)
+                criteria.approveAtFrom = params.approveAtFrom;
+            if (params.approveAtTo) criteria.approveAtTo = params.approveAtTo;
+            if (params.createdByName)
+                criteria.createdByName = params.createdByName;
+            if (params.approvedByName)
+                criteria.approvedByName = params.approvedByName;
+            if (params.createdById) criteria.createdById = params.createdById;
+            if (params.approvedById)
+                criteria.approvedById = params.approvedById;
+
+            // Build query parameters for pagination
+            const searchParams = new URLSearchParams();
+            if (params.page !== undefined)
+                searchParams.append("page", params.page.toString());
+            if (params.size !== undefined)
+                searchParams.append("size", params.size.toString());
+
+            const response = await privateAPI.post<ApiResponse<Order[]>>(
+                `/orders/search?${searchParams.toString()}`,
+                criteria
+            );
+            return response;
+        } catch (error) {
+            console.error("Error searching orders:", error);
             throw error;
         }
     }

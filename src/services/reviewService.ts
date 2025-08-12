@@ -69,7 +69,7 @@ const reviewService = {
     approveReview: async (reviewId: number): Promise<ApiResponse<Review>> => {
         try {
             const response = await privateAPI.put<Review>(
-                `/reviews/${reviewId}/approve`
+                `/reviews/approve/${reviewId}`
             );
             return { success: true, data: response.data };
         } catch (error) {
@@ -90,7 +90,7 @@ const reviewService = {
     ): Promise<ApiResponse<Review>> => {
         try {
             const response = await privateAPI.put<Review>(
-                `/reviews/${reviewId}/reject`,
+                `/reviews/reject/${reviewId}`,
                 { reason }
             );
             return { success: true, data: response.data };
@@ -133,11 +133,11 @@ const reviewService = {
         reviewData: CreateReviewRequest
     ): Promise<ApiResponse<Review>> => {
         try {
-            const response = await privateAPI.post<Review>(
+            const response = await userRoleAPI.post<Review>(
                 "/reviews",
                 reviewData
             );
-            return response.data;
+            return response;
         } catch (error) {
             console.error("Error creating review:", error);
             return {
@@ -241,12 +241,27 @@ const reviewService = {
             // if (params?.rating)
             //     queryParams.append("rating", params.rating.toString());
 
+            // Import token service to get auth token
+            const { tokenRefreshService } = await import(
+                "../utils/tokenRefresh"
+            );
+            const token = await tokenRefreshService.checkAndRefreshToken();
+
+            const headers: Record<string, string> = {};
+            if (token) {
+                headers.Authorization = token;
+            }
+
             const response = await publicAPI.get<{
                 reviews: Review[];
                 totalPages: number;
                 totalElements: number;
-            }>(`/reviews/product/${productId}?${queryParams.toString()}`);
-            return response;
+            }>(`/reviews/product/${productId}?${queryParams.toString()}`, {
+                headers,
+            });
+
+            // publicAPI response interceptor already unwraps response.data
+            return { success: true, data: response };
         } catch (error) {
             console.error("Error fetching product reviews:", error);
             return {
@@ -263,10 +278,11 @@ const reviewService = {
         productId: number
     ): Promise<ApiResponse<ProductReviewStatistics>> => {
         try {
-            const response = await privateAPI.get<
-                ApiResponse<ReviewStatistics>
-            >(`/reviews/statistics/avg-review/${productId}`);
-            return response;
+            const response = await privateAPI.get<ProductReviewStatistics>(
+                `/reviews/statistics/avg-review/${productId}`
+            );
+            // privateAPI response interceptor already unwraps response.data
+            return { success: true, data: response as ProductReviewStatistics };
         } catch (error) {
             console.error("Error fetching product review statistics:", error);
             return {

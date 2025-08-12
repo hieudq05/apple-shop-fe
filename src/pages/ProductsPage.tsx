@@ -4,6 +4,7 @@ import ProductCard, {
 } from "../components/ProductCard.tsx";
 import productService from "@/services/productService.ts";
 import { getCategoryById } from "@/services/categoryService.ts";
+import { Helmet } from "react-helmet-async";
 
 export interface Category {
     id: string;
@@ -242,10 +243,13 @@ const ProductsPage: React.FC = () => {
 
     return (
         <>
+            <Helmet>
+                <title>{category?.name}</title>
+            </Helmet>
             <div>
                 <div
                     className={
-                        "bg-gray-100 sticky top-[44px] z-10 bg-opacity-75 backdrop-blur-md"
+                        "bg-accent sticky top-[44px] z-10 bg-opacity-75 backdrop-blur-md"
                     }
                 >
                     <div
@@ -258,19 +262,27 @@ const ProductsPage: React.FC = () => {
                 </div>
                 <img
                     src={category?.image}
-                    className={"container h-[35rem] mx-auto rounded-3xl my-6 object-cover object-center"}
+                    className={
+                        "container h-[35rem] mx-auto rounded-3xl my-6 object-cover object-center"
+                    }
                 ></img>
                 <div className={"container mx-auto py-24"}>
                     <div
                         className={
-                            "text-start lg:pb-24 pb-12 lg:text-5xl text-4xl font-medium"
+                            "text-start lg:pb-10 lg:text-5xl text-4xl font-medium"
                         }
                     >
                         Khám phá dòng sản phẩm {category?.name} mới nhất.
+                        <div className={"text-3xl mt-2"}>
+                            Mọi phiên bản.{" "}
+                            <span className={"text-muted-foreground"}>
+                                Hãy chọn mẫu bạn thích.
+                            </span>
+                        </div>
                     </div>
                     <div
                         className={
-                            "grid grid-cols-1 sm:grid-cols-2 lg:gap-24 xl:grid-cols-4 lg:grid-cols-3 gap-10 mb-12"
+                            "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 lg:grid-cols-3 gap-10 mb-12"
                         }
                     >
                         {products.map((product) => (
@@ -357,26 +369,6 @@ const ProductsPage: React.FC = () => {
                             </div>
                         )}
                 </div>
-                {/* <div className={"bg-gray-100 mt-12 pb-12"}>
-                    <div className={"container mx-auto"}>
-                        <div className={"text-start py-12 text-5xl font-semibold"}>
-                            Phụ kiện thiết yếu cho {productPageProps.category.name}.
-                        </div>
-                        <div className={"grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"}>
-                            {
-                                accessoryDatas.map((accessory) => (
-                                    <AccessoryCard
-                                        key={accessory.id}
-                                        id={accessory.id}
-                                        name={accessory.name}
-                                        title={accessory.title}
-                                        stock={accessory.stock} category={""}
-                                    />
-                                ))
-                            }
-                        </div>
-                    </div>
-                </div> */}
             </div>
         </>
     );

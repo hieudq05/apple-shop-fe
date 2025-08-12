@@ -1,24 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, Navigate, useRoutes } from "react-router-dom";
-import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import React, {useEffect, useState} from "react";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {Link} from "react-router-dom";
+import {ChevronLeft, ChevronRight, Plus, Search} from "lucide-react";
+import {toast} from "sonner";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -29,18 +15,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-import adminProductService, {
-    type AdminProduct,
-    type ProductSearchParams,
-} from "../../services/adminProductService";
-import {
-    ProductDataTable,
-    type Product,
-} from "@/components/product-data-table";
+import {Skeleton} from "@/components/ui/skeleton";
+import adminProductService, {type AdminProduct, type ProductSearchParams,} from "../../services/adminProductService";
+import {type Product, ProductDataTable,} from "@/components/product-data-table";
 import AdvancedProductSearch from "@/components/AdvancedProductSearch";
 
-import type { MetadataResponse } from "@/types/api.ts";
+import type {MetadataResponse} from "@/types/api.ts";
+import { Helmet } from "react-helmet-async";
 
 // Transform AdminProduct to Product interface for the data table
 const transformToProduct = (adminProduct: AdminProduct): Product => {
@@ -74,6 +55,7 @@ const transformToProduct = (adminProduct: AdminProduct): Product => {
                 name: feature.name,
                 image: "", // AdminProduct features don't have images, so we use empty string
             })) || [],
+        isDeleted: adminProduct.isDeleted,
     };
 };
 
@@ -81,7 +63,13 @@ const AdminProductsPage: React.FC = () => {
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
-    const [useAdvancedSearch, setUseAdvancedSearch] = useState(false);
+    const [searchParams, setSearchParams] = useState<ProductSearchParams>({
+        page: 0,
+        size: 10,
+        sortBy: "createdAt",
+        sortDirection: "desc",
+        searchKeyword: "",
+    })
     const [metadata, setMetadata] = useState<MetadataResponse>({
         currentPage: 0,
         pageSize: 10,
@@ -123,6 +111,14 @@ const AdminProductsPage: React.FC = () => {
         loading: true,
         error: null,
     });
+
+    const searchParamsResets: ProductSearchParams = {
+        page: 0,
+        size: 10,
+        sortBy: "createdAt",
+        sortDirection: "desc",
+        searchKeyword: "",
+    }
 
     const fetchProducts = async () => {
         try {
@@ -180,8 +176,8 @@ const AdminProductsPage: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchProducts();
-    }, [metadata.currentPage, debouncedSearchTerm, selectedCategory]);
+        handleAdvancedSearch(searchParams);
+    }, [searchParams.page, debouncedSearchTerm, selectedCategory]);
 
     // Advanced search function
     const handleAdvancedSearch = async (searchParams: ProductSearchParams) => {
@@ -218,15 +214,14 @@ const AdminProductsPage: React.FC = () => {
                     error: null,
                 });
 
+                console.log("metadata:", response.meta);
+
                 setMetadata({
-                    currentPage: searchParams.page || 0,
-                    pageSize: searchParams.size || 10,
+                    currentPage: response.meta?.currentPage || 0,
+                    pageSize: response.meta?.pageSize || 10,
                     totalElements:
                         response.meta?.totalElements || mappedProducts.length,
-                    totalPage: Math.ceil(
-                        (response.meta?.totalElements ||
-                            mappedProducts.length) / (searchParams.size || 10)
-                    ),
+                    totalPage: response.meta?.totalPage || 1,
                 });
             }
         } catch (error) {
@@ -244,7 +239,7 @@ const AdminProductsPage: React.FC = () => {
         setSearchTerm("");
         setSelectedCategory("");
         setMetadata((prev) => ({ ...prev, currentPage: 0 }));
-        fetchProducts();
+        handleAdvancedSearch(searchParamsResets);
     };
 
     // Use useState data instead of useQuery
@@ -316,6 +311,9 @@ const AdminProductsPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <Helmet>
+                <title>Quản lý sản phẩm - Apple</title>
+            </Helmet>
             {/* Header */}
             <Card>
                 <CardHeader>
@@ -343,6 +341,7 @@ const AdminProductsPage: React.FC = () => {
                             onSearch={handleAdvancedSearch}
                             onReset={handleResetSearch}
                             loading={isLoading}
+                            setSearchParams={setSearchParams}
                         />
                     </div>
                 </CardContent>
@@ -429,11 +428,21 @@ const AdminProductsPage: React.FC = () => {
                                     variant="outline"
                                     size="sm"
                                     onClick={() =>
-                                        setMetadata((prev) => ({
+                                        /*setMetadata((prev) => ({
                                             ...prev,
                                             currentPage: Math.max(
                                                 0,
                                                 prev.currentPage - 1
+                                            ),
+                                        }))*/
+                                        setSearchParams((prev) => ({
+                                            ...prev,
+                                            page: Math.max(
+                                                0,
+                                                Math.max(
+                                                    0,
+                                                    prev.page - 1
+                                                )
                                             ),
                                         }))
                                     }
@@ -455,7 +464,7 @@ const AdminProductsPage: React.FC = () => {
                                             metadata.totalPage ? (
                                             <Button
                                                 key={pageNumber}
-                                                className={`bg-transparent hover:bg-transparent text-black shadow-none ${
+                                                className={`bg-transparent hover:bg-transparent text-foreground shadow-none ${
                                                     metadata.currentPage ===
                                                     pageNumber
                                                         ? "underline"
@@ -463,9 +472,13 @@ const AdminProductsPage: React.FC = () => {
                                                 }`}
                                                 size="sm"
                                                 onClick={() =>
-                                                    setMetadata((prev) => ({
+                                                    /*setMetadata((prev) => ({
                                                         ...prev,
                                                         currentPage: pageNumber,
+                                                    }))*/
+                                                    setSearchParams((prev) => ({
+                                                        ...prev,
+                                                        page: pageNumber,
                                                     }))
                                                 }
                                             >
@@ -478,12 +491,20 @@ const AdminProductsPage: React.FC = () => {
                                     variant="outline"
                                     size="sm"
                                     onClick={() =>
-                                        setMetadata((prev) => ({
+                                        /*setMetadata((prev) => ({
                                             ...prev,
                                             currentPage: Math.min(
                                                 prev.currentPage + 1,
                                                 metadata.totalPage - 1
                                             ),
+                                        }))*/
+                                        setSearchParams((prev) => ({
+                                            ...prev,
+                                            page: Math.min(
+                                                Math.min(
+                                                    metadata.currentPage + 1,
+                                                )
+                                            )
                                         }))
                                     }
                                     disabled={
@@ -537,9 +558,11 @@ const AdminProductsPage: React.FC = () => {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Xóa sản phẩm</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Xác nhận thao tác với sản phẩm "{deleteDialog.productName}"?
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bạn có chắc chắn muốn xóa sản phẩm "
+                            Bạn có chắc chắn thực hiện hành động này với sản phẩm "
                             {deleteDialog.productName}"? Hành động này không thể
                             hoàn tác.
                         </AlertDialogDescription>
@@ -551,7 +574,7 @@ const AdminProductsPage: React.FC = () => {
                             className="bg-destructive text-white hover:bg-destructive/90"
                             disabled={deleteDialog.isDeleting}
                         >
-                            {deleteDialog.isDeleting ? "Đang xóa..." : "Xóa"}
+                            {deleteDialog.isDeleting ? "Đang thực hiện..." : "Tiếp tục"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

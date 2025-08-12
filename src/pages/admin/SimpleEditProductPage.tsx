@@ -32,10 +32,11 @@ import {
 import { fetchAdminColors, type Color } from "@/services/colorService";
 import { fetchAdminFeatures, type Feature } from "@/services/featureService";
 import { fetchAdminInstances, type Instance } from "@/services/instanceService";
+import { Textarea } from "@/components/ui/textarea.tsx";
 
 interface ProductPhoto {
     id?: number;
-    imageUrl: string;
+    imageUrl: string | File; // ✅ Cho phép cả string và File
     alt: string;
 }
 
@@ -74,6 +75,19 @@ interface ProductFormData {
 }
 
 const productService = new AdminProductService();
+
+// Utility function to convert base64 data URL to File object
+const dataURLtoFile = (dataurl: string, filename: string): File => {
+    const arr = dataurl.split(",");
+    const mime = arr[0].match(/:(.*?);/)?.[1] || "image/jpeg";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+};
 
 const SimpleEditProductPage: React.FC = () => {
     const { categoryId, id } = useParams<{ id: string; categoryId: string }>();
@@ -162,7 +176,7 @@ const SimpleEditProductPage: React.FC = () => {
                                     color: {
                                         id: stock.color.id,
                                         name: stock.color.name,
-                                        hexCode: stock.color.hex, // Convert hex to hexCode
+                                        hexCode: stock.color.hexCode, // Convert hex to hexCode
                                     },
                                     quantity: stock.quantity,
                                     price: stock.price,
@@ -200,7 +214,41 @@ const SimpleEditProductPage: React.FC = () => {
         try {
             setSaving(true);
 
-            // Prepare product data structure
+            // Prepare new image files and process photos
+            const updatedFileUploads: { [key: string]: File } = {
+                ...fileUploads,
+            };
+
+            // Process photos to separate URLs from File objects and base64 data URLs
+            formData.stocks.forEach((stock, stockIndex) => {
+                stock.productPhotos.forEach((photo, photoIndex) => {
+                    // Handle base64 data URLs (convert to File)
+                    if (
+                        typeof photo.imageUrl === "string" &&
+                        photo.imageUrl.startsWith("data:image/")
+                    ) {
+                        try {
+                            const fileKey = `stock_${stockIndex}_photo_${photoIndex}_${Date.now()}`;
+                            const file = dataURLtoFile(
+                                photo.imageUrl,
+                                `image_${fileKey}.jpg`
+                            );
+                            updatedFileUploads[fileKey] = file;
+
+                            // Update the photo to use FILE_UPLOAD marker
+                            photo.imageUrl = fileKey;
+                        } catch (error) {
+                            console.error(
+                                "Error converting base64 to file:",
+                                error
+                            );
+                        }
+                    }
+                    // File objects are already handled in addPhoto function
+                });
+            });
+
+            // Prepare product data structure with proper imageUrl handling
             const productData = {
                 name: formData.name,
                 description: formData.description,
@@ -226,7 +274,10 @@ const SimpleEditProductPage: React.FC = () => {
                     price: stock.price,
                     productPhotos: stock.productPhotos.map((photo) => ({
                         id: photo.id,
-                        imageUrl: photo.imageUrl,
+                        imageUrl:
+                            typeof photo.imageUrl === "string"
+                                ? photo.imageUrl
+                                : `FILE_UPLOAD:temp_${Date.now()}`, // ✅ Đảm bảo imageUrl luôn là string
                         alt: photo.alt,
                     })),
                     instanceProperties: stock.instanceProperties.map(
@@ -243,7 +294,7 @@ const SimpleEditProductPage: React.FC = () => {
                 parseInt(id!),
                 parseInt(categoryId!),
                 productData,
-                fileUploads,
+                updatedFileUploads,
                 photosToDelete
             );
 
@@ -438,7 +489,9 @@ const SimpleEditProductPage: React.FC = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <Label htmlFor="name">Tên sản phẩm *</Label>
+                            <Label htmlFor="name" className={"mb-2"}>
+                                Tên sản phẩm *
+                            </Label>
                             <Input
                                 id="name"
                                 value={formData.name}
@@ -453,8 +506,10 @@ const SimpleEditProductPage: React.FC = () => {
                         </div>
 
                         <div>
-                            <Label htmlFor="description">Mô tả</Label>
-                            <textarea
+                            <Label htmlFor="description" className={"mb-2"}>
+                                Mô tả
+                            </Label>
+                            <Textarea
                                 id="description"
                                 rows={3}
                                 value={formData.description}
@@ -464,12 +519,12 @@ const SimpleEditProductPage: React.FC = () => {
                                         description: e.target.value,
                                     }))
                                 }
-                                className="w-full px-3 py-2 border border-input rounded-md"
+                                className={"transition"}
                             />
                         </div>
 
                         <div>
-                            <Label>Danh mục *</Label>
+                            <Label className={"mb-2"}>Danh mục *</Label>
                             <Select
                                 value={formData.category.id.toString()}
                                 onValueChange={(value) => {
@@ -514,7 +569,16 @@ const SimpleEditProductPage: React.FC = () => {
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <CardTitle>Tính năng</CardTitle>
+                            <CardTitle>
+                                <div className={"mb-2"}>Tính năng</div>
+                                <div
+                                    className={
+                                        "text-xs text-muted-foreground font-normal"
+                                    }
+                                >
+                                    {formData.features.length} tính năng
+                                </div>
+                            </CardTitle>
                             <Button
                                 type="button"
                                 size="sm"
@@ -540,11 +604,11 @@ const SimpleEditProductPage: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                         {formData.features.length > 0 ? (
-                            <div className="space-y-3">
+                            <div className="bg-foreground/5 rounded-2xl transition">
                                 {formData.features.map((feature, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-center gap-3 p-3 border rounded-lg"
+                                        className="flex items-center p-3"
                                     >
                                         <Select
                                             value={feature.id.toString()}
@@ -934,7 +998,12 @@ const SimpleEditProductPage: React.FC = () => {
                                                                 >
                                                                     <img
                                                                         src={
-                                                                            photo.imageUrl
+                                                                            typeof photo.imageUrl ===
+                                                                            "string"
+                                                                                ? photo.imageUrl
+                                                                                : URL.createObjectURL(
+                                                                                      photo.imageUrl as File
+                                                                                  )
                                                                         }
                                                                         alt={
                                                                             photo.alt

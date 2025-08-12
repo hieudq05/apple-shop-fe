@@ -72,19 +72,33 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
     }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-                    <p className="font-medium !text-foreground">{label}</p>
-                    {payload.map((entry, index: number) => (
-                        <p
-                            key={index}
-                            className="text-sm"
-                            style={{ color: entry.color }}
-                        >
-                            {entry.dataKey === "revenue"
-                                ? `Doanh thu: ${formatCurrency(entry.value)}`
-                                : `Đơn hàng: ${formatNumber(entry.value)}`}
+                <div className="bg-background flex gap-3 items-center border border-border rounded-xl py-3 px-4 shadow-lg">
+                    <div className="size-4 bg-blue-500 rounded-sm"></div>
+                    <div>
+                        <p className="font-medium text-sm !text-foreground">
+                            {label}
                         </p>
-                    ))}
+                        {payload.map((entry, index: number) => (
+                            <p
+                                key={index}
+                                className="text-xs text-muted-foreground"
+                            >
+                                {entry.dataKey === "revenue" ? (
+                                    <>
+                                        Doanh thu:
+                                        <span
+                                            className="ml-1 text-sm font-medium"
+                                            style={{ color: entry.color }}
+                                        >
+                                            {formatCurrency(entry.value)}
+                                        </span>
+                                    </>
+                                ) : (
+                                    `Đơn hàng: ${formatNumber(entry.value)}`
+                                )}
+                            </p>
+                        ))}
+                    </div>
                 </div>
             );
         }
@@ -98,6 +112,8 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
                     <CartesianGrid
                         strokeDasharray="3 3"
                         className="opacity-30"
+                        horizontal={true}
+                        vertical={false}
                     />
                     <XAxis
                         dataKey="name"
@@ -130,6 +146,8 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
                     <CartesianGrid
                         strokeDasharray="3 3"
                         className="opacity-30"
+                        horizontal={true}
+                        vertical={false}
                     />
                     <XAxis
                         dataKey="name"
@@ -176,7 +194,12 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
                         />
                     </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="opacity-30"
+                    horizontal={true}
+                    vertical={false}
+                />
                 <XAxis
                     dataKey="name"
                     className="text-xs"

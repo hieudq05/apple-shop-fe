@@ -3,14 +3,35 @@ export interface Review {
     id: number;
     user: {
         id: number;
-        email: string;
         firstName: string;
         lastName: string;
         image?: string;
     };
+    content: string;
     rating: number;
     createdAt: string;
-    isApproved: boolean;
+    replyContent?: string;
+    repliedBy?: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        image?: string;
+    };
+    productId: number;
+    productName: string;
+    stock: {
+        id: number;
+        color: {
+            id: number;
+            name: string;
+            hexCode: string;
+        };
+        instanceProperties: Array<{
+            id: number;
+            name: string;
+        }>;
+    };
+    isApproved?: boolean;
 }
 
 export interface ReviewDetails {
@@ -59,11 +80,10 @@ export interface StockDto {
 }
 
 export interface CreateReviewRequest {
-    productId: number;
+    stockId: number;
     rating: number;
-    title: string;
+    orderId: number;
     content: string;
-    images?: string[];
 }
 
 export interface UpdateReviewRequest {

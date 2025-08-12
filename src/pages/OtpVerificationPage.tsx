@@ -220,7 +220,7 @@ const OtpVerificationPage: React.FC = () => {
                                             ?.classList.remove("z-10")
                                     }
                                     className={
-                                        "w-full text-lg text-start px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition text-center tracking-widest font-mono"
+                                        "w-full text-lg text-start px-4 pb-3 pt-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition tracking-widest font-mono"
                                     }
                                 />
                                 <button
@@ -236,18 +236,18 @@ const OtpVerificationPage: React.FC = () => {
                         </form>
 
                         <div className="flex flex-col items-center space-y-4">
-                            {timeLeft > 0 ? (
-                                <div className="text-gray-600 text-sm">
-                                    Mã sẽ hết hạn sau:{" "}
-                                    <span className="font-mono font-semibold">
-                                        {formatTime(timeLeft)}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="text-red-600 text-sm font-semibold">
-                                    Mã xác thực đã hết hạn
-                                </div>
-                            )}
+                            {/*{timeLeft > 0 ? (*/}
+                            {/*    <div className="text-gray-600 text-sm">*/}
+                            {/*        Mã sẽ hết hạn sau:{" "}*/}
+                            {/*        <span className="font-mono font-semibold">*/}
+                            {/*            {formatTime(timeLeft)}*/}
+                            {/*        </span>*/}
+                            {/*    </div>*/}
+                            {/*) : (*/}
+                            {/*    <div className="text-red-600 text-sm font-semibold">*/}
+                            {/*        Mã xác thực đã hết hạn*/}
+                            {/*    </div>*/}
+                            {/*)}*/}
 
                             <button
                                 onClick={handleResendOtp}

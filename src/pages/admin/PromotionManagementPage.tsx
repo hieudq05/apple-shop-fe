@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-    PlusIcon,
-    PencilIcon,
-    TrashIcon,
-    MagnifyingGlassIcon,
-    GiftIcon,
-    CalendarIcon,
-    UserIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
+    EllipsisVerticalIcon,
     FunnelIcon,
+    GiftIcon,
+    MagnifyingGlassIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+    UserIcon,
     XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
@@ -24,15 +24,30 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import promotionService, {
+    type CreatePromotionData,
     type Promotion,
     type PromotionParams,
     type PromotionSearchParams,
-    type CreatePromotionData,
 } from "../../services/promotionService";
 import { useDebounce } from "../../hooks/useDebounce";
 import { Check, Copy } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label.tsx";
+import { Helmet } from "react-helmet-async";
 
 interface PromotionForm {
     name: string;
@@ -429,13 +444,13 @@ const PromotionManagementPage: React.FC = () => {
     const getTypeColor = (type: Promotion["promotionType"]) => {
         switch (type) {
             case "PERCENTAGE":
-                return "bg-blue-100 text-blue-800";
+                return "bg-blue-500/10 text-blue-500";
             case "FIXED_AMOUNT":
-                return "bg-green-100 text-green-800";
+                return "bg-green-500/10 text-green-500";
             case "SHIPPING_DISCOUNT":
-                return "bg-purple-100 text-purple-800";
+                return "bg-purple-500/10 text-purple-500";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "bg-gray-100 text-gray-500";
         }
     };
 
@@ -468,12 +483,12 @@ const PromotionManagementPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+                    <div className="h-8 bg-foreground/5 rounded w-1/4 mb-6"></div>
                     <div className="space-y-4">
                         {[...Array(5)].map((_, i) => (
                             <div
                                 key={i}
-                                className="h-16 bg-gray-200 rounded"
+                                className="h-16 bg-foreground/5 rounded"
                             ></div>
                         ))}
                     </div>
@@ -484,20 +499,24 @@ const PromotionManagementPage: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6">
+            <Helmet>
+                <title>Quản lý khuyến mãi - Apple</title>
+                <meta
+                    name="description"
+                    content="Quản lý các chương trình khuyến mãi và mã giảm giá cho cửa hàng."
+                />
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-foreground">
                         Quản lý khuyến mãi
                     </h1>
                     <p className="text-muted-foreground">
                         Quản lý các chương trình khuyến mãi và mã giảm giá
                     </p>
                 </div>
-                <Button
-                    onClick={openCreateForm}
-                    className="flex items-center space-x-2"
-                >
+                <Button onClick={openCreateForm} className="flex items-center">
                     <PlusIcon className="w-4 h-4" />
                     <span>Thêm khuyến mãi</span>
                 </Button>
@@ -505,7 +524,7 @@ const PromotionManagementPage: React.FC = () => {
 
             {/* Error Message */}
             {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-4 bg-foreground/3 border border-destructive rounded-lg">
                     <p className="text-red-800">{error}</p>
                 </div>
             )}
@@ -519,7 +538,7 @@ const PromotionManagementPage: React.FC = () => {
                         placeholder="Tìm kiếm khuyến mãi..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
                 <Button
@@ -549,54 +568,54 @@ const PromotionManagementPage: React.FC = () => {
             </div>
 
             {/* Promotions Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-foreground/3 rounded-lg shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full bg-background divide-y divide-foreground/5">
+                        <thead className="bg-foreground/5">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Khuyến mãi
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Mã code
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Loại
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Giá trị
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Sử dụng
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Thời gian
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Người tạo
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                                     Trạng thái
                                 </th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-right text-xs font-medium text-foreground">
                                     Thao tác
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-foreground/5">
                             {filteredPromotions.map((promotion) => (
                                 <tr
                                     key={promotion.id}
-                                    className="hover:bg-gray-50 h-16"
+                                    className="hover:bg-foreground/3 h-16"
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center space-x-3">
-                                            <GiftIcon className="w-5 h-5 text-gray-400" />
+                                            <GiftIcon className="w-5 h-5 text-muted-foreground" />
                                             <div>
-                                                <div className="text-sm font-medium text-gray-900">
+                                                <div className="text-sm font-medium text-foreground">
                                                     {promotion.name}
                                                 </div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-muted-foreground">
                                                     ID: {promotion.id}
                                                 </div>
                                             </div>
@@ -605,7 +624,7 @@ const PromotionManagementPage: React.FC = () => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <Badge
                                             variant="outline"
-                                            className="font-mono text-xs"
+                                            className="font-mono text-sm"
                                         >
                                             {promotion.code}
                                             <Button
@@ -639,7 +658,7 @@ const PromotionManagementPage: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <Badge
-                                            variant="secondary"
+                                            variant="outline"
                                             className={`text-xs ${getTypeColor(
                                                 promotion.promotionType
                                             )}`}
@@ -649,14 +668,14 @@ const PromotionManagementPage: React.FC = () => {
                                             )}
                                         </Badge>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         <div>
                                             <div className="font-medium">
                                                 {getValueDisplay(promotion)}
                                             </div>
                                             {promotion.minOrderValue &&
                                                 promotion.minOrderValue > 0 && (
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-muted-foreground">
                                                         Tối thiểu:{" "}
                                                         {formatCurrency(
                                                             promotion.minOrderValue
@@ -665,51 +684,44 @@ const PromotionManagementPage: React.FC = () => {
                                                 )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         <div>
                                             <div className="font-medium">
                                                 {promotion.usageCount}
                                             </div>
                                             {promotion.usageLimit > 0 && (
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-muted-foreground">
                                                     / {promotion.usageLimit}
                                                 </div>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                         <div className="flex items-center space-x-1">
-                                            <CalendarIcon className="w-4 h-4" />
+                                            {/*<CalendarIcon className="w-4 h-4" />*/}
                                             <div>
                                                 <div>
-                                                    {formatDate(
-                                                        promotion.startDate
-                                                    )}
+                                                    Từ{" "}
+                                                    <span className="font-medium text-foreground">
+                                                        {formatDate(
+                                                            promotion.startDate
+                                                        )}
+                                                    </span>
                                                 </div>
                                                 <div>
                                                     đến{" "}
-                                                    {formatDate(
-                                                        promotion.endDate
-                                                    )}
+                                                    <span className="font-medium text-foreground">
+                                                        {formatDate(
+                                                            promotion.endDate
+                                                        )}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center space-x-2">
-                                            <Avatar className="h-6 w-6">
-                                                <AvatarImage
-                                                    src={
-                                                        promotion.createdBy
-                                                            .image
-                                                    }
-                                                    alt={`${promotion.createdBy.firstName} ${promotion.createdBy.lastName}`}
-                                                />
-                                                <AvatarFallback>
-                                                    <UserIcon className="h-3 w-3" />
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="text-xs text-gray-600">
+                                            <div className="text-sm text-foreground">
                                                 {promotion.createdBy.firstName}{" "}
                                                 {promotion.createdBy.lastName}
                                             </div>
@@ -735,8 +747,8 @@ const PromotionManagementPage: React.FC = () => {
                                                 promotion.endDate
                                             ) && (
                                                 <Badge
-                                                    variant="destructive"
-                                                    className="text-xs"
+                                                    variant="outline"
+                                                    className="text-xs bg-destructive/10 text-destructive"
                                                 >
                                                     Đã hết hạn
                                                 </Badge>
@@ -744,30 +756,43 @@ const PromotionManagementPage: React.FC = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end space-x-2">
-                                            <Button
-                                                onClick={() =>
-                                                    openEditForm(promotion)
-                                                }
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-indigo-600 hover:text-indigo-900"
-                                            >
-                                                <PencilIcon className="w-4 h-4" />
-                                            </Button>
-                                            <Button
-                                                onClick={() =>
-                                                    openDeleteDialog(
-                                                        promotion.id,
-                                                        promotion.name
-                                                    )
-                                                }
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                <TrashIcon className="w-4 h-4" />
-                                            </Button>
+                                        <div className="flex items-center justify-end">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 p-0"
+                                                    >
+                                                        <EllipsisVerticalIcon className="w-4 h-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            openEditForm(
+                                                                promotion
+                                                            )
+                                                        }
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <PencilIcon className="w-4 h-4" />
+                                                        Chỉnh sửa
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            openDeleteDialog(
+                                                                promotion.id,
+                                                                promotion.name
+                                                            )
+                                                        }
+                                                        className="text-destructive focus:text-destructive flex items-center gap-2"
+                                                    >
+                                                        <TrashIcon className="w-4 h-4 text-destructive" />
+                                                        Xóa
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </td>
                                 </tr>
@@ -778,8 +803,8 @@ const PromotionManagementPage: React.FC = () => {
 
                 {/* Pagination */}
                 {promotions.length > 0 && (
-                    <div className="bg-white px-6 py-3 border-t border-gray-200 flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
+                    <div className="bg-background px-6 py-3 border-t flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
                             Hiển thị{" "}
                             <span className="font-medium">
                                 {currentPage * pageSize + 1}
@@ -869,26 +894,26 @@ const PromotionManagementPage: React.FC = () => {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Tên khuyến mãi *
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     required
                                     value={formData.name}
                                     onChange={(e) =>
                                         handleNameChange(e.target.value)
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                     placeholder="Giảm giá 10%"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Mã code *
                                 </label>
-                                <input
+                                <Input
                                     type="text"
                                     required
                                     value={formData.code}
@@ -898,7 +923,7 @@ const PromotionManagementPage: React.FC = () => {
                                             code: e.target.value.toUpperCase(),
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono"
+                                    className="w-full"
                                     placeholder="DISCOUNT10"
                                 />
                             </div>
@@ -906,35 +931,39 @@ const PromotionManagementPage: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Loại khuyến mãi *
                                 </label>
-                                <select
-                                    required
+                                <Select
+                                    required={true}
                                     value={formData.promotionType}
-                                    onChange={(e) =>
+                                    onValueChange={(value) => {
+                                        // @ts-ignore
                                         setFormData((prev) => ({
                                             ...prev,
-                                            promotionType: e.target
-                                                .value as PromotionForm["promotionType"],
-                                        }))
-                                    }
-                                    className="w-full px-3 py-[0.65rem] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            promotionType: value,
+                                        }));
+                                    }}
                                 >
-                                    <option value="PERCENTAGE">
-                                        Phần trăm (%)
-                                    </option>
-                                    <option value="FIXED_AMOUNT">
-                                        Số tiền cố định (VND)
-                                    </option>
-                                    <option value="SHIPPING_DISCOUNT">
-                                        Miễn phí vận chuyển
-                                    </option>
-                                </select>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Theme" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="PERCENTAGE">
+                                            Phần trăm
+                                        </SelectItem>
+                                        <SelectItem value="FIXED_AMOUNT">
+                                            Số tiền cố định
+                                        </SelectItem>
+                                        <SelectItem value="SHIPPING_DISCOUNT">
+                                            Miễn phí vận chuyển
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <Label className="block text-sm text-muted-foreground mb-1">
                                     Giá trị{" "}
                                     {formData.promotionType === "PERCENTAGE"
                                         ? "(%)"
@@ -942,8 +971,8 @@ const PromotionManagementPage: React.FC = () => {
                                           "FIXED_AMOUNT"
                                         ? "(VND)"
                                         : ""}
-                                </label>
-                                <input
+                                </Label>
+                                <Input
                                     type="number"
                                     min="0"
                                     max={
@@ -959,17 +988,17 @@ const PromotionManagementPage: React.FC = () => {
                                                 parseFloat(e.target.value) || 0,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                 />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Đơn hàng tối thiểu (VND)
                                 </label>
-                                <input
+                                <Input
                                     type="number"
                                     min="0"
                                     value={formData.minOrderValue}
@@ -980,15 +1009,15 @@ const PromotionManagementPage: React.FC = () => {
                                                 parseInt(e.target.value) || 0,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Giảm tối đa (VND)
                                 </label>
-                                <input
+                                <Input
                                     type="number"
                                     min="0"
                                     value={formData.maxDiscountAmount}
@@ -999,7 +1028,7 @@ const PromotionManagementPage: React.FC = () => {
                                                 parseInt(e.target.value) || 0,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                     disabled={
                                         formData.promotionType ===
                                             "FIXED_AMOUNT" ||
@@ -1012,10 +1041,10 @@ const PromotionManagementPage: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Giới hạn sử dụng
                                 </label>
-                                <input
+                                <Input
                                     type="number"
                                     min="0"
                                     value={formData.usageLimit}
@@ -1026,16 +1055,16 @@ const PromotionManagementPage: React.FC = () => {
                                                 parseInt(e.target.value) || 0,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full"
                                     placeholder="0 = không giới hạn"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Ngày bắt đầu *
                                 </label>
-                                <input
+                                <Input
                                     type="datetime-local"
                                     required
                                     value={formData.startDate}
@@ -1045,15 +1074,15 @@ const PromotionManagementPage: React.FC = () => {
                                             startDate: e.target.value,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm text-muted-foreground mb-1">
                                     Ngày kết thúc *
                                 </label>
-                                <input
+                                <Input
                                     type="datetime-local"
                                     required
                                     value={formData.endDate}
@@ -1063,13 +1092,13 @@ const PromotionManagementPage: React.FC = () => {
                                             endDate: e.target.value,
                                         }))
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                 />
                             </div>
                         </div>
 
                         <div className="flex items-center">
-                            <input
+                            <Input
                                 type="checkbox"
                                 id="isActive"
                                 checked={formData.isActive}
@@ -1079,11 +1108,11 @@ const PromotionManagementPage: React.FC = () => {
                                         isActive: e.target.checked,
                                     }))
                                 }
-                                className="mr-2 text-blue-600 focus:ring-blue-500"
+                                className="size-4 mr-2 text-blue-600 focus:ring-blue-500"
                             />
                             <label
                                 htmlFor="isActive"
-                                className="text-sm text-gray-700"
+                                className="text-sm text-muted-foreground"
                             >
                                 Kích hoạt khuyến mãi
                             </label>

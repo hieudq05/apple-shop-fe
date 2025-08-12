@@ -18,7 +18,9 @@ import {
     DropdownMenuCheckboxItem,
     DropdownMenuSeparator,
 } from "../components/ui/dropdown-menu";
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Input } from "@/components/ui/input.tsx";
+import { Helmet } from "react-helmet-async";
 
 const SearchPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -72,8 +74,8 @@ const SearchPage: React.FC = () => {
                 fetchCategories(),
                 fetchColors(),
             ]);
-            setCategories(categoriesData);
-            setAvailableColors(colorsData);
+            setCategories(categoriesData.data);
+            setAvailableColors(colorsData.data);
         } catch (error) {
             console.error("Error fetching filter data:", error);
         } finally {
@@ -91,17 +93,6 @@ const SearchPage: React.FC = () => {
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const performSearch = useCallback(async () => {
-        console.log("performSearch called with:", {
-            searchTerm,
-            selectedCategories,
-            selectedColors,
-            priceRange,
-            inStockOnly,
-            // sortBy,
-            // sortDirection,
-            currentPage,
-        });
-
         setIsLoading(true);
         try {
             const filters: SearchFilters = {
@@ -117,14 +108,12 @@ const SearchPage: React.FC = () => {
                 minPrice: priceRange.min ? parseInt(priceRange.min) : undefined,
                 maxPrice: priceRange.max ? parseInt(priceRange.max) : undefined,
                 inStock: inStockOnly || undefined,
+                page: currentPage,
             };
 
-            console.log("Sending search request with filters:", filters);
             const response = await searchService.searchProducts(filters);
-            console.log("Search response:", response);
 
             if (response.success) {
-                console.log("Setting products:", response.data);
                 setProducts(response.data);
                 setCurrentPage(response.meta.currentPage);
                 setTotalPages(response.meta.totalPage);
@@ -149,29 +138,6 @@ const SearchPage: React.FC = () => {
         // sortDirection,
         currentPage,
     ]);
-
-    useEffect(() => {
-        const query = searchParams.get("q");
-        if (query) {
-            console.log("Setting search term from URL:", query);
-            setSearchTerm(query);
-        }
-
-        // Kiểm tra nếu có bất kỳ filter nào từ URL, thực hiện search
-        const hasUrlFilters =
-            query ||
-            searchParams.get("category") ||
-            searchParams.get("colors") ||
-            searchParams.get("minPrice") ||
-            searchParams.get("maxPrice") ||
-            searchParams.get("inStock");
-        //|| searchParams.get("sort") ||
-        // searchParams.get("direction");
-
-        if (hasUrlFilters) {
-            performSearch();
-        }
-    }, [searchParams, performSearch]);
 
     useEffect(() => {
         // Luôn luôn search khi có thay đổi các parameter (kể cả khi tất cả đều empty)
@@ -248,9 +214,15 @@ const SearchPage: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
+            <Helmet>
+                <title>Tìm kiếm sản phẩm</title>
+            </Helmet>
             {/* Search Header */}
             <div className="mb-8">
-                <form onSubmit={handleSearch} className="flex gap-4 mb-4">
+                <form
+                    onSubmit={handleSearch}
+                    className="flex gap-4 mb-6 relative"
+                >
                     <div className="flex-1 relative">
                         <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <input
@@ -261,15 +233,9 @@ const SearchPage: React.FC = () => {
                                 searchParams.set("q", e.target.value);
                             }}
                             placeholder="Tìm kiếm sản phẩm..."
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full pl-10 pr-4 py-3 border transition rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
-                    <button
-                        type="submit"
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        Tìm kiếm
-                    </button>
                 </form>
 
                 {(searchTerm ||
@@ -280,7 +246,7 @@ const SearchPage: React.FC = () => {
                     inStockOnly ||
                     products.length > 0) && (
                     <div className="flex items-center justify-between">
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-muted-foreground">
                             {searchTerm
                                 ? `Kết quả tìm kiếm cho "${searchTerm}"`
                                 : selectedCategories.length > 0 ||
@@ -293,7 +259,7 @@ const SearchPage: React.FC = () => {
                         </h1>
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="lg:hidden flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                            className="lg:hidden flex items-center px-4 py-2 border rounded-lg hover:bg-gray-50"
                         >
                             <FunnelIcon className="w-4 h-4 mr-2" />
                             Bộ lọc
@@ -305,13 +271,13 @@ const SearchPage: React.FC = () => {
             <div className="flex gap-8">
                 {/* Filters Sidebar */}
                 <div
-                    className={`w-64 space-y-6 ${
+                    className={`w-80 space-y-6 ${
                         showFilters ? "block" : "hidden lg:block"
                     }`}
                 >
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <div className="bg-foreground/2 p-6 rounded-3xl shadow-sm border">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-gray-900">
+                            <h3 className="font-semibold text-foreground">
                                 Bộ lọc
                             </h3>
                             <button
@@ -324,13 +290,16 @@ const SearchPage: React.FC = () => {
 
                         {/* Category Filter */}
                         <div className="mb-6">
-                            <h4 className="font-medium text-gray-900 mb-3">
+                            <h4 className="font-medium text-foreground mb-3">
                                 Danh mục
                             </h4>
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <button className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors">
-                                        <span className="text-sm text-gray-700 truncate">
+                                <DropdownMenuTrigger
+                                    className={"rounded-xl"}
+                                    asChild
+                                >
+                                    <button className="w-full shadow-xs flex items-center justify-between px-3 py-3 border rounded-lg text-foreground transition-colors">
+                                        <span className="text-sm text-foreground truncate">
                                             {selectedCategories.length > 0
                                                 ? selectedCategories.length ===
                                                   1
@@ -341,9 +310,9 @@ const SearchPage: React.FC = () => {
                                         <ChevronDownIcon className="w-4 h-4 flex-shrink-0 ml-2" />
                                     </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-52 max-h-60 overflow-y-auto">
+                                <DropdownMenuContent className="w-52 max-h-60 overflow-y-auto rounded-xl">
                                     {isLoadingFilters ? (
-                                        <div className="p-3 text-sm text-gray-500 text-center">
+                                        <div className="p-3 text-sm text-foreground text-center">
                                             <div className="animate-pulse">
                                                 Đang tải...
                                             </div>
@@ -359,7 +328,7 @@ const SearchPage: React.FC = () => {
                                                                     []
                                                                 )
                                                             }
-                                                            className="w-full flex items-center gap-2 text-left text-sm text-red-600 hover:text-red-800 py-1 px-2 rounded hover:bg-red-50"
+                                                            className="w-full flex items-center gap-2 text-left text-sm text-red-600 py-3 px-2 rounded-lg hover:bg-muted"
                                                         >
                                                             <X className="size-4" />
                                                             Xóa tất cả đã chọn
@@ -399,7 +368,7 @@ const SearchPage: React.FC = () => {
                                                             );
                                                         }
                                                     }}
-                                                    className="cursor-pointer"
+                                                    className="cursor-pointer rounded-lg py-3"
                                                 >
                                                     <span className="truncate">
                                                         {category.name}
@@ -418,13 +387,13 @@ const SearchPage: React.FC = () => {
 
                         {/* Color Filter */}
                         <div className="mb-6">
-                            <h4 className="font-medium text-gray-900 mb-3">
+                            <h4 className="font-medium text-foreground mb-3">
                                 Màu sắc
                             </h4>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:bg-gray-50 transition-colors">
-                                        <span className="text-sm text-gray-700 truncate">
+                                    <button className="w-full shadow-xs flex items-center justify-between px-3 py-3 border rounded-xl transition-colors">
+                                        <span className="text-sm text-foreground truncate">
                                             {selectedColors.length > 0
                                                 ? selectedColors.length === 1
                                                     ? getSelectedColorNames()[0]
@@ -434,9 +403,9 @@ const SearchPage: React.FC = () => {
                                         <ChevronDownIcon className="w-4 h-4 flex-shrink-0 ml-2" />
                                     </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-52 max-h-60 overflow-y-auto">
+                                <DropdownMenuContent className="w-52 max-h-60 overflow-y-auto rounded-xl">
                                     {isLoadingFilters ? (
-                                        <div className="p-3 text-sm text-gray-500 text-center">
+                                        <div className="p-3 text-sm text-foreground text-center">
                                             <div className="animate-pulse">
                                                 Đang tải...
                                             </div>
@@ -452,7 +421,7 @@ const SearchPage: React.FC = () => {
                                                                     []
                                                                 )
                                                             }
-                                                            className="w-full gap-2 flex items-center text-left text-sm text-red-600 hover:text-red-800 py-1 px-2 rounded hover:bg-red-50"
+                                                            className="w-full flex items-center gap-2 text-left text-sm text-red-600 py-3 px-2 rounded-lg hover:bg-muted"
                                                         >
                                                             <X className="size-4" />
                                                             Xóa tất cả đã chọn
@@ -490,16 +459,19 @@ const SearchPage: React.FC = () => {
                                                             );
                                                         }
                                                     }}
-                                                    className="cursor-pointer"
+                                                    className="cursor-pointer py-3 rounded-lg"
                                                 >
-                                                    <div className="flex items-center w-full">
+                                                    <div className="flex items-center gap-3 w-full">
                                                         <div
-                                                            className="w-4 h-4 rounded-full border border-gray-300 mr-3 flex-shrink-0"
+                                                            className={
+                                                                "size-5 rounded-full"
+                                                            }
                                                             style={{
                                                                 backgroundColor:
                                                                     color.hexCode,
+                                                                boxShadow: `inset -2px 1px 5px -1px rgba(0,0,0,0.30)`,
                                                             }}
-                                                        />
+                                                        ></div>
                                                         <span className="truncate">
                                                             {color.name}
                                                         </span>
@@ -518,7 +490,7 @@ const SearchPage: React.FC = () => {
 
                         {/* Price Range Filter */}
                         <div className="mb-6">
-                            <h4 className="font-medium text-gray-900 mb-3">
+                            <h4 className="font-medium text-foreground mb-3">
                                 Khoảng giá
                             </h4>
                             <div className="space-y-2">
@@ -532,7 +504,7 @@ const SearchPage: React.FC = () => {
                                             min: e.target.value,
                                         }))
                                     }
-                                    className="w-full px-3 rounded-lg py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full shadow-xs px-3 rounded-xl py-3 text-sm border text-foreground"
                                 />
                                 <input
                                     type="number"
@@ -544,7 +516,7 @@ const SearchPage: React.FC = () => {
                                             max: e.target.value,
                                         }))
                                     }
-                                    className="w-full px-3 rounded-lg py-2 text-sm border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full shadow-xs px-3 rounded-xl py-3 text-sm border text-foreground"
                                 />
                             </div>
                         </div>
@@ -552,15 +524,15 @@ const SearchPage: React.FC = () => {
                         {/* Stock Filter */}
                         <div className="mb-6">
                             <label className="flex items-center">
-                                <input
-                                    type="checkbox"
+                                <Input
+                                    type={"checkbox"}
                                     checked={inStockOnly}
                                     onChange={(e) =>
                                         setInStockOnly(e.target.checked)
                                     }
-                                    className="mr-2 text-blue-600 focus:ring-blue-500"
+                                    className="mr-2 size-4 text-blue-600 focus:ring-blue-500"
                                 />
-                                <span className="text-sm text-gray-700">
+                                <span className="text-sm text-foreground">
                                     Chỉ hiển thị sản phẩm còn hàng
                                 </span>
                             </label>
@@ -615,7 +587,7 @@ const SearchPage: React.FC = () => {
                         </div>
                     ) : products.length > 0 ? (
                         <>
-                            <div className="mb-4 text-sm text-gray-600">
+                            <div className="mb-4 text-sm text-foreground">
                                 Tìm thấy {totalElements} sản phẩm
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -665,9 +637,9 @@ const SearchPage: React.FC = () => {
                                         <Link
                                             key={product.id}
                                             to={`/product/${product.categoryId}/${product.id}`}
-                                            className="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                                            className="group bg-foreground/3 flex flex-col rounded-2xl shadow-sm h-full border overflow-hidden hover:shadow-md transition-shadow"
                                         >
-                                            <div className="aspect-square bg-gray-100 relative overflow-hidden">
+                                            <div className="aspect-square bg-gray-100 overflow-hidden">
                                                 <img
                                                     src={mainImageUrl}
                                                     alt={product.name}
@@ -675,22 +647,22 @@ const SearchPage: React.FC = () => {
                                                 />
                                                 {totalQuantity === 0 && (
                                                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                                        <span className="text-white font-medium">
+                                                        <span className="text-foreground font-medium">
                                                             Hết hàng
                                                         </span>
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="p-4">
-                                                <h3 className="font-medium text-gray-900 mb-1 line-clamp-2">
+                                            <div className="p-4 flex flex-col justify-between">
+                                                <h3 className="font-medium text-foreground mb-1 line-clamp-2">
                                                     {product.name}
                                                 </h3>
-                                                <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                                                    {product.description}
-                                                </p>
-                                                <div className="flex items-center justify-between">
+                                                {/*<p className="text-sm text-muted-foreground mb-6 line-clamp-2">*/}
+                                                {/*    {product.description}*/}
+                                                {/*</p>*/}
+                                                <div className="flex items-end justify-between">
                                                     <div>
-                                                        <span className="text-lg font-bold text-gray-900">
+                                                        <span className="text-sm font-light text-muted-foreground">
                                                             {hasMultiplePrices
                                                                 ? `Từ `
                                                                 : ""}
@@ -700,14 +672,7 @@ const SearchPage: React.FC = () => {
                                                         </span>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded mb-1">
-                                                            {
-                                                                product.stocks
-                                                                    .length
-                                                            }{" "}
-                                                            biến thể
-                                                        </div>
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs font-light text-muted-foreground">
                                                             Còn: {totalQuantity}
                                                         </div>
                                                     </div>
@@ -728,9 +693,9 @@ const SearchPage: React.FC = () => {
                                             )
                                         }
                                         disabled={currentPage === 0}
-                                        className="px-3 py-2 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                        className="pe-3 ps-2 py-2 border rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted hover:cursor-pointer"
                                     >
-                                        Trước
+                                        <ChevronLeft />
                                     </button>
                                     <span className="px-4 py-2 text-sm text-gray-600">
                                         Trang {currentPage + 1} / {totalPages}
@@ -745,9 +710,9 @@ const SearchPage: React.FC = () => {
                                             )
                                         }
                                         disabled={currentPage >= totalPages - 1}
-                                        className="px-3 py-2 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                                        className="ps-3 pe-2 py-2 border rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted hover:cursor-pointer"
                                     >
-                                        Tiếp
+                                        <ChevronRight />
                                     </button>
                                 </div>
                             )}

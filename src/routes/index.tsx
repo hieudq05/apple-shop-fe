@@ -5,6 +5,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import OtpVerificationPage from "../pages/OtpVerificationPage";
 import ProductsPage from "../pages/ProductsPage.tsx";
 import ProductPage from "../pages/ProductPage.tsx";
@@ -12,6 +13,7 @@ import CartPage from "../pages/CartPage.tsx";
 import PaymentPage from "../pages/PaymentPage";
 import PaymentResultPage from "../pages/PaymentResultPage";
 import ProfilePage from "../pages/ProfilePage.tsx";
+import SavedProductsPage from "../pages/SavedProductsPage.tsx";
 import OrderHistoryPage from "../pages/OrderHistoryPage.tsx";
 import UserOrderDetailPage from "../pages/OrderDetailPage.tsx";
 import AdminLoginPage from "../pages/admin/AdminLoginPage";
@@ -42,6 +44,7 @@ import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
 import AdminReviewsPage from "@/pages/admin/AdminReviewsPage.tsx";
 import CreateOrderPage from "@/pages/admin/CreateOrderPage.tsx";
+import Chatbot from "@/components/Chatbot.tsx";
 
 export const routesConfig: RouteObject[] = [
     // User routes with MainLayout (only for ROLE_USER)
@@ -78,6 +81,10 @@ export const routesConfig: RouteObject[] = [
                 path: "blog/:id",
                 element: <BlogPostPage />,
             },
+            {
+                path: "chatbot",
+                element: <Chatbot />,
+            },
         ],
     },
     {
@@ -105,6 +112,10 @@ export const routesConfig: RouteObject[] = [
                 element: <ProfilePage />,
             },
             {
+                path: "saved-products",
+                element: <SavedProductsPage />,
+            },
+            {
                 path: "order-history",
                 element: <OrderHistoryPage />,
             },
@@ -122,6 +133,10 @@ export const routesConfig: RouteObject[] = [
     {
         path: "/register",
         element: <RegisterPage />,
+    },
+    {
+        path: "/reset-password",
+        element: <ResetPasswordPage />,
     },
     {
         path: "/verify-otp",

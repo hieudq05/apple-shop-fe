@@ -8,6 +8,7 @@ import {
     Image as ImageIcon,
     ChevronLeft,
     ChevronRight,
+    MoreVertical,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
@@ -46,6 +47,12 @@ import {
     SelectValue,
 } from "../../components/ui/select";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import {
     fetchAdminCategories,
     createCategory,
     updateCategory,
@@ -53,6 +60,7 @@ import {
     type Category,
 } from "../../services/categoryService";
 import type { MetadataResponse } from "../../types/api";
+import { Helmet } from "react-helmet-async";
 
 interface CategoryForm {
     name: string;
@@ -288,6 +296,9 @@ const CategoryManagementPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <Helmet>
+                <title>Quản lý danh mục - Apple</title>
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -427,30 +438,44 @@ const CategoryManagementPage: React.FC = () => {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                openEditForm(
-                                                                    category
-                                                                )
-                                                            }
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                openDeleteDialog(
-                                                                    category
-                                                                )
-                                                            }
-                                                            className="text-destructive hover:text-destructive"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
+                                                    <div className="flex justify-end">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger
+                                                                asChild
+                                                            >
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 w-8 p-0"
+                                                                >
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem
+                                                                    onClick={() =>
+                                                                        openEditForm(
+                                                                            category
+                                                                        )
+                                                                    }
+                                                                    className="flex items-center gap-2"
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                    Chỉnh sửa
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={() =>
+                                                                        openDeleteDialog(
+                                                                            category
+                                                                        )
+                                                                    }
+                                                                    className="text-destructive focus:text-destructive flex items-center gap-2"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                                    Xóa
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </div>
                                                 </TableCell>
                                             </TableRow>

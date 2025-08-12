@@ -8,6 +8,12 @@ import {
 } from "@heroicons/react/24/outline";
 import blogService, { type Blog } from "../../services/blogService";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { Trash } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea.tsx";
+import MarkdownEditor from "@/components/MarkdownEditor.tsx";
+import { Helmet } from "react-helmet-async";
 
 interface BlogForm {
     title: string;
@@ -158,15 +164,20 @@ const EditBlogPage: React.FC = () => {
     };
 
     // Event handlers
-    const handleInputChange = (
-        field: keyof BlogForm,
-        value: string | boolean
-    ) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
-    };
+    const handleInputChange = useCallback(
+        (field: keyof BlogForm, value: string | boolean) => {
+            setFormData((prev) => {
+                // Prevent unnecessary updates
+                if (prev[field] === value) return prev;
+
+                return {
+                    ...prev,
+                    [field]: value,
+                };
+            });
+        },
+        []
+    );
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -235,9 +246,8 @@ const EditBlogPage: React.FC = () => {
         }
     };
 
-    // Auto-save functionality (optional)
-    const [autoSaveTimeout, setAutoSaveTimeout] =
-        useState<NodeJS.Timeout | null>(null);
+    // Auto-save functionality (optional) - Fixed to prevent infinite loops
+    const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleAutoSave = useCallback(async () => {
         if (!hasChanges || isSaving) return;
@@ -260,28 +270,39 @@ const EditBlogPage: React.FC = () => {
         } catch (error) {
             console.error("Auto-save failed:", error);
         }
-    }, [formData, hasChanges, isSaving, id, thumbnailFile]);
+    }, [
+        formData.title,
+        formData.content,
+        formData.thumbnail,
+        formData.isPublished,
+        hasChanges,
+        isSaving,
+        id,
+        thumbnailFile,
+    ]);
 
-    // Auto-save every 30 seconds when there are changes
+    // Auto-save every 30 seconds when there are changes - Fixed dependencies
     useEffect(() => {
         if (hasChanges && !isSaving) {
-            if (autoSaveTimeout) {
-                clearTimeout(autoSaveTimeout);
+            // Clear existing timeout
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
             }
 
-            const timeout = setTimeout(() => {
+            // Set new timeout
+            autoSaveTimeoutRef.current = setTimeout(() => {
                 handleAutoSave();
             }, 30000); // 30 seconds
-
-            setAutoSaveTimeout(timeout);
         }
 
+        // Cleanup function
         return () => {
-            if (autoSaveTimeout) {
-                clearTimeout(autoSaveTimeout);
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current);
+                autoSaveTimeoutRef.current = null;
             }
         };
-    }, [hasChanges, isSaving, handleAutoSave, autoSaveTimeout]);
+    }, [hasChanges, isSaving, handleAutoSave]);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -335,11 +356,18 @@ const EditBlogPage: React.FC = () => {
 
     return (
         <div className="p-6">
+            <Helmet>
+                <title>Chỉnh sửa bài viết - Apple</title>
+                <meta
+                    name="description"
+                    content="Chỉnh sửa thông tin bài viết, nội dung và ảnh đại diện"
+                />
+            </Helmet>
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         onClick={() => {
                             if (hasChanges) {
                                 const confirmLeave = confirm(
@@ -349,15 +377,14 @@ const EditBlogPage: React.FC = () => {
                             }
                             navigate("/admin/blog");
                         }}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                         <ArrowLeftIcon className="w-5 h-5" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-foreground">
                             Chỉnh sửa bài viết
                         </h1>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                             <span>ID: {id}</span>
                             {originalBlog && (
                                 <>
@@ -374,17 +401,18 @@ const EditBlogPage: React.FC = () => {
                                         ).toLocaleDateString("vi-VN")}
                                     </span>
                                     <span>•</span>
-                                    <span
-                                        className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    <Badge
+                                        variant={"outline"}
+                                        className={`${
                                             originalBlog.isPublished
-                                                ? "bg-green-100 text-green-800"
-                                                : "bg-yellow-100 text-yellow-800"
+                                                ? "bg-green-500/10 text-green-500"
+                                                : "bg-yellow-500/10 text-yellow-500"
                                         }`}
                                     >
                                         {originalBlog.isPublished
                                             ? "Đã xuất bản"
                                             : "Bản nháp"}
-                                    </span>
+                                    </Badge>
                                 </>
                             )}
                         </div>
@@ -392,20 +420,19 @@ const EditBlogPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                    <button
-                        type="button"
-                        onClick={() => setShowPreview(!showPreview)}
-                        className="flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                        <EyeIcon className="w-4 h-4 mr-2" />
-                        {showPreview ? "Ẩn xem trước" : "Xem trước"}
-                    </button>
-
-                    <div className="text-sm text-gray-500 hidden sm:block">
+                    <div className="text-sm text-muted-foreground hidden sm:block">
                         <span className="inline-flex items-center">
                             Ctrl+S để lưu • Esc để hủy
                         </span>
                     </div>
+                    <Button
+                        variant={"outline"}
+                        type="button"
+                        onClick={() => setShowPreview(!showPreview)}
+                    >
+                        <EyeIcon className="w-4 h-4" />
+                        {showPreview ? "Ẩn xem trước" : "Xem trước"}
+                    </Button>
                 </div>
             </div>
 
@@ -418,17 +445,17 @@ const EditBlogPage: React.FC = () => {
                 >
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic Information */}
-                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                        <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border">
+                            <h2 className="text-lg font-semibold text-foreground mb-4">
                                 Thông tin bài viết
                             </h2>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                                         Tiêu đề bài viết *
                                     </label>
-                                    <input
+                                    <Input
                                         type="text"
                                         required
                                         value={formData.title}
@@ -438,18 +465,17 @@ const EditBlogPage: React.FC = () => {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
                                         Ảnh đại diện
                                     </label>
 
                                     {/* URL Input */}
                                     <div className="space-y-3">
-                                        <input
+                                        <Input
                                             type="url"
                                             placeholder="Nhập URL ảnh hoặc upload file bên dưới"
                                             value={
@@ -464,7 +490,6 @@ const EditBlogPage: React.FC = () => {
                                                 )
                                             }
                                             disabled={!!thumbnailFile}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
                                         />
 
                                         <div className="text-center">
@@ -475,36 +500,38 @@ const EditBlogPage: React.FC = () => {
 
                                         {/* File Upload */}
                                         <div className="flex items-center gap-3">
-                                            <input
+                                            <Input
                                                 ref={fileInputRef}
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleFileSelect}
                                                 className="hidden"
                                             />
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={() =>
                                                     fileInputRef.current?.click()
                                                 }
                                                 disabled={isSaving}
-                                                className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                                             >
-                                                <CloudArrowUpIcon className="w-4 h-4 mr-2" />
+                                                <CloudArrowUpIcon className="w-4 h-4" />
                                                 {isSaving
                                                     ? "Đang tải..."
                                                     : "Chọn file ảnh"}
-                                            </button>
+                                            </Button>
 
                                             {(formData.thumbnail ||
                                                 thumbnailFile) && (
-                                                <button
+                                                <Button
+                                                    variant="outline"
                                                     type="button"
                                                     onClick={handleRemoveImage}
-                                                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="px-3 py-2 text-destructive hover:text-destructive rounded-lg transition-colors"
                                                 >
-                                                    Xóa ảnh
-                                                </button>
+                                                    <Trash
+                                                        className={"size-5"}
+                                                    />
+                                                </Button>
                                             )}
                                         </div>
                                     </div>
@@ -515,7 +542,7 @@ const EditBlogPage: React.FC = () => {
                                             <img
                                                 src={formData.thumbnail}
                                                 alt="Preview"
-                                                className="w-full h-48 object-cover rounded-lg border"
+                                                className="w-full aspect-video object-cover rounded-lg border"
                                                 onError={(e) => {
                                                     e.currentTarget.style.display =
                                                         "none";
@@ -525,7 +552,7 @@ const EditBlogPage: React.FC = () => {
                                                 }}
                                             />
                                             {thumbnailFile && (
-                                                <p className="text-xs text-gray-500 mt-1">
+                                                <p className="text-xs text-muted-foreground mt-1">
                                                     File: {thumbnailFile.name} (
                                                     {(
                                                         thumbnailFile.size /
@@ -540,7 +567,7 @@ const EditBlogPage: React.FC = () => {
                                 </div>
 
                                 <div className="flex items-center space-x-2">
-                                    <input
+                                    <Input
                                         type="checkbox"
                                         id="isPublished"
                                         checked={formData.isPublished}
@@ -550,11 +577,11 @@ const EditBlogPage: React.FC = () => {
                                                 e.target.checked
                                             )
                                         }
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        className="h-4 w-4"
                                     />
                                     <label
                                         htmlFor="isPublished"
-                                        className="text-sm font-medium text-gray-700"
+                                        className="text-sm text-foreground"
                                     >
                                         Xuất bản ngay
                                     </label>
@@ -563,23 +590,19 @@ const EditBlogPage: React.FC = () => {
                         </div>
 
                         {/* Content */}
-                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                        <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border">
+                            <h2 className="text-lg font-semibold text-foreground mb-4">
                                 Nội dung bài viết
                             </h2>
 
                             <div>
-                                <textarea
-                                    rows={20}
-                                    required
+                                <MarkdownEditor
                                     value={formData.content}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            "content",
-                                            e.target.value
-                                        )
-                                    }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                                    onChange={(value) => {
+                                        handleInputChange("content", value);
+                                    }}
+                                    height={500}
+                                    placeholder="Nhập nội dung bài viết..."
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
                                     Hỗ trợ Markdown: **bold**, *italic*,
@@ -589,12 +612,12 @@ const EditBlogPage: React.FC = () => {
                         </div>
 
                         {/* Submit Buttons */}
-                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border">
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     type="submit"
                                     disabled={isSaving || !hasChanges}
-                                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                                    className="flex-1 cursor-pointer bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                                 >
                                     {isSaving
                                         ? "Đang lưu..."
@@ -612,7 +635,7 @@ const EditBlogPage: React.FC = () => {
                                         }
                                         navigate("/admin/blog");
                                     }}
-                                    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
+                                    className="px-6 py-2 cursor-pointer bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium transition-colors"
                                 >
                                     Hủy
                                 </button>
@@ -631,9 +654,8 @@ const EditBlogPage: React.FC = () => {
                 {/* Preview Panel */}
                 {showPreview && (
                     <div className="lg:col-span-1">
-                        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <EyeIcon className="w-5 h-5 mr-2" />
+                        <div className="bg-foreground/3 p-6 rounded-2xl shadow-sm border sticky top-6">
+                            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
                                 Xem trước
                             </h2>
 
@@ -642,7 +664,7 @@ const EditBlogPage: React.FC = () => {
                                     <img
                                         src={formData.thumbnail}
                                         alt="Preview"
-                                        className="w-full h-32 object-cover rounded-lg"
+                                        className="w-full aspect-video object-cover rounded-lg"
                                         onError={(e) => {
                                             e.currentTarget.style.display =
                                                 "none";
@@ -651,23 +673,24 @@ const EditBlogPage: React.FC = () => {
                                 )}
 
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                                    <h3 className="text-lg font-bold text-foreground mb-2">
                                         {formData.title || "Tiêu đề bài viết"}
                                     </h3>
-                                    <p className="text-sm text-gray-600 mb-2">
+                                    <p className="text-sm text-muted-foreground mb-2">
                                         {new Date().toLocaleDateString("vi-VN")}{" "}
                                         •
-                                        <span
+                                        <Badge
+                                            variant={"outline"}
                                             className={`ml-1 px-2 py-0.5 rounded text-xs font-medium ${
                                                 formData.isPublished
-                                                    ? "bg-green-100 text-green-800"
-                                                    : "bg-yellow-100 text-yellow-800"
+                                                    ? "bg-green-500/10 text-green-500"
+                                                    : "bg-yellow-500/10 text-yellow-500"
                                             }`}
                                         >
                                             {formData.isPublished
                                                 ? "Đã xuất bản"
                                                 : "Bản nháp"}
-                                        </span>
+                                        </Badge>
                                     </p>
                                 </div>
 

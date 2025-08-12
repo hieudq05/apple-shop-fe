@@ -1,6 +1,7 @@
 import React from "react";
 import type { CartItem } from "../services/cartApiService";
 import { Link } from "react-router-dom";
+import {useTheme} from "@/components/theme-provider.tsx";
 
 interface ProductCartProps extends CartItem {
     onQuantityChange?: (itemId: number, newQuantity: number) => void;
@@ -62,7 +63,7 @@ const ProductCart: React.FC<ProductCartProps> = ({
                         {displayName}
                     </a>
                     {productDescription && (
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-muted-foreground text-sm">
                             {productDescription}
                         </p>
                     )}
@@ -77,12 +78,15 @@ const ProductCart: React.FC<ProductCartProps> = ({
                         >
                             <path fill="none" d="M0 0h21v21H0z"></path>
                             <path
-                                fill="#1d1d1f"
+                                fill={
+                                    useTheme().theme === "dark" ? "#ffffff" : useTheme().theme === "light" ? "#000000" :
+                                        new Date().getHours() >= 6 && new Date().getHours() <= 18 ? "#000000" : "#ffffff"
+                                }
                                 d="M19.559 10.274 17.24 7.53A1.688 1.688 0 0 0 15.918 7H15v-.75A2.25 2.25 0 0 0 12.75 4h-8.5A2.25 2.25 0 0 0 2 6.25V13a2.25 2.25 0 0 0 2.25 2.25h.56A2.248 2.248 0 0 0 7 17a2.202 2.202 0 0 0 2.19-2H14a2.214 2.214 0 0 0 2.25 2 2.248 2.248 0 0 0 2.19-1.75h.016A1.4 1.4 0 0 0 20 13.747v-2.363a1.61 1.61 0 0 0-.441-1.11ZM8.142 15.25a1.245 1.245 0 0 1-2.284 0 1.212 1.212 0 0 1 0-1 1.245 1.245 0 0 1 2.284 0 1.212 1.212 0 0 1 0 1ZM9.15 14a2.267 2.267 0 0 0-4.34.25h-.56A1.252 1.252 0 0 1 3 13V6.25A1.251 1.251 0 0 1 4.25 5h8.5A1.251 1.251 0 0 1 14 6.25V14Zm8.242 1.25a1.245 1.245 0 0 1-2.284 0 1.212 1.212 0 0 1 0-1 1.245 1.245 0 0 1 2.284 0 1.212 1.212 0 0 1 0 1ZM19 13.747c0 .334-.084.503-.544.503h-.016A2.245 2.245 0 0 0 15 12.88V8h.918a.681.681 0 0 1 .592.211l2.324 2.752a.617.617 0 0 1 .166.42Z"
                             ></path>
                         </svg>
                         <div className={"text-sm"}>
-                            <p>Đặt hàng trong hôm nay. Giao hàng miễn phí</p>
+                            <p>Đặt hàng trong hôm nay. Phí giao hàng 40.000đ</p>
                             <p className={"font-semibold"}>
                                 {new Date(
                                     Date.now() + 24 * 60 * 60 * 1000
@@ -98,7 +102,7 @@ const ProductCart: React.FC<ProductCartProps> = ({
                 </div>
                 <div className={"flex-1"}>
                     <select
-                        className="appearance-none rounded-lg ps-2 bg-white text-2xl font-medium focus:outline-none w-16 cursor-pointer"
+                        className="appearance-none rounded-lg ps-2 text-2xl font-medium focus:outline-none w-16 cursor-pointer"
                         value={quantity}
                         onChange={handleQuantityChange}
                         style={{

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ForgotPasswordConfirmDialog from "@/components/ForgotPasswordConfirmDialog";
 
 import { type ChangePasswordData } from "@/services/userService";
 
@@ -89,7 +90,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             // Extract error message from response
             const errorObj = error as ErrorResponse;
             const message =
-                errorObj?.response?.data?.error?.message ||
+                errorObj?.response?.data?.message ||
                 errorObj?.message ||
                 "Có lỗi xảy ra khi đổi mật khẩu";
             setErrorMessage(message);
@@ -114,7 +115,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[475px]">
                 <DialogHeader>
                     <DialogTitle>Đổi mật khẩu</DialogTitle>
                     <DialogDescription>
@@ -130,10 +131,7 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label
-                                htmlFor="oldPassword"
-                                className="text-right"
-                            >
+                            <Label htmlFor="oldPassword" className="text-right">
                                 Mật khẩu hiện tại
                             </Label>
                             <Input
@@ -183,6 +181,21 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
                             />
                         </div>
                     </div>
+
+                    {/* Forgot Password Section */}
+                    <div className="flex mb-4 justify-end">
+                        <ForgotPasswordConfirmDialog>
+                            <Button
+                                type="button"
+                                variant="link"
+                                className="text-sm cursor-pointer px-0 text-blue-600 hover:text-blue-700"
+                                disabled={isLoading}
+                            >
+                                Quên mật khẩu hiện tại?
+                            </Button>
+                        </ForgotPasswordConfirmDialog>
+                    </div>
+
                     <DialogFooter>
                         <Button
                             type="button"
@@ -192,7 +205,11 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
                         >
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isLoading}>
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="bg-blue-500 hover:bg-blue-600 text-white hover:text-white"
+                        >
                             {isLoading ? "Đang đổi..." : "Đổi mật khẩu"}
                         </Button>
                     </DialogFooter>

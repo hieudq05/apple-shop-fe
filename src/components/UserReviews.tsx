@@ -408,14 +408,14 @@ const UserReviews: React.FC = () => {
             </Card>
 
             {/* Edit Review Dialog */}
-            <ReviewFormDialog
-                open={showEditDialog}
-                onOpenChange={setShowEditDialog}
-                productId={editingReview?.productId || 0}
-                productName={editingReview?.productName || ""}
-                review={editingReview || undefined}
-                onSuccess={handleReviewUpdated}
-            />
+            {/*<ReviewFormDialog*/}
+            {/*    open={showEditDialog}*/}
+            {/*    onOpenChange={setShowEditDialog}*/}
+            {/*    productId={editingReview?.productId || 0}*/}
+            {/*    productName={editingReview?.productName || ""}*/}
+            {/*    review={editingReview || undefined}*/}
+            {/*    onSuccess={handleReviewUpdated}*/}
+            {/*/>*/}
         </div>
     );
 };

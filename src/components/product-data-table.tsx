@@ -12,7 +12,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { Trash2, MoreHorizontal, Edit, Eye } from "lucide-react";
+import { Trash2, MoreHorizontal, Edit, Eye, Undo2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +66,7 @@ export const productSchema = z.object({
             image: z.string(),
         })
     ),
+    isDeleted: z.boolean(),
 });
 
 export type Product = z.infer<typeof productSchema>;
@@ -73,7 +74,11 @@ export type Product = z.infer<typeof productSchema>;
 interface ProductDataTableProps {
     data: Product[];
     onEdit?: (productId: number, categoryId: number) => string;
-    onDelete?: (productId: number, productName: string, categoryId: number) => void;
+    onDelete?: (
+        productId: number,
+        productName: string,
+        categoryId: number
+    ) => void;
     onView?: (productId: number, categoryId: number) => string;
 }
 
@@ -177,7 +182,7 @@ export function ProductDataTable({
                 return (
                     <div
                         className={`font-medium text-sm py-1 ${
-                            totalStock <= 10 ? "text-red-600" : ""
+                            totalStock <= 10 ? "text-destructive" : ""
                         }`}
                     >
                         {totalStock}
@@ -218,7 +223,7 @@ export function ProductDataTable({
                                     onView?.(product.id, product.categoryId)
                                 }
                             >
-                                <Eye className="mr-2 h-4 w-4 text-black" />
+                                <Eye className="mr-2 h-4 w-4 text-foreground" />
                                 Xem chi tiết
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -227,17 +232,32 @@ export function ProductDataTable({
                                     onEdit?.(product.id, product.categoryId)
                                 }
                             >
-                                <Edit className="mr-2 h-4 w-4 text-black" />
+                                <Edit className="mr-2 h-4 w-4 text-foreground" />
                                 Chỉnh sửa
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="text-end"
                                 onClick={() =>
-                                    onDelete?.(product.id, product.name, product.categoryId)
+                                    onDelete?.(
+                                        product.id,
+                                        product.name,
+                                        product.categoryId
+                                    )
                                 }
                             >
-                                <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                                <span className="text-red-600">Xóa</span>
+                                {product.isDeleted ? (
+                                    <>
+                                        <Undo2 className="mr-2 h-4 w-4 text-foreground" />
+                                        <span>Đưa trở lại</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                                        <span className="text-destructive">
+                                            Chuyển vào Thùng rác
+                                        </span>
+                                    </>
+                                )}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -267,7 +287,7 @@ export function ProductDataTable({
 
     return (
         <div className="w-full">
-            <div className="rounded-lg border overflow-hidden">
+            <div className="rounded-2xl border overflow-hidden">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

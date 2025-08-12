@@ -20,6 +20,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Helmet } from "react-helmet-async";
 
 const AdminUsersPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -52,9 +53,23 @@ const AdminUsersPage: React.FC = () => {
                 size: pageSize,
             };
 
-            if (debouncedSearchTerm) params.search = debouncedSearchTerm;
-            if (selectedRole) params.role = selectedRole;
-            if (selectedStatus) params.status = selectedStatus;
+            // Use 'name' field for search instead of generic 'search'
+            if (debouncedSearchTerm) params.name = debouncedSearchTerm;
+
+            // Map role values to role names
+            if (selectedRole && selectedRole !== "all") {
+                const roleMap: { [key: string]: string } = {
+                    "1": "ROLE_ADMIN",
+                    "2": "ROLE_STAFF",
+                    "3": "ROLE_USER",
+                };
+                params.roleName = [roleMap[selectedRole] || selectedRole];
+            }
+
+            // Map status values to enabled boolean
+            if (selectedStatus && selectedStatus !== "all") {
+                params.enabled = selectedStatus === "1";
+            }
 
             const response = await userService.getUsers(params);
 
@@ -134,12 +149,12 @@ const AdminUsersPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+                    <div className="h-8 bg-foreground/7 rounded w-1/4 mb-6"></div>
                     <div className="space-y-4">
                         {[...Array(5)].map((_, i) => (
                             <div
                                 key={i}
-                                className="h-16 bg-gray-200 rounded"
+                                className="h-16 bg-foreground/7 rounded"
                             ></div>
                         ))}
                     </div>
@@ -150,9 +165,12 @@ const AdminUsersPage: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6">
+            <Helmet>
+                <title>Quản lý người dùng - Apple</title>
+            </Helmet>
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-foreground">
                     Quản lý người dùng
                 </h1>
                 <p className="text-muted-foreground">
@@ -172,7 +190,7 @@ const AdminUsersPage: React.FC = () => {
                 <div className="relative flex-1">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                     <Input
-                        placeholder="Tìm kiếm sản phẩm..."
+                        placeholder="Tìm kiếm người dùng theo tên..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-9"
@@ -189,7 +207,8 @@ const AdminUsersPage: React.FC = () => {
                         <SelectContent>
                             <SelectItem value="all">Tất cả vai trò</SelectItem>
                             <SelectItem value="1">Quản trị viên</SelectItem>
-                            <SelectItem value="2">Người dùng</SelectItem>
+                            <SelectItem value="2">Nhân viên</SelectItem>
+                            <SelectItem value="3">Người dùng</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -228,12 +247,12 @@ const AdminUsersPage: React.FC = () => {
                     <div className="flex-1 text-sm text-muted-foreground">
                         Hiển thị{" "}
                         <span className="font-medium">
-                            {currentPage * totalElements + 1}
+                            {currentPage * pageSize + 1}
                         </span>{" "}
                         -{" "}
                         <span className="font-medium">
                             {Math.min(
-                                (currentPage + 1) * totalElements,
+                                (currentPage + 1) * pageSize,
                                 totalElements
                             )}
                         </span>{" "}
@@ -246,10 +265,9 @@ const AdminUsersPage: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                                setCurrentPage(1);
-                                fetchUsers();
+                                setCurrentPage(0);
                             }}
-                            disabled={currentPage === 1}
+                            disabled={currentPage === 0 || totalPages <= 1}
                         >
                             <ChevronDoubleLeftIcon className="w-4 h-4" />
                         </Button>
@@ -257,23 +275,20 @@ const AdminUsersPage: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                                setCurrentPage(Math.max(1, currentPage - 1));
-                                fetchUsers();
+                                setCurrentPage(Math.max(0, currentPage - 1));
                             }}
-                            disabled={currentPage === 1}
+                            disabled={currentPage === 0 || totalPages <= 1}
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </Button>
                         <div className="flex items-center space-x-1">
                             {[...Array(Math.min(5, totalPages))].map((_, i) => {
                                 const pageNumber =
-                                    currentPage > 3
-                                        ? currentPage - 2 + i
-                                        : i + 1;
-                                return pageNumber <= totalPages ? (
+                                    currentPage > 2 ? currentPage - 2 + i : i;
+                                return pageNumber < totalPages ? (
                                     <Button
                                         key={pageNumber}
-                                        className={`bg-transparent hover:bg-transparent text-black shadow-none ${
+                                        className={`bg-transparent hover:bg-transparent text-foreground shadow-none ${
                                             currentPage === pageNumber
                                                 ? "underline"
                                                 : ""
@@ -281,10 +296,9 @@ const AdminUsersPage: React.FC = () => {
                                         size="sm"
                                         onClick={() => {
                                             setCurrentPage(pageNumber);
-                                            fetchUsers();
                                         }}
                                     >
-                                        {pageNumber}
+                                        {pageNumber + 1}
                                     </Button>
                                 ) : null;
                             })}
@@ -294,11 +308,13 @@ const AdminUsersPage: React.FC = () => {
                             size="sm"
                             onClick={() => {
                                 setCurrentPage(
-                                    Math.min(totalPages, currentPage + 1)
+                                    Math.min(totalPages - 1, currentPage + 1)
                                 );
-                                fetchUsers();
                             }}
-                            disabled={currentPage === totalPages}
+                            disabled={
+                                currentPage === totalPages - 1 ||
+                                totalPages <= 1
+                            }
                         >
                             <ChevronRight className="w-4 h-4" />
                         </Button>
@@ -307,10 +323,10 @@ const AdminUsersPage: React.FC = () => {
                             size="sm"
                             onClick={() => {
                                 setCurrentPage(totalPages - 1);
-                                fetchUsers();
                             }}
                             disabled={
-                                currentPage === totalPages || totalPages <= 1
+                                currentPage === totalPages - 1 ||
+                                totalPages <= 1
                             }
                         >
                             <ChevronDoubleRightIcon className="w-4 h-4" />

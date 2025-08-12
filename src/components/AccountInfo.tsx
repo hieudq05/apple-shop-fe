@@ -173,7 +173,7 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
                             <button
                                 type="button"
                                 className={
-                                    "absolute w-fit bottom-0 right-0 p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
+                                    "absolute w-fit bottom-0 right-0 p-2 bg-muted border rounded-full hover:bg-muted cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition"
                                 }
                             >
                                 <PencilIcon className={"size-5"} />
@@ -202,7 +202,7 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
                     >
                         <button
                             className={
-                                "text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
+                                "text-blue-600 cursor-pointer hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
                             }
                         >
                             <span>Chỉnh sửa thông tin</span>
@@ -211,7 +211,7 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
                     <ChangePasswordDialog onSave={handleChangePassword}>
                         <button
                             className={
-                                "block text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
+                                "block cursor-pointer text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
                             }
                         >
                             <span>Đổi mật khẩu</span>
@@ -231,7 +231,7 @@ const AccountInfo: React.FC<AccountInfoComponentProps> = ({
                     <ShippingAddressDialog>
                         <button
                             className={
-                                "text-blue-600 hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
+                                "text-blue-600 cursor-pointer hover:underline font-normal p-0 focus:outline-none focus:shadow-outline"
                             }
                         >
                             <span>Quản lý</span>

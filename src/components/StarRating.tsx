@@ -75,8 +75,8 @@ const StarRating: React.FC<StarRatingProps> = ({
                                     sizeClasses[size],
                                     "transition-colors",
                                     isFilled
-                                        ? "fill-yellow-400 text-yellow-400"
-                                        : "fill-transparent text-gray-300"
+                                        ? "fill-current text-blue-500"
+                                        : "fill-transparent text-blue-300"
                                 )}
                             />
                             {isHalfFilled && (

@@ -6,6 +6,7 @@ export interface ApiOrderDetail {
     product: {
         id: number;
     };
+    stockId?: number; // Added for review functionality
     productName: string;
     quantity: number;
     price: number;
@@ -13,6 +14,7 @@ export interface ApiOrderDetail {
     colorName: string;
     versionName: string;
     image_url: string;
+    isReviewed?: boolean; // Added to track if this item has been reviewed
 }
 
 export interface ApiOrderHistory {
@@ -57,12 +59,14 @@ export interface ApiOrderDetailResponse {
     subtotal: number;
     shippingFee: number;
     finalTotal: number;
+    vat: number;
 }
 
 // Interfaces cho UI components
 export interface OrderHistoryItem {
     id: number;
     productId: number;
+    stockId?: number; // Added stockId for review functionality
     productName: string;
     productImage: string;
     storageName?: string;
@@ -72,6 +76,7 @@ export interface OrderHistoryItem {
     price: number;
     total: number;
     note?: string;
+    isReviewed?: boolean; // Added to track if this item has been reviewed
 }
 
 export interface OrderHistory {
@@ -99,6 +104,7 @@ export interface OrderHistory {
     updatedAt: string;
     estimatedDelivery?: string;
     trackingNumber?: string;
+    isReviewed?: boolean;
 }
 
 // Interface cho Order Detail UI
@@ -122,13 +128,11 @@ export interface OrderDetail {
         country: string;
     };
     items: OrderHistoryItem[];
-    pricing: {
-        subtotal: number;
-        shippingFee: number;
-        productDiscountAmount: number;
-        shippingDiscountAmount: number;
-        finalTotal: number;
-    };
+    subtotal: number;
+    shippingFee: number;
+    productDiscountAmount: number;
+    shippingDiscountAmount: number;
+    finalTotal: number;
     promotions: {
         productPromotion?: {
             id: number;
@@ -141,7 +145,8 @@ export interface OrderDetail {
             code: string;
         };
     };
-    trackingCode?: string;
+    shippingTrackingCode?: string;
+    vat: number;
 }
 
 // Cancel order response
@@ -186,6 +191,7 @@ export function transformApiOrderToOrderHistory(
     const items: OrderHistoryItem[] = apiOrder.orderDetails.map((detail) => ({
         id: detail.id,
         productId: detail.product.id,
+        stockId: detail.stockId, // Added for review functionality
         productName: detail.productName,
         productImage: detail.image_url,
         colorName: detail.colorName,
@@ -194,6 +200,7 @@ export function transformApiOrderToOrderHistory(
         price: detail.price,
         total: detail.price * detail.quantity,
         note: detail.note,
+        isReviewed: detail.isReviewed || false, // Added for review functionality
     }));
 
     const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
@@ -211,6 +218,7 @@ export function transformApiOrderToOrderHistory(
         createdAt: apiOrder.createdAt,
         updatedAt: apiOrder.createdAt, // API không có updatedAt, dùng createdAt
         trackingNumber: apiOrder.shippingTrackingCode,
+        vat: apiOrder.vat,
     };
 }
 
@@ -222,6 +230,7 @@ export function transformApiOrderDetailToOrderDetail(
         (detail) => ({
             id: detail.id,
             productId: detail.product.id,
+            stockId: detail.stockId, // Added for review functionality
             productName: detail.productName,
             productImage: detail.image_url,
             colorName: detail.colorName,
@@ -230,6 +239,7 @@ export function transformApiOrderDetailToOrderDetail(
             price: detail.price,
             total: detail.price * detail.quantity,
             note: detail.note,
+            isReviewed: detail.isReviewed || false, // Added for review functionality
         })
     );
 
@@ -253,17 +263,16 @@ export function transformApiOrderDetailToOrderDetail(
             country: apiOrderDetail.country,
         },
         items,
-        pricing: {
-            subtotal: apiOrderDetail.subtotal,
-            shippingFee: apiOrderDetail.shippingFee,
-            productDiscountAmount: apiOrderDetail.productDiscountAmount,
-            shippingDiscountAmount: apiOrderDetail.shippingDiscountAmount,
-            finalTotal: apiOrderDetail.finalTotal,
-        },
+        subtotal: apiOrderDetail.subtotal,
+        shippingFee: apiOrderDetail.shippingFee,
+        productDiscountAmount: apiOrderDetail.productDiscountAmount,
+        shippingDiscountAmount: apiOrderDetail.shippingDiscountAmount,
+        finalTotal: apiOrderDetail.finalTotal,
         promotions: {
             productPromotion: apiOrderDetail.productProductPromotion,
             shippingPromotion: apiOrderDetail.shippingShippingPromotion,
         },
-        trackingCode: apiOrderDetail.shippingTrackingCode,
+        shippingTrackingCode: apiOrderDetail.shippingTrackingCode,
+        vat: apiOrderDetail.vat,
     };
 }

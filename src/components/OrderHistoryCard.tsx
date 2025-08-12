@@ -3,17 +3,17 @@ import { ArrowUpRightIcon, CreditCardIcon } from "@heroicons/react/24/outline";
 import { Link } from "react-router-dom";
 import type { OrderHistory } from "../types/order";
 import { ORDER_STATUS_MAP, PAYMENT_METHOD_MAP } from "../types/order";
-import paymentService, {
-    type CreatePaymentRequest,
-} from "../services/paymentService";
+import paymentService from "../services/paymentService";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge.tsx";
+import ReviewFormDialog from "@/components/ReviewFormDialog.tsx";
 
 export interface OrderHistoryCardProps {
     order: OrderHistory;
@@ -33,6 +33,8 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
     const [selectedPaymentMethod, setSelectedPaymentMethod] =
         useState<string>("vnpay");
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [showCreateReviewDialog, setShowCreateReviewDialog] = useState(false);
+    const [stockId, setStockId] = useState<number | null>(null);
 
     const toggleItemExpand = (itemIndex: number) => {
         setExpandedItems((prev) => ({
@@ -58,28 +60,6 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
         }
     };
 
-    const formatAddress = (
-        address:
-            | string
-            | {
-                  fullName?: string;
-                  phone?: string;
-                  address: string;
-                  ward?: string;
-                  district?: string;
-                  province?: string;
-              }
-    ) => {
-        if (typeof address === "string") return address;
-
-        const parts = [address.address];
-        if (address.ward) parts.push(address.ward);
-        if (address.district) parts.push(address.district);
-        if (address.province) parts.push(address.province);
-
-        return parts.join(", ");
-    };
-
     const handlePayment = async (paymentMethod: string) => {
         setIsProcessingPayment(true);
 
@@ -89,9 +69,8 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                 paymentResponse =
                     await paymentService.createVNPayPaymentForOrder(order.id);
             } else if (paymentMethod === "paypal") {
-                paymentResponse = await paymentService.createPayPalPaymentForOrder(
-                    order.id
-                );
+                paymentResponse =
+                    await paymentService.createPayPalPaymentForOrder(order.id);
             } else {
                 alert("Phương thức thanh toán không hỗ trợ");
                 return;
@@ -155,7 +134,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                     </Link>
                 </div>
             </div>
-            <div className={"flex flex-col gap-10 bg-gray-100 p-6 rounded-3xl"}>
+            <div className={"flex flex-col gap-10 bg-muted p-6 rounded-3xl"}>
                 {order.items.map((item, itemIndex) => (
                     <React.Fragment key={`${item.id}-${itemIndex}`}>
                         <div className={"flex gap-4"}>
@@ -166,22 +145,25 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                     "w-[10rem] object-cover aspect-[8/10] rounded-xl"
                                 }
                             />
-                            <div className={"flex flex-col w-full space-y-1"}>
+                            <div className={"flex flex-col w-full space-y-2"}>
                                 <p className={"text-lg font-semibold"}>
                                     {item.productName} - {item.colorName}
                                 </p>
                                 {item.versionName && (
-                                    <p className={"text-sm text-gray-500"}>
+                                    <p
+                                        className={
+                                            "text-sm text-muted-foreground"
+                                        }
+                                    >
                                         Phiên bản: {item.versionName}
                                     </p>
                                 )}
-                                <p className={"text-sm text-gray-500"}>
+                                <p className={"text-sm text-muted-foreground"}>
                                     Số lượng: {item.quantity}
                                 </p>
-                                <p className={"text-sm text-gray-500"}>
-                                    Địa chỉ giao hàng:{" "}
-                                    {formatAddress(order.shippingAddress)}
-                                </p>
+                                <p
+                                    className={"text-sm text-muted-foreground"}
+                                ></p>
 
                                 <div
                                     className={
@@ -198,14 +180,15 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                         }
                                     >
                                         Trạng thái:{" "}
-                                        <span
+                                        <Badge
+                                            variant={"outline"}
                                             className={getStatusColor(
                                                 order.status
                                             )}
                                         >
                                             {ORDER_STATUS_MAP[order.status] ||
                                                 order.status}
-                                        </span>
+                                        </Badge>
                                     </p>
                                     {order.status === "DELIVERED" && (
                                         <svg
@@ -230,16 +213,55 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                     )}
                                 </div>
 
+                                {!item.isReviewed &&
+                                    order.status === "DELIVERED" &&
+                                    item.stockId && (
+                                        <div
+                                            className={
+                                                "text-sm text-muted-foreground flex items-center gap-1"
+                                            }
+                                        >
+                                            <p>
+                                                Bạn chưa thực hiện đánh giá sản
+                                                phẩm này.
+                                            </p>
+                                            <button
+                                                className={
+                                                    "text-blue-500 hover:underline"
+                                                }
+                                                onClick={() => {
+                                                    if (item.stockId) {
+                                                        setStockId(
+                                                            item.stockId
+                                                        );
+                                                        setShowCreateReviewDialog(
+                                                            true
+                                                        );
+                                                        console.log(
+                                                            "Dialog should open now"
+                                                        );
+                                                    } else {
+                                                        console.log(
+                                                            "No stockId available"
+                                                        );
+                                                    }
+                                                }}
+                                            >
+                                                Đánh giá ngay!
+                                            </button>
+                                        </div>
+                                    )}
+
                                 {order.status === "DELIVERED" &&
                                     expandedItems[itemIndex] && (
                                         <div
                                             className={
-                                                "pl-4 py-2 mt-1 bg-gray-50 rounded-md transition-all"
+                                                "pl-4 py-2 mt-1 bg-foreground/3 border rounded-md transition-all"
                                             }
                                         >
                                             <p
                                                 className={
-                                                    "text-sm text-gray-600"
+                                                    "text-sm text-muted-foreground"
                                                 }
                                             >
                                                 Ngày hoàn thành:{" "}
@@ -271,17 +293,17 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                             </div>
                         </div>
                         {itemIndex < order.items.length - 1 && (
-                            <hr className={"border border-gray-200"} />
+                            <hr className={"bg-muted"} />
                         )}
                     </React.Fragment>
                 ))}
                 {/* Hiển thị tổng tiền đơn hàng */}
                 <div
                     className={
-                        "flex justify-between items-center pt-4 border-t border-gray-300"
+                        "flex justify-between items-center pt-4 border-t"
                     }
                 >
-                    <div className={"text-sm text-gray-600"}>
+                    <div className={"text-sm text-muted-foreground"}>
                         <p>
                             Phương thức thanh toán:{" "}
                             {PAYMENT_METHOD_MAP[order.paymentMethod] ||
@@ -332,24 +354,23 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
 
                     <div className="space-y-4">
                         {/* Thông tin đơn hàng */}
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-muted border p-4 rounded-lg">
                             <h4 className="font-medium mb-2">
                                 Thông tin đơn hàng
                             </h4>
-                            <p className="text-sm text-gray-600 mb-1">
+                            <p className="text-sm text-muted-foreground mb-1">
                                 Mã đơn hàng: #{order.orderNumber || order.id}
                             </p>
-                            <p className="text-sm text-gray-600 mb-1">
+                            <p className="text-sm text-muted-foreground mb-1">
                                 Tổng tiền:{" "}
-                                {order.finalTotal.toLocaleString("vi-VN", {
-                                    style: "currency",
-                                    currency: "VND",
-                                })}
+                                <span className="font-medium text-foreground">
+                                    {order.finalTotal.toLocaleString("vi-VN", {
+                                        style: "currency",
+                                        currency: "VND",
+                                    })}
+                                </span>
                             </p>
-                            <p className="text-sm text-gray-600">
-                                Địa chỉ giao hàng:{" "}
-                                {formatAddress(order.shippingAddress)}
-                            </p>
+                            <p className="text-sm text-muted-foreground"></p>
                         </div>
 
                         {/* Phương thức thanh toán */}
@@ -359,7 +380,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                             </h4>
 
                             <div className="space-y-2">
-                                <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <label className="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-muted">
                                     <input
                                         type="radio"
                                         name="paymentMethod"
@@ -372,25 +393,23 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                                 e.target.value
                                             )
                                         }
-                                        className="form-radio"
+                                        className="form-radio size-4"
                                     />
-                                    <div className="flex items-center space-x-2">
-                                        <img
-                                            src="/vnpay-logo.png"
-                                            alt="VNPay"
-                                            className="w-8 h-8"
-                                            onError={(e) => {
-                                                e.currentTarget.style.display =
-                                                    "none";
-                                            }}
-                                        />
+                                    <div className="flex items-center justify-between w-full">
                                         <span className="font-medium">
                                             VNPay
                                         </span>
+                                        <img
+                                            src={
+                                                "https://stcd02206177151.cloud.edgevnpay.vn/assets/images/logo-icon/logo-primary.svg"
+                                            }
+                                            alt={"VNPAY Logo"}
+                                            className={"h-5"}
+                                        />
                                     </div>
                                 </label>
 
-                                <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <label className="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-muted">
                                     <input
                                         type="radio"
                                         name="paymentMethod"
@@ -403,21 +422,17 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                                                 e.target.value
                                             )
                                         }
-                                        className="form-radio"
+                                        className="form-radio size-4"
                                     />
-                                    <div className="flex items-center space-x-2">
-                                        <img
-                                            src="/paypal-logo.png"
-                                            alt="PayPal"
-                                            className="w-8 h-8"
-                                            onError={(e) => {
-                                                e.currentTarget.style.display =
-                                                    "none";
-                                            }}
-                                        />
+                                    <div className="flex items-center justify-between w-full">
                                         <span className="font-medium">
                                             PayPal
                                         </span>
+                                        <img
+                                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/PayPal_logo.svg/500px-PayPal_logo.svg.png"
+                                            alt="PayPal Logo"
+                                            className={"h-4"}
+                                        />
                                     </div>
                                 </label>
                             </div>
@@ -448,6 +463,27 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                     </div>
                 </DialogContent>
             </Dialog>
+            <ReviewFormDialog
+                open={showCreateReviewDialog}
+                onOpenChange={(open) => {
+                    console.log("Dialog onOpenChange called", { open });
+                    setShowCreateReviewDialog(open);
+                }}
+                stockId={stockId?.toString() || ""}
+                orderId={order.orderNumber || order.id.toString()}
+                onSuccess={() => {
+                    console.log("Review submitted successfully");
+                    // Mark the specific item as reviewed
+                    const itemToUpdate = order.items.find(
+                        (item) => item.stockId === stockId
+                    );
+                    if (itemToUpdate) {
+                        itemToUpdate.isReviewed = true;
+                    }
+                    setShowCreateReviewDialog(false);
+                    setStockId(null);
+                }}
+            />
         </div>
     );
 };

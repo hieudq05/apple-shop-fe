@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import productService from "@/services/productService";
 import { cartApiService } from "../services/cartApiService";
-import ProductReviews from "@/components/ProductReviews";
+import savedProductService from "../services/savedProductService";
+import TopSellingProducts from "@/components/TopSellingProducts";
+// import ProductReviews from "@/components/ProductReviews";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -13,7 +15,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Bookmark } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 // Define a more flexible stock interface to handle API responses
 interface ApiStock {
@@ -169,6 +172,57 @@ const ProductPage: React.FC = () => {
     const [addedToCart, setAddedToCart] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
 
+    // ✅ States for saved product functionality
+    const [isSaved, setIsSaved] = useState(false);
+    const [isCheckingSaved, setIsCheckingSaved] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // ✅ Function to check if current stock is saved
+    const checkSavedStatus = useCallback(async (stockId: number) => {
+        try {
+            setIsCheckingSaved(true);
+            const response = await savedProductService.checkSavedStatus(
+                stockId
+            );
+            if (response.success) {
+                setIsSaved(response.data);
+            }
+        } catch (error) {
+            console.error("Error checking saved status:", error);
+            // Don't show error to user for this non-critical operation
+        } finally {
+            setIsCheckingSaved(false);
+        }
+    }, []);
+
+    // ✅ Function to toggle save status
+    const handleToggleSave = async () => {
+        if (!selectedStockId) return;
+
+        try {
+            setIsSaving(true);
+
+            if (isSaved) {
+                // Unsave the product
+                await savedProductService.unsaveProduct(selectedStockId);
+                setIsSaved(false);
+            } else {
+                // Save the product
+                await savedProductService.saveProduct(selectedStockId);
+                setIsSaved(true);
+            }
+        } catch (error) {
+            console.error("Error toggling save status:", error);
+            // Show error to user
+            setIsDialogErrorOpen(true);
+            setErrorWhenAddingToCart(
+                "Không thể thực hiện thao tác lưu sản phẩm. Vui lòng thử lại."
+            );
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleAddToCart = async () => {
         if (!selectedStock || !product) return;
 
@@ -243,20 +297,43 @@ const ProductPage: React.FC = () => {
         }
     }, [product]);
 
+    // ✅ Check saved status when selectedStockId changes
+    useEffect(() => {
+        if (selectedStockId) {
+            checkSavedStatus(selectedStockId);
+        } else {
+            setIsSaved(false);
+        }
+    }, [selectedStockId, checkSavedStatus]);
+
     return (
         <div className="py-12 text-start lg:px-72">
+            <Helmet>
+                <title>{product?.name || "Sản phẩm"}</title>
+                <meta
+                    name="description"
+                    content={
+                        product?.description ||
+                        "Mua sản phẩm này tại cửa hàng của chúng tôi."
+                    }
+                />
+            </Helmet>
             <div className={"container mx-auto flex flex-col space-y-12 mb-12"}>
                 <div>
-                    <h1 className="text-5xl font-semibold mb-6">
+                    <h1 className="text-5xl font-medium mb-4">
                         Mua {product?.name}
                     </h1>
-                    <h2 className="text-2xl text-gray-700 mb-4">
+
+                    <h2 className="text-xl font-light mb-1">
                         {product?.description}
                     </h2>
+                    <p className={"text-sm font-light"}>
+                        Thanh toán toàn bộ hoặc trả góp qua PayPal hoặc VnPay.
+                    </p>
                 </div>
-                <div className={"flex gap-12 flex-col md:flex-row"}>
+                <div className={"flex gap-12 flex-col xl:flex-row"}>
                     <div
-                        className="items-center overflow-x-auto scrollbar-hide flex-[3] sticky top-12 bg-white z-10"
+                        className="items-center overflow-x-auto scrollbar-hide flex-[3] md:relative sticky top-12 z-10"
                         style={{ scrollSnapType: "x mandatory" }}
                     >
                         <img
@@ -274,20 +351,20 @@ const ProductPage: React.FC = () => {
                     </div>
                     <div className={"flex-[2] flex flex-col space-y-28"}>
                         <div>
-                            <div className={"text-3xl font-semibold"}>
+                            <div className={"text-3xl font-medium"}>
                                 Màu.{" "}
-                                <span className={"text-gray-500"}>
+                                <span className={"text-muted-foreground"}>
                                     Chọn màu bạn yêu thích.
                                 </span>
                             </div>
-                            <div className="my-4 text-sm text-gray-600">
+                            <div className="my-4 text-sm text-muted-foreground">
                                 Màu: {selectedStock?.color.name}
                             </div>
                             <div className="flex space-x-3">
                                 {product?.stocks?.map((item, idx) => (
                                     <button
                                         key={item.color.id}
-                                        className={`relative size-8 p-0 z-0 transition rounded-full border-2 focus:outline-none ${
+                                        className={`relative cursor-pointer size-8 p-0 z-0 transition rounded-full border-2 focus:outline-none ${
                                             selectedIndex === idx
                                                 ? "border-blue-600"
                                                 : "border-transparent"
@@ -312,9 +389,9 @@ const ProductPage: React.FC = () => {
                             </div>
                         </div>
                         <div className={"flex flex-col space-y-4 my-6"}>
-                            <div className={"text-3xl font-semibold"}>
+                            <div className={"text-3xl font-medium"}>
                                 Các thuộc tính khác.{" "}
-                                <span className={"text-gray-500"}>
+                                <span className={"text-muted-foreground"}>
                                     Chọn thuộc tính bạn cần.
                                 </span>
                             </div>
@@ -323,25 +400,23 @@ const ProductPage: React.FC = () => {
                                 <div className="space-y-3">
                                     {selectedStock.allStocks.map((stock) => (
                                         <button
+                                            disabled={stock.quantity === 0}
                                             key={stock.id}
-                                            className={`px-4 py-4 flex justify-between items-center rounded-xl w-full border-2 focus:outline-none transition ${
+                                            className={`px-4 cursor-pointer py-4 gap-2 flex justify-between items-center rounded-xl w-full border-2 focus:outline-none transition ${
                                                 selectedStockId === stock.id
-                                                    ? "border-blue-600 bg-blue-50"
-                                                    : "border-gray-200 bg-white hover:bg-gray-50"
+                                                    ? "border-blue-600 bg-blue-500/7"
+                                                    : "border-accent hover:bg-foreground/2"
                                             }`}
-                                            onClick={() =>
-                                                setSelectedStockId(stock.id)
-                                            }
+                                            onClick={() => {
+                                                setSelectedStockId(stock.id);
+                                            }}
+                                            style={{
+                                                boxShadow: `inset 0px 0px 10px 0px rgba(133, 133, 133, 0.094)`,
+                                            }}
                                         >
                                             <div className="flex gap-2 items-center">
-                                                {selectedStockId ===
-                                                    stock.id && (
-                                                    <span className="text-blue-600 font-semibold">
-                                                        ✓
-                                                    </span>
-                                                )}
                                                 <div className="text-left">
-                                                    <div className="text-base font-semibold">
+                                                    <div className="text-base font-medium">
                                                         {stock.instanceProperty?.map(
                                                             (
                                                                 property,
@@ -366,15 +441,9 @@ const ProductPage: React.FC = () => {
                                                             )
                                                         )}
                                                     </div>
-                                                    <div className="text-sm text-gray-600 mt-1">
-                                                        {stock.instanceProperty
-                                                            ?.length || 0}{" "}
-                                                        thuộc tính • Số lượng:{" "}
-                                                        {stock.quantity || 0}
-                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="text-xs text-gray-600 font-normal text-right w-32">
+                                            <div className="text-xs text-muted-foreground font-normal text-right w-48">
                                                 Trả toàn bộ <br />
                                                 {stock.price.toLocaleString(
                                                     "vi-VN",
@@ -395,11 +464,8 @@ const ProductPage: React.FC = () => {
                                 <div className="space-y-3">
                                     <button className="px-4 py-4 flex justify-between items-center rounded-xl w-full border-2 border-blue-600 bg-blue-50 focus:outline-none transition">
                                         <div className="flex gap-2 items-center">
-                                            <span className="text-blue-600 font-semibold">
-                                                ✓
-                                            </span>
                                             <div className="text-left">
-                                                <div className="text-base font-semibold">
+                                                <div className="text-base font-medium">
                                                     {selectedStock.instanceProperty.map(
                                                         (property, index) => (
                                                             <span
@@ -453,24 +519,28 @@ const ProductPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <div className={"bg-gray-100 p-12 rounded-4xl"}>
+            <div className={"bg-muted p-12 rounded-4xl"}>
                 <div
                     className={
-                        "container mx-auto grid lg:grid-cols-3 grid-cols-2 gap-12"
+                        "container mx-auto grid lg:grid-cols-1 grid-cols-2 xl:grid-cols-2 gap-12"
                     }
                 >
-                    <div className={"flex flex-col space-y-12"}>
-                        <div className={"text-4xl font-semibold"}>
+                    <div className={"flex flex-col space-y-2"}>
+                        <div className={"xl:text-4xl text-3xl font-medium"}>
                             {product?.name} mới của bạn.
                             <br />
-                            <span className={"text-gray-500"}>
+                            <span className={"text-muted-foreground"}>
                                 Theo cách bạn muốn.
                             </span>
                         </div>
-                        <div className={"overflow-hidden rounded-2xl h-64"}>
+                        <div
+                            className={
+                                "overflow-hidden rounded-2xl aspect-square w-full flex items-center justify-center"
+                            }
+                        >
                             <div
                                 className={
-                                    "w-full aspect-square xl:scale-150 scale-[200%] relative xl:top-0 top-10"
+                                    "w-full h-full object-cover relative 2xl:top-24 2xl:scale-200 xl:top-28 lg:top-20 md:top-28 top-18 left-20 scale-250 lg:scale-200 xl:scale-250"
                                 }
                                 style={{
                                     backgroundImage: `url(${
@@ -486,13 +556,9 @@ const ProductPage: React.FC = () => {
                             ></div>
                         </div>
                     </div>
-                    <div
-                        className={
-                            "flex flex-col space-y-6 text-lg lg:col-span-2"
-                        }
-                    >
-                        <div className={"flex flex-col gap-1"}>
-                            <div>
+                    <div className={"flex flex-col space-y-6 text-lg"}>
+                        <div className={"flex flex-col gap-3"}>
+                            <div className={"font-light"}>
                                 {product?.name}{" "}
                                 {(() => {
                                     const actualSelectedStock = selectedStockId
@@ -525,8 +591,46 @@ const ProductPage: React.FC = () => {
                                 {selectedStock?.color?.name}
                             </div>
                             <div>
-                                <span className={"font-semibold text-2xl"}>
-                                    Tổng cộng{" "}
+                                <div>
+                                    <span className={"font-medium"}>
+                                        Tổng cộng
+                                        <div
+                                            className={"text-2xl font-semibold"}
+                                        >
+                                            {(() => {
+                                                const actualSelectedStock =
+                                                    selectedStockId
+                                                        ? selectedStock?.allStocks?.find(
+                                                              (stock) =>
+                                                                  stock.id ===
+                                                                  selectedStockId
+                                                          )
+                                                        : selectedStock
+                                                              ?.allStocks?.[0] ||
+                                                          selectedStock;
+
+                                                return actualSelectedStock?.price?.toLocaleString(
+                                                    "vi-VN",
+                                                    {
+                                                        style: "currency",
+                                                        currency: "VND",
+                                                    }
+                                                );
+                                            })()}
+                                        </div>
+                                    </span>
+                                    <div className={"font-light mt-3"}>
+                                        <span className={"font-medium"}>
+                                            Thanh toán toàn bộ
+                                        </span>{" "}
+                                        hoặc{" "}
+                                        <span className={"font-medium"}>
+                                            trả góp qua PayPal hoặc VnPay
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className={"text-xs font-light"}>
+                                    Bao gồm thuế GTGT khoảng{" "}
                                     {(() => {
                                         const actualSelectedStock =
                                             selectedStockId
@@ -539,46 +643,74 @@ const ProductPage: React.FC = () => {
                                                       ?.allStocks?.[0] ||
                                                   selectedStock;
 
-                                        return actualSelectedStock?.price?.toLocaleString(
-                                            "vi-VN",
-                                            {
-                                                style: "currency",
-                                                currency: "VND",
-                                            }
-                                        );
+                                        return (
+                                            (actualSelectedStock?.price ?? 0) *
+                                            0.1
+                                        ).toLocaleString("vi-VN", {
+                                            style: "currency",
+                                            currency: "VND",
+                                        });
                                     })()}
-                                </span>
-                            </div>
-                            <div className={"text-xs"}>
-                                Bao gồm thuế GTGT khoảng{" "}
-                                {(() => {
-                                    const actualSelectedStock = selectedStockId
-                                        ? selectedStock?.allStocks?.find(
-                                              (stock) =>
-                                                  stock.id === selectedStockId
-                                          )
-                                        : selectedStock?.allStocks?.[0] ||
-                                          selectedStock;
-
-                                    return (
-                                        (actualSelectedStock?.price ?? 0) * 0.1
-                                    ).toLocaleString("vi-VN", {
-                                        style: "currency",
-                                        currency: "VND",
-                                    });
-                                })()}
+                                </div>
                             </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <button
-                                onClick={handleAddToCart}
-                                disabled={isAddingToCart || !selectedStock}
-                                className="text-sm w-fit font-normal px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isAddingToCart
-                                    ? "Đang thêm..."
-                                    : "Thêm vào giỏ hàng"}
-                            </button>
+                            <div className="flex gap-2 flex-wrap">
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={isAddingToCart || !selectedStock}
+                                    className="text-sm w-fit flex gap-2 items-center cursor-pointer justify-center font-normal px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isAddingToCart
+                                        ? "Đang thêm..."
+                                        : "Thêm vào giỏ hàng"}
+                                </button>
+                                <button
+                                    onClick={handleToggleSave}
+                                    disabled={
+                                        isSaving ||
+                                        !selectedStockId ||
+                                        isCheckingSaved
+                                    }
+                                    className={
+                                        "text-sm flex items-center gap-2 px-3 py-3 rounded-lg hover:bg-foreground/7 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed" +
+                                        (isSaved
+                                            ? " hover:text-blue-600 text-blue-500"
+                                            : " hover:text-foreground text-muted-foreground")
+                                    }
+                                    aria-label={
+                                        isSaved
+                                            ? "Bỏ lưu sản phẩm"
+                                            : "Lưu sản phẩm"
+                                    }
+                                >
+                                    {isSaving || isCheckingSaved ? (
+                                        <>
+                                            <div className="size-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                            {isSaving
+                                                ? isSaved
+                                                    ? "Đang bỏ lưu..."
+                                                    : "Đang lưu..."
+                                                : "Đang kiểm tra..."}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Bookmark
+                                                className={"size-4"}
+                                                fill={
+                                                    isSaved
+                                                        ? "oklch(62.3% 0.214 259.815)"
+                                                        : "none"
+                                                }
+                                            />
+
+                                            <span>
+                                                {isSaved ? "Đã lưu" : "Lưu"}
+                                            </span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
 
                             {addedToCart && (
                                 <div className="text-green-600 text-sm mt-2 flex items-center gap-1">
@@ -592,11 +724,21 @@ const ProductPage: React.FC = () => {
             </div>
 
             {/* Product Reviews Section */}
-            {product && (
+            {/* {product && (
                 <div className="mt-16">
                     <ProductReviews
-                        productId={product.id}
-                        productName={product.name}
+                        productId={product.id.toString()}
+                    />
+                </div>
+            )} */}
+
+            {/* Top Selling Products Section */}
+            {product && (
+                <div className="mt-16">
+                    <TopSellingProducts
+                        categoryId={Number(categoryId)}
+                        currentProductId={product.id}
+                        limit={6}
                     />
                 </div>
             )}
@@ -607,7 +749,7 @@ const ProductPage: React.FC = () => {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                        <AlertDialogTitle className="text-destructive flex items-center gap-2">
                             <AlertCircle className="size-5" />
                             Lỗi khi thêm vào giỏ hàng
                         </AlertDialogTitle>
@@ -618,6 +760,16 @@ const ProductPage: React.FC = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Đóng</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setIsDialogErrorOpen(false);
+                                setErrorWhenAddingToCart("");
+                                // Navigate to cart page
+                                window.location.href = "/cart";
+                            }}
+                        >
+                            Giỏ hàng
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

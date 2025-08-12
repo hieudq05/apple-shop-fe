@@ -117,9 +117,32 @@ export interface UserResponse {
 export interface UserParams {
     page?: number;
     size?: number;
-    search?: string;
-    role?: string;
-    status?: string;
+    id?: number;
+    email?: string;
+    phone?: string;
+    name?: string;
+    enabled?: boolean;
+    birthFrom?: string; // ISO date string
+    birthTo?: string; // ISO date string
+    createdAtFrom?: string; // ISO datetime string
+    createdAtTo?: string; // ISO datetime string
+    roleName?: string[]; // Array of role names
+    search?: string; // For backward compatibility
+    role?: string; // For backward compatibility
+    status?: string; // For backward compatibility
+}
+
+export interface UserSearchCriteria {
+    id?: number;
+    email?: string;
+    phone?: string;
+    name?: string;
+    enabled?: boolean;
+    birthFrom?: string;
+    birthTo?: string;
+    createdAtFrom?: string;
+    createdAtTo?: string;
+    roleName?: string[];
 }
 
 const userService = {
@@ -249,18 +272,48 @@ const userService = {
     // Get all users with pagination and filters
     getUsers: async (params: UserParams = {}): Promise<UserResponse> => {
         try {
-            const searchParams = new URLSearchParams();
+            // Build criteria object for request body
+            const criteria: UserSearchCriteria = {};
 
+            // UserSearchCriteria fields
+            if (params.id !== undefined) criteria.id = params.id;
+            if (params.email) criteria.email = params.email;
+            if (params.phone) criteria.phone = params.phone;
+            if (params.name) criteria.name = params.name;
+            if (params.enabled !== undefined) criteria.enabled = params.enabled;
+            if (params.birthFrom) criteria.birthFrom = params.birthFrom;
+            if (params.birthTo) criteria.birthTo = params.birthTo;
+            if (params.createdAtFrom)
+                criteria.createdAtFrom = params.createdAtFrom;
+            if (params.createdAtTo) criteria.createdAtTo = params.createdAtTo;
+            if (params.roleName && params.roleName.length > 0) {
+                criteria.roleName = params.roleName;
+            }
+
+            // Build query parameters for pagination
+            const searchParams = new URLSearchParams();
             if (params.page !== undefined)
                 searchParams.append("page", params.page.toString());
             if (params.size !== undefined)
                 searchParams.append("size", params.size.toString());
-            if (params.search) searchParams.append("search", params.search);
-            if (params.role) searchParams.append("role", params.role);
-            if (params.status) searchParams.append("status", params.status);
 
-            const response = await privateAPI.get(
-                `/users?${searchParams.toString()}`
+            // Backward compatibility - add to criteria
+            if (params.search) criteria.name = params.search; // Map search to name
+            if (params.role) {
+                const roleMap: { [key: string]: string } = {
+                    "1": "ROLE_ADMIN",
+                    "2": "ROLE_STAFF",
+                    "3": "ROLE_USER",
+                };
+                criteria.roleName = [roleMap[params.role] || params.role];
+            }
+            if (params.status) {
+                criteria.enabled = params.status === "1";
+            }
+
+            const response = await privateAPI.post(
+                `/users/search?${searchParams.toString()}`,
+                criteria
             );
             return response;
         } catch (error) {

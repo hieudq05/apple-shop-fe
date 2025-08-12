@@ -68,6 +68,7 @@ import {
 } from "@/services/instanceService.ts";
 import adminProductService from "@/services/adminProductService.ts";
 import { set } from "zod";
+import { Helmet } from "react-helmet-async";
 
 interface ProductPhoto {
     imageUrl: string;
@@ -1220,9 +1221,16 @@ const CreateProductPage: React.FC = () => {
 
     return (
         <div className="min-h-screen">
+            <Helmet>
+                <title>Thêm sản phẩm mới - Apple</title>
+                <meta
+                    name="description"
+                    content="Tạo sản phẩm mới cho cửa hàng với đầy đủ thông tin chi tiết"
+                />
+            </Helmet>
             <div className="container mx-auto px-4 py-8 max-w-5xl">
                 {/* Header */}
-                <Card className="mb-8">
+                <Card className="mb-8 rounded-2xl">
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
@@ -1252,7 +1260,7 @@ const CreateProductPage: React.FC = () => {
                 </Card>
 
                 {/* Progress Stepper */}
-                <Card className="mb-8">
+                <Card className="mb-8 rounded-2xl">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between relative">
                             {steps.map((step, index) => (
@@ -1266,21 +1274,21 @@ const CreateProductPage: React.FC = () => {
                                             currentStep === index
                                                 ? "bg-primary text-primary-foreground border-primary"
                                                 : currentStep > index
-                                                ? "bg-blue-500 text-white border-blue-500"
+                                                ? "bg-blue-500 text-foreground border-blue-500"
                                                 : "bg-background border-muted-foreground/20 text-muted-foreground",
                                             stepErrors[index]?.length > 0 &&
-                                                "border-red-500 bg-red-50"
+                                                "border-destructive bg-background"
                                         )}
                                     >
                                         {currentStep > index ? (
-                                            <Check className="w-5 h-5" />
+                                            <Check className="w-5 h-5 text-white" />
                                         ) : stepErrors[index]?.length > 0 ? (
-                                            <AlertCircle className="w-5 h-5 text-red-500" />
+                                            <AlertCircle className="w-5 h-5 text-destructive" />
                                         ) : (
                                             step.icon
                                         )}
                                     </div>
-                                    <div className="mt-2 text-center">
+                                    <div className="mt-2 text-center relative">
                                         <p
                                             className={cn(
                                                 "text-sm font-medium transition-colors",
@@ -1292,7 +1300,7 @@ const CreateProductPage: React.FC = () => {
                                             {step.title}
                                         </p>
                                         {stepErrors[index]?.length > 0 && (
-                                            <p className="text-xs text-red-500 mt-1">
+                                            <p className="text-xs text-destructive mt-1 absolute left-1/2 transform -translate-x-1/2">
                                                 {stepErrors[index].length} lỗi
                                             </p>
                                         )}
@@ -1303,7 +1311,7 @@ const CreateProductPage: React.FC = () => {
                             {/* Progress line */}
                             <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted -z-0">
                                 <div
-                                    className="h-full bg-primary transition-all duration-500 ease-out"
+                                    className="h-full bg-blue-500 transition-all duration-500 ease-out"
                                     style={{
                                         width: `${
                                             (currentStep / (steps.length - 1)) *
@@ -1319,14 +1327,14 @@ const CreateProductPage: React.FC = () => {
                 <form onSubmit={handleSubmit}>
                     {/* Error Display Section */}
                     {stepErrors[currentStep]?.length > 0 && (
-                        <Card className="mb-6 border-red-200 bg-red-50">
-                            <CardHeader>
-                                <CardTitle className="text-red-800 flex items-center gap-2">
+                        <Card className="mb-6 border bg-foreground/5">
+                            <CardHeader className={"gap-1"}>
+                                <CardTitle className="text-destructive flex items-center gap-2 font-medium">
                                     <AlertCircle className="w-5 h-5" />
                                     Cần sửa {stepErrors[currentStep].length} lỗi
                                     trong bước này
                                 </CardTitle>
-                                <CardDescription className="text-red-600">
+                                <CardDescription className="text-muted-foreground">
                                     Vui lòng sửa các lỗi dưới đây trước khi tiếp
                                     tục
                                 </CardDescription>
@@ -1337,16 +1345,16 @@ const CreateProductPage: React.FC = () => {
                                         (error, index) => (
                                             <div
                                                 key={index}
-                                                className="flex items-start gap-3 p-3 bg-white border border-red-200 rounded-lg"
+                                                className="flex items-start gap-3 p-3 bg-foreground/5 border rounded-lg"
                                             >
-                                                <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                                <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
                                                 <div className="flex-1">
-                                                    <p className="text-sm font-medium text-red-800">
+                                                    <p className="text-sm font-medium text-destructive">
                                                         {getErrorFieldLabel(
                                                             error.field
                                                         )}
                                                     </p>
-                                                    <p className="text-sm text-red-600 mt-1">
+                                                    <p className="text-sm text-muted-foreground mt-1">
                                                         {error.message}
                                                     </p>
                                                 </div>
@@ -1420,7 +1428,7 @@ const CreateProductPage: React.FC = () => {
                                                         (err) =>
                                                             err.field === "name"
                                                     ) &&
-                                                        "border-red-500 focus-visible:ring-red-500"
+                                                        "border-destructive focus-visible:ring-destructive"
                                                 )}
                                             />
                                             {stepErrors[0]
@@ -1431,7 +1439,7 @@ const CreateProductPage: React.FC = () => {
                                                 .map((error, idx) => (
                                                     <p
                                                         key={idx}
-                                                        className="text-sm text-red-500 flex items-center gap-1"
+                                                        className="text-sm text-destructive flex items-center gap-1"
                                                     >
                                                         <AlertCircle className="w-4 h-4" />
                                                         {error.message}
@@ -1502,7 +1510,7 @@ const CreateProductPage: React.FC = () => {
                                                                     err.field ===
                                                                     "category"
                                                             ) &&
-                                                                "border-red-500"
+                                                                "border-destructive"
                                                         )}
                                                     >
                                                         <SelectValue placeholder="Chọn danh mục" />
@@ -1547,7 +1555,7 @@ const CreateProductPage: React.FC = () => {
                                                 .map((error, idx) => (
                                                     <p
                                                         key={idx}
-                                                        className="text-sm text-red-500 flex items-center gap-1"
+                                                        className="text-sm text-destructive flex items-center gap-1"
                                                     >
                                                         <AlertCircle className="w-4 h-4" />
                                                         {error.message}
@@ -1621,7 +1629,7 @@ const CreateProductPage: React.FC = () => {
                                                         err.field ===
                                                         "description"
                                                 ) &&
-                                                    "border-red-500 focus-visible:ring-red-500"
+                                                    "border-destructive focus-visible:ring-destructive transition"
                                             )}
                                         />
                                         {stepErrors[0]
@@ -1633,7 +1641,7 @@ const CreateProductPage: React.FC = () => {
                                             .map((error, idx) => (
                                                 <p
                                                     key={idx}
-                                                    className="text-sm text-red-500 flex items-center gap-1"
+                                                    className="text-sm text-destructive flex items-center gap-1"
                                                 >
                                                     <AlertCircle className="w-4 h-4" />
                                                     {error.message}
@@ -1989,7 +1997,6 @@ const CreateProductPage: React.FC = () => {
                                                                                         .files[0]
                                                                                 )
                                                                             }
-                                                                            className="file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md"
                                                                         />
                                                                     </div>
                                                                     {feature.image && (
@@ -2607,7 +2614,6 @@ const CreateProductPage: React.FC = () => {
                                                                                                         .files[0]
                                                                                                 )
                                                                                             }
-                                                                                            className="file:bg-primary file:text-primary-foreground file:border-0 file:rounded-md"
                                                                                         />
                                                                                         <Input
                                                                                             placeholder="Mô tả ảnh (Alt text)"
@@ -3042,11 +3048,11 @@ const CreateProductPage: React.FC = () => {
                                         }
                                     }}
                                     disabled={isLoading}
-                                    className="bg-blue-500 hover:bg-blue-600"
+                                    className="bg-blue-500 hover:bg-blue-600 text-white"
                                 >
                                     {isLoading ? (
                                         <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                            <div className="w-4 h-4 text-white border border-t-transparent rounded-full animate-spin mr-2" />
                                             Đang tạo sản phẩm...
                                         </>
                                     ) : (
@@ -3087,7 +3093,7 @@ const CreateProductPage: React.FC = () => {
                                     handleSubmit(fakeEvent);
                                 }}
                                 disabled={isLoading}
-                                className="bg-blue-500 hover:bg-blue-600"
+                                className="bg-blue-500 hover:bg-blue-600 text-white"
                             >
                                 {isLoading ? "Đang tạo..." : "Xác nhận tạo"}
                             </AlertDialogAction>
