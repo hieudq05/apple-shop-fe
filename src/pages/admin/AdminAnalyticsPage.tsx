@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Helmet } from "react-helmet-async";
+import type { ApiResponse } from "@/types/api";
 
 export interface AnalyticsData {
     revenue: {
@@ -86,28 +87,28 @@ export interface AnalyticsData {
 const fetchTotalRevenue = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: number }> => {
+): Promise<ApiResponse<number>> => {
     return statisticsService.getTotalRevenue(fromDate, toDate);
 };
 
 const fetchNumberOfOrders = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: number }> => {
+): Promise<ApiResponse<number>> => {
     return statisticsService.getNumberOfOrders(fromDate, toDate);
 };
 
 const fetchNumberOfNewUsers = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: number }> => {
+): Promise<ApiResponse<number>> => {
     return statisticsService.getNumberOfNewUsers(fromDate, toDate);
 };
 
 const fetchProductSelling = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: ProductSelling[] }> => {
+): Promise<ApiResponse<ProductSelling[]>> => {
     return statisticsService.getTopSellingProducts(fromDate, toDate);
 };
 
@@ -115,7 +116,7 @@ const fetchOrdersByStatus = async (
     status: string,
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: number }> => {
+): Promise<ApiResponse<number>> => {
     return statisticsService.getOrdersByStatus(status, fromDate, toDate);
 };
 
@@ -238,11 +239,16 @@ const AdminAnalyticsPage: React.FC = () => {
             let fromDate, toDate, previousFromDate, previousToDate;
 
             if (isCustomDate) {
+                const customRange = getCustomDateRange(
+                    customDateRange.startDate,
+                    customDateRange.endDate
+                );
+                if (!customRange) {
+                    setIsLoading(false);
+                    return;
+                }
                 ({ fromDate, toDate, previousFromDate, previousToDate } =
-                    getCustomDateRange(
-                        customDateRange.startDate,
-                        customDateRange.endDate
-                    ));
+                    customRange);
             } else {
                 ({ fromDate, toDate, previousFromDate, previousToDate } =
                     getDateRange(selectedPeriod));
@@ -267,42 +273,45 @@ const AdminAnalyticsPage: React.FC = () => {
 
             // Calculate growth percentages
             const revenueGrowth =
-                previousRevenue.data > 0
+                (previousRevenue.data || 0) > 0
                     ? parseFloat(
                           (
-                              ((currentRevenue.data - previousRevenue.data) /
+                              (((currentRevenue.data || 0) -
+                                  (previousRevenue.data || 0)) /
                                   (previousRevenue.data || 1)) *
                               100
                           ).toFixed(2)
                       )
                     : 0;
             const ordersGrowth =
-                previousOrders.data > 0
+                (previousOrders.data || 0) > 0
                     ? parseFloat(
                           (
-                              ((currentOrders.data - previousOrders.data) /
+                              (((currentOrders.data || 0) -
+                                  (previousOrders.data || 0)) /
                                   (previousOrders.data || 1)) *
                               100
                           ).toFixed(2)
                       )
                     : 0;
             const usersGrowth =
-                previousUsers.data > 0
+                (previousUsers.data || 0) > 0
                     ? parseFloat(
                           (
-                              ((currentUsers.data - previousUsers.data) /
+                              (((currentUsers.data || 0) -
+                                  (previousUsers.data || 0)) /
                                   (previousUsers.data || 1)) *
                               100
                           ).toFixed(2)
                       )
                     : 0;
             const avgOrderValueCurrent =
-                currentOrders.data > 0
-                    ? currentRevenue.data / currentOrders.data
+                (currentOrders.data || 0) > 0
+                    ? (currentRevenue.data || 0) / (currentOrders.data || 0)
                     : 0;
             const avgOrderValuePrevious =
-                previousOrders.data > 0
-                    ? previousRevenue.data / previousOrders.data
+                (previousOrders.data || 0) > 0
+                    ? (previousRevenue.data || 0) / (previousOrders.data || 0)
                     : 0;
             const avgOrderValueGrowth =
                 avgOrderValuePrevious > 0
@@ -361,7 +370,7 @@ const AdminAnalyticsPage: React.FC = () => {
                 fetchOrdersByStatus(status.key, fromDate, toDate)
                     .then((response) => ({
                         status: status.name,
-                        count: response.data,
+                        count: response.data ?? 0,
                     }))
                     .catch((error) => {
                         console.error(
@@ -443,11 +452,12 @@ const AdminAnalyticsPage: React.FC = () => {
                 ]);
 
             const todayOrdersGrowth =
-                yesterdayOrders.data > 0
+                (yesterdayOrders.data || 0) > 0
                     ? parseFloat(
                           (
-                              ((todayOrders.data - yesterdayOrders.data) /
-                                  yesterdayOrders.data) *
+                              (((todayOrders.data || 0) -
+                                  (yesterdayOrders.data || 0)) /
+                                  (yesterdayOrders.data || 0)) *
                               100
                           ).toFixed(1)
                       )
@@ -455,18 +465,18 @@ const AdminAnalyticsPage: React.FC = () => {
 
             const analyticsData: AnalyticsData = {
                 revenue: {
-                    current: currentRevenue.data,
-                    previous: previousRevenue.data,
+                    current: currentRevenue.data || 0,
+                    previous: previousRevenue.data || 0,
                     growth: revenueGrowth,
                 },
                 orders: {
-                    current: currentOrders.data,
-                    previous: previousOrders.data,
+                    current: currentOrders.data || 0,
+                    previous: previousOrders.data || 0,
                     growth: ordersGrowth,
                 },
                 customers: {
-                    current: currentUsers.data,
-                    previous: previousUsers.data,
+                    current: currentUsers.data || 0,
+                    previous: previousUsers.data || 0,
                     growth: usersGrowth,
                 },
                 avgOrderValue: {
@@ -474,14 +484,14 @@ const AdminAnalyticsPage: React.FC = () => {
                     previous: avgOrderValuePrevious,
                     growth: avgOrderValueGrowth,
                 },
-                topProducts: topProducts.data,
+                topProducts: topProducts.data || [],
                 revenueByMonth,
                 ordersByStatus,
                 todayOrders: {
-                    count: todayOrders.data,
+                    count: todayOrders.data || 0,
                     growth: todayOrdersGrowth,
                 },
-                pendingOrders: pendingOrders.data,
+                pendingOrders: pendingOrders.data || 0,
             };
 
             setAnalyticsData(analyticsData);
@@ -820,9 +830,10 @@ const AdminAnalyticsPage: React.FC = () => {
                                                         new Date(
                                                             "1900-01-01"
                                                         ) ||
-                                                    (customDateRange.startDate &&
-                                                        date <
-                                                            customDateRange.startDate)
+                                                    (customDateRange.startDate
+                                                        ? date <
+                                                          customDateRange.startDate
+                                                        : false)
                                                 }
                                                 initialFocus
                                             />

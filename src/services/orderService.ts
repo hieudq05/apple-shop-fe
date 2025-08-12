@@ -1,6 +1,6 @@
-// Order service for order management
 import { privateAPI } from "../utils/axios";
 import type { ApiResponse, PaginationParams } from "../types/api";
+import { toast } from "sonner";
 
 export interface OrderItem {
     id: number;
@@ -181,7 +181,7 @@ class OrderService {
                     params,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching user orders:", error);
             throw error;
@@ -201,7 +201,7 @@ class OrderService {
                     params,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching my orders:", error);
             throw error;
@@ -261,7 +261,7 @@ class OrderService {
                 `/orders/search?${searchParams.toString()}`,
                 criteria
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error searching orders:", error);
             throw error;
@@ -276,7 +276,7 @@ class OrderService {
             const response = await privateAPI.get<ApiResponse<Order>>(
                 `/api/v1/orders/${orderId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching order:", error);
             throw error;
@@ -297,7 +297,7 @@ class OrderService {
                     reason,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error cancelling order:", error);
             throw error;
@@ -312,7 +312,7 @@ class OrderService {
             const response = await privateAPI.get<ApiResponse<Order>>(
                 `/api/v1/orders/track/${orderNumber}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error tracking order:", error);
             throw error;
@@ -334,7 +334,7 @@ class OrderService {
             const response = await privateAPI.get<ApiResponse<any>>(
                 "/api/v1/user/orders/stats"
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching order stats:", error);
             throw error;
@@ -349,7 +349,7 @@ class OrderService {
             const response = await privateAPI.post<ApiResponse<Order>>(
                 `/api/v1/orders/${orderId}/reorder`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error reordering:", error);
             throw error;
@@ -376,7 +376,7 @@ class OrderService {
                 `/api/v1/orders/${orderId}/review`,
                 review
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error reviewing order:", error);
             throw error;
@@ -394,7 +394,7 @@ class OrderService {
                     responseType: "blob",
                 }
             );
-            return response as any;
+            return response.data;
         } catch (error) {
             console.error("Error fetching order invoice:", error);
             throw error;
@@ -421,7 +421,7 @@ class OrderService {
                 `/api/v1/orders/${orderId}/return`,
                 returnData
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error requesting return:", error);
             throw error;
@@ -435,23 +435,15 @@ class OrderService {
      */
     async getAdminOrders(params: OrdersParams = {}): Promise<any> {
         try {
-            console.log("=== ORDER SERVICE DEBUG ===");
-            console.log("Calling admin orders API with params:", params);
-            console.log(
-                "privateAPI baseURL:",
-                (privateAPI as any).defaults?.baseURL
-            );
-
             const response = await privateAPI.get("/orders", {
                 params,
             });
 
-            console.log("Service raw response:", response);
-            console.log("Service response type:", typeof response);
-
-            return response; // Axios interceptor already handles response.data
+            return response.data; // Axios interceptor already handles response.data
         } catch (error) {
-            console.error("Error fetching admin orders:", error);
+            toast.error("Lỗi", {
+                description: "Có lỗi xảy ra khi tải danh sách đơn hàng",
+            });
             throw error;
         }
     }
@@ -467,7 +459,7 @@ class OrderService {
             const response = await privateAPI.patch(
                 `/orders/${orderId}/status?status=${status}`
             );
-            return response.data || response; // Handle both cases
+            return response.data; // Handle both cases
         } catch (error) {
             console.error("Error updating order status:", error);
             throw error;
@@ -480,7 +472,7 @@ class OrderService {
     async getAdminOrderById(orderId: number): Promise<ApiResponse<Order>> {
         try {
             const response = await privateAPI.get(`/orders/${orderId}`);
-            return response.data || response; // Handle both cases
+            return response.data; // Handle both cases
         } catch (error) {
             console.error("Error fetching admin order details:", error);
             throw error;
@@ -498,7 +490,7 @@ class OrderService {
                 "/orders/v1",
                 orderData
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating admin order:", error);
             throw error;

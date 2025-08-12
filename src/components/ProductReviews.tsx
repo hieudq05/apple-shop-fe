@@ -1,76 +1,50 @@
-import React, { useState, useEffect, useCallback, useContext } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-import {
-    Star,
-    Filter,
-    MessageCircle,
-    ChevronDown,
-    Calendar,
-} from "lucide-react";
+import { Star, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import ReviewFormDialog from "@/components/ReviewFormDialog";
-import StarRating from "@/components/StarRating";
 import { useToast } from "@/hooks/use-toast";
-import { AuthContext } from "@/contexts/AuthContext";
 import reviewService from "@/services/reviewService";
 import type { Review } from "@/types/review";
 
 interface ProductReviewsProps {
     productId: string;
-    reviews: Review[];
     onReviewUpdate?: () => void;
 }
 
 const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
     const { toast } = useToast();
-    const authContext = useContext(AuthContext);
-    const user = authContext?.user;
 
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
-    const [ratingFilter, setRatingFilter] = useState<string>("ALL");
     const [currentPage, setCurrentPage] = useState(1);
     const [hasMoreReviews, setHasMoreReviews] = useState(false);
 
-    const pageSize = 10;
-
     const fetchReviews = useCallback(
-        async (page = 1, rating?: number) => {
+        async (page = 1) => {
             try {
                 setLoading(true);
-
-                const params = {
-                    page: page - 1,
-                    size: pageSize,
-                    rating,
-                };
 
                 const response = await reviewService.getProductReviews(
                     parseInt(productId)
                 );
 
+                console.log("Reviews fetched: ", response.data);
+
                 if (response.success && response.data) {
                     if (page === 1) {
-                        setReviews(response.data.data || []);
+                        setReviews(response.data || []);
                     } else {
                         setReviews((prev) => [
                             ...prev,
-                            ...(response.data?.data || []),
+                            ...(response.data || []),
                         ]);
                     }
-                    setHasMoreReviews(page < response.data.totalPages);
+                    setHasMoreReviews(page < (response.meta?.totalPage || 0));
                     setCurrentPage(page);
                 }
             } catch (error) {
@@ -88,33 +62,17 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
     );
 
     useEffect(() => {
-        fetchReviews(
-            1,
-            ratingFilter !== "ALL" ? parseInt(ratingFilter) : undefined
-        );
-    }, [fetchReviews, ratingFilter]);
+        fetchReviews(1);
+    }, [fetchReviews]);
 
     const handleLoadMore = () => {
         const nextPage = currentPage + 1;
-        fetchReviews(
-            nextPage,
-            ratingFilter !== "ALL" ? parseInt(ratingFilter) : undefined
-        );
-    };
-
-    const handleRatingFilterChange = (value: string) => {
-        setRatingFilter(value);
-        setCurrentPage(1);
+        fetchReviews(nextPage);
     };
 
     const handleReviewSubmitted = () => {
-        fetchReviews(
-            1,
-            ratingFilter !== "ALL" ? parseInt(ratingFilter) : undefined
-        );
+        fetchReviews(1);
     };
-
-    const canWriteReview = user !== null;
 
     // Helper function to format time
     const formatTimeAgo = (dateString: string) => {
@@ -154,33 +112,6 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                         ) : (
                             <></>
                         )}
-                        {/* <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4 text-gray-500" />
-                            <Select
-                                value={ratingFilter}
-                                onValueChange={handleRatingFilterChange}
-                            >
-                                <SelectTrigger className="w-[140px]">
-                                    <SelectValue placeholder="Lọc" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="ALL">Tất cả</SelectItem>
-                                    <SelectItem value="5">
-                                        ⭐⭐⭐⭐⭐ 5 sao
-                                    </SelectItem>
-                                    <SelectItem value="4">
-                                        ⭐⭐⭐⭐ 4 sao
-                                    </SelectItem>
-                                    <SelectItem value="3">
-                                        ⭐⭐⭐ 3 sao
-                                    </SelectItem>
-                                    <SelectItem value="2">
-                                        ⭐⭐ 2 sao
-                                    </SelectItem>
-                                    <SelectItem value="1">⭐ 1 sao</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div> */}
                     </div>
                 </CardHeader>
 
@@ -331,14 +262,12 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
                                                             </AvatarFallback>
                                                         </Avatar>
                                                         <h3 className="font-semibold">
-                                                            {
-                                                                review.repliedBy
-                                                                    .firstName
-                                                            }{" "}
-                                                            {
-                                                                review.repliedBy
-                                                                    .lastName
-                                                            }
+                                                            {review.repliedBy
+                                                                ?.firstName ||
+                                                                "Cửa hàng"}{" "}
+                                                            {review.repliedBy
+                                                                ?.lastName ||
+                                                                ""}
                                                         </h3>
                                                         <Badge className="bg-blue-600 text-white">
                                                             Phản hồi từ cửa hàng

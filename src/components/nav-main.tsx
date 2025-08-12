@@ -1,7 +1,6 @@
-import { Plus, Mail, PackagePlus, SquarePlus } from "lucide-react";
+import { PackagePlus, SquarePlus } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-import { Button } from "@/components/ui/button";
 import {
     SidebarGroup,
     SidebarGroupContent,

@@ -1,22 +1,24 @@
-import React, {useState, useEffect} from "react";
-import {useParams, useNavigate} from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
     ArrowLeftIcon,
     UserIcon,
     MapPinIcon,
     CreditCardIcon,
 } from "@heroicons/react/24/outline";
-import {toast} from "sonner";
+import { toast } from "sonner";
 import orderService from "../../services/orderService";
 import paymentService from "../../services/paymentService";
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
     Clock,
     MoreHorizontal,
     QrCode,
     ExternalLink,
-    Copy, BanknoteX, Truck,
+    Copy,
+    BanknoteX,
+    Truck,
 } from "lucide-react";
 import {
     Dialog,
@@ -25,8 +27,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // Interface based on real API data structure
 interface OrderDetail {
@@ -101,7 +103,7 @@ interface OrderDetail {
 }
 
 const OrderDetailPage: React.FC = () => {
-    const {id} = useParams<{ id: string }>();
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [order, setOrder] = useState<OrderDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -254,6 +256,38 @@ const OrderDetailPage: React.FC = () => {
         }
     };
 
+    // Map frontend status to backend status
+    const mapFrontendStatusToBackend = (
+        status: OrderDetail["status"]
+    ):
+        | "PENDING"
+        | "CONFIRMED"
+        | "PROCESSING"
+        | "SHIPPED"
+        | "DELIVERED"
+        | "CANCELLED" => {
+        switch (status) {
+            case "PENDING_PAYMENT":
+                return "PENDING";
+            case "FAILED_PAYMENT":
+                return "PENDING"; // Or handle as needed
+            case "PAID":
+                return "CONFIRMED";
+            case "PROCESSING":
+                return "PROCESSING";
+            case "AWAITING_SHIPMENT":
+                return "PROCESSING"; // Or handle as needed
+            case "SHIPPED":
+                return "SHIPPED";
+            case "DELIVERED":
+                return "DELIVERED";
+            case "CANCELLED":
+                return "CANCELLED";
+            default:
+                return "PENDING";
+        }
+    };
+
     const updateOrderStatus = async (newStatus: OrderDetail["status"]) => {
         if (!order) return;
 
@@ -268,10 +302,9 @@ const OrderDetailPage: React.FC = () => {
         );
 
         try {
-            console.log("Updating order status:", order.id, newStatus);
-
-            // Call API to update status
-            await orderService.updateOrderStatus(order.id, newStatus);
+            // Map frontend status to backend status before calling API
+            const backendStatus = mapFrontendStatusToBackend(newStatus);
+            await orderService.updateOrderStatus(order.id, backendStatus);
 
             // Dismiss loading toast and show success toast
             toast.dismiss(loadingToastId);
@@ -293,19 +326,19 @@ const OrderDetailPage: React.FC = () => {
             setOrder((prev) =>
                 prev
                     ? {
-                        ...prev,
-                        status: newStatus,
-                        statusHistory: [
-                            ...(prev.statusHistory || []),
-                            {
-                                status: newStatus,
-                                timestamp: new Date().toISOString(),
-                                note: `Trạng thái được cập nhật thành ${getStatusText(
-                                    newStatus
-                                )}`,
-                            },
-                        ],
-                    }
+                          ...prev,
+                          status: newStatus,
+                          statusHistory: [
+                              ...(prev.statusHistory || []),
+                              {
+                                  status: newStatus,
+                                  timestamp: new Date().toISOString(),
+                                  note: `Trạng thái được cập nhật thành ${getStatusText(
+                                      newStatus
+                                  )}`,
+                              },
+                          ],
+                      }
                     : null
             );
         } catch (error) {
@@ -344,7 +377,7 @@ const OrderDetailPage: React.FC = () => {
                 return;
             }
 
-            if (response.success && response.data.paymentUrl) {
+            if (response.success && response.data?.paymentUrl) {
                 setPaymentUrl(response.data.paymentUrl);
                 setShowPaymentMethodDialog(false);
                 setShowPaymentDialog(true);
@@ -413,18 +446,18 @@ const OrderDetailPage: React.FC = () => {
                         setOrder((prev) =>
                             prev
                                 ? {
-                                    ...prev,
-                                    status: "CANCELLED",
-                                    statusHistory: [
-                                        ...(prev.statusHistory || []),
-                                        {
-                                            status: "CANCELLED",
-                                            timestamp:
-                                                new Date().toISOString(),
-                                            note: "Đơn hàng đã được hủy bởi admin",
-                                        },
-                                    ],
-                                }
+                                      ...prev,
+                                      status: "CANCELLED",
+                                      statusHistory: [
+                                          ...(prev.statusHistory || []),
+                                          {
+                                              status: "CANCELLED",
+                                              timestamp:
+                                                  new Date().toISOString(),
+                                              note: "Đơn hàng đã được hủy bởi admin",
+                                          },
+                                      ],
+                                  }
                                 : null
                         );
                     } catch (error) {
@@ -444,8 +477,7 @@ const OrderDetailPage: React.FC = () => {
             },
             cancel: {
                 label: "Hủy bỏ",
-                onClick: () => {
-                },
+                onClick: () => {},
             },
             duration: 10000,
         });
@@ -475,47 +507,43 @@ const OrderDetailPage: React.FC = () => {
     const getStatusIcon = (status: OrderDetail["status"]) => {
         switch (status) {
             case "PENDING_PAYMENT":
-                return <Clock className="w-4 h-4"/>;
+                return <Clock className="w-4 h-4" />;
             case "FAILED_PAYMENT":
                 return (
                     <div>
-                        <BanknoteX className={"size-4 text-destructive"}/>
+                        <BanknoteX className={"size-4 text-destructive"} />
                     </div>
-                )
+                );
             case "PAID":
                 return (
                     <div className="size-3 bg-purple-500/35 rounded-full relative">
-                        <div
-                            className="size-1.5 bg-purple-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="size-1.5 bg-purple-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                 );
             case "PROCESSING":
-                return <MoreHorizontal className="w-4 h-4"/>;
+                return <MoreHorizontal className="w-4 h-4" />;
             case "AWAITING_SHIPMENT":
                 return (
                     <div className="size-3 bg-yellow-500/35 rounded-full relative">
-                        <div
-                            className="size-1.5 bg-yellow-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="size-1.5 bg-yellow-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                 );
             case "SHIPPED":
-                return <Truck className="w-4 h-4"/>;
+                return <Truck className="w-4 h-4" />;
             case "DELIVERED":
                 return (
                     <div className="size-3 bg-green-500/35 rounded-full relative">
-                        <div
-                            className="size-1.5 bg-green-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="size-1.5 bg-green-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                 );
             case "CANCELLED":
                 return (
                     <div className="size-3 bg-destructive/35 rounded-full relative">
-                        <div
-                            className="size-1.5 bg-destructive rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="size-1.5 bg-destructive rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                 );
             default:
-                return <Clock className="w-4 h-4"/>;
+                return <Clock className="w-4 h-4" />;
         }
     };
 
@@ -636,7 +664,7 @@ const OrderDetailPage: React.FC = () => {
                         onClick={handleNavigateBack}
                         className="p-2 hover:bg-foreground/10 rounded-lg transition-colors"
                     >
-                        <ArrowLeftIcon className="w-5 h-5"/>
+                        <ArrowLeftIcon className="w-5 h-5" />
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">
@@ -649,7 +677,10 @@ const OrderDetailPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                    <Badge variant={"outline"} className={`${getStatusColor(order.status)}`}>
+                    <Badge
+                        variant={"outline"}
+                        className={`${getStatusColor(order.status)}`}
+                    >
                         {getStatusIcon(order.status)}
                         <span>{getStatusText(order.status)}</span>
                     </Badge>
@@ -666,8 +697,8 @@ const OrderDetailPage: React.FC = () => {
                             {isUpdating
                                 ? "Đang cập nhật..."
                                 : `Chuyển thành ${getNextStatusText(
-                                    order.status
-                                )}`}
+                                      order.status
+                                  )}`}
                         </Button>
                     )}
 
@@ -682,7 +713,7 @@ const OrderDetailPage: React.FC = () => {
                                 "Đang tạo..."
                             ) : (
                                 <>
-                                    <QrCode className="h-4 w-4 mr-2"/>
+                                    <QrCode className="h-4 w-4 mr-2" />
                                     Tạo thanh toán
                                 </>
                             )}
@@ -738,7 +769,7 @@ const OrderDetailPage: React.FC = () => {
                                             </div>
                                         )}
                                         <p className="text-sm text-muted-foreground">
-                                            {formatCurrency(item.price)} <br/>x{" "}
+                                            {formatCurrency(item.price)} <br />x{" "}
                                             {item.quantity}
                                         </p>
                                         <p className="text-sm text-muted-foreground italic">
@@ -769,7 +800,7 @@ const OrderDetailPage: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
                                 <div className="flex items-center space-x-3">
-                                    <UserIcon className="w-5 h-5 text-muted-foreground"/>
+                                    <UserIcon className="w-5 h-5 text-muted-foreground" />
                                     <div>
                                         <p className="font-medium text-foreground">
                                             {order.firstName} {order.lastName}
@@ -786,7 +817,7 @@ const OrderDetailPage: React.FC = () => {
 
                             <div className="space-y-3">
                                 <div className="flex items-start space-x-3">
-                                    <MapPinIcon className="w-5 h-5 text-muted-foreground mt-0.5"/>
+                                    <MapPinIcon className="w-5 h-5 text-muted-foreground mt-0.5" />
                                     <div>
                                         <p className="font-medium text-foreground">
                                             Địa chỉ giao hàng
@@ -808,7 +839,7 @@ const OrderDetailPage: React.FC = () => {
 
                         <div className="mt-6 pt-6 border-t">
                             <div className="flex items-center space-x-3">
-                                <CreditCardIcon className="w-5 h-5 text-muted-foreground"/>
+                                <CreditCardIcon className="w-5 h-5 text-muted-foreground" />
                                 <div>
                                     <p className="font-medium text-foreground">
                                         Phương thức thanh toán
@@ -843,11 +874,11 @@ const OrderDetailPage: React.FC = () => {
 
                         <div className="space-y-3">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Tạm tính</span>
+                                <span className="text-muted-foreground">
+                                    Tạm tính
+                                </span>
                                 <span className="text-foreground">
-                                    {formatCurrency(
-                                        order.subTotal
-                                    )}
+                                    {formatCurrency(order.subTotal || 0)}
                                 </span>
                             </div>
                             <div className="flex justify-between">
@@ -858,8 +889,8 @@ const OrderDetailPage: React.FC = () => {
                                     {(order.shippingFee || 0) === 0
                                         ? "Miễn phí"
                                         : formatCurrency(
-                                            order.shippingFee || 0
-                                        )}
+                                              order.shippingFee || 0
+                                          )}
                                 </span>
                             </div>
                             {(order.shippingDiscountAmount || 0) > 0 && (
@@ -902,59 +933,12 @@ const OrderDetailPage: React.FC = () => {
                                         Tổng cộng
                                     </span>
                                     <span className="font-semibold text-foreground text-lg">
-                                        {formatCurrency(
-                                            order.finalTotal || 0
-                                        )}
+                                        {formatCurrency(order.finalTotal || 0)}
                                     </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Status History */}
-                    {/*<div className="bg-foreground/3 rounded-2xl shadow-sm border p-6">
-                        <h2 className="text-lg font-semibold text-foreground mb-4">
-                            Lịch sử trạng thái
-                        </h2>
-
-                        <div className="space-y-4">
-                            {order.statusHistory?.map((history, index) => (
-                                <div
-                                    key={index}
-                                    className="flex items-start space-x-3"
-                                >
-                                    <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${getStatusColor(
-                                            history.status as OrderDetail["status"]
-                                        )}`}
-                                    >
-                                        {getStatusIcon(
-                                            history.status as OrderDetail["status"]
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-foreground">
-                                            {getStatusText(
-                                                history.status as OrderDetail["status"]
-                                            )}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {formatDate(history.timestamp)}
-                                        </p>
-                                        {history.note && (
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                {history.note}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )) || (
-                                <div className="text-center text-gray-500">
-                                    Chưa có lịch sử trạng thái
-                                </div>
-                            )}
-                        </div>
-                    </div>*/}
                 </div>
             </div>
 
@@ -1066,7 +1050,7 @@ const OrderDetailPage: React.FC = () => {
                                     variant="outline"
                                     size="sm"
                                 >
-                                    <Copy className="size-4"/>
+                                    <Copy className="size-4" />
                                 </Button>
                             </div>
                         </div>
@@ -1076,7 +1060,11 @@ const OrderDetailPage: React.FC = () => {
                                 <div className="text-center text-foreground mb-1">
                                     Mã QR thanh toán
                                 </div>
-                                <div className={"text-muted-foreground text-xs mb-4"}>
+                                <div
+                                    className={
+                                        "text-muted-foreground text-xs mb-4"
+                                    }
+                                >
                                     Sử dụng mã QR này để thanh toán đơn hàng
                                 </div>
                                 <div className="flex justify-center">
@@ -1100,7 +1088,7 @@ const OrderDetailPage: React.FC = () => {
                                     variant="outline"
                                     size="sm"
                                 >
-                                    <ExternalLink className="h-4 w-4 mr-2"/>
+                                    <ExternalLink className="h-4 w-4 mr-2" />
                                     Mở liên kết
                                 </Button>
                             </div>

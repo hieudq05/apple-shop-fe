@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AlertCircle, Bookmark } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import ProductReviews from "@/components/ProductReviews";
 
 // Define a more flexible stock interface to handle API responses
 interface ApiStock {
@@ -172,12 +173,10 @@ const ProductPage: React.FC = () => {
     const [addedToCart, setAddedToCart] = useState(false);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-    // ✅ States for saved product functionality
     const [isSaved, setIsSaved] = useState(false);
     const [isCheckingSaved, setIsCheckingSaved] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // ✅ Function to check if current stock is saved
     const checkSavedStatus = useCallback(async (stockId: number) => {
         try {
             setIsCheckingSaved(true);
@@ -185,7 +184,7 @@ const ProductPage: React.FC = () => {
                 stockId
             );
             if (response.success) {
-                setIsSaved(response.data);
+                setIsSaved(response.data?.isSaved || false);
             }
         } catch (error) {
             console.error("Error checking saved status:", error);
@@ -195,7 +194,6 @@ const ProductPage: React.FC = () => {
         }
     }, []);
 
-    // ✅ Function to toggle save status
     const handleToggleSave = async () => {
         if (!selectedStockId) return;
 
@@ -267,10 +265,7 @@ const ProductPage: React.FC = () => {
             }
         } catch (error) {
             setIsDialogErrorOpen(true);
-            setErrorWhenAddingToCart(
-                error.response.data.error.message ||
-                    "Không thể thêm vào giỏ hàng"
-            );
+            setErrorWhenAddingToCart("Không thể thêm vào giỏ hàng");
             console.error("Error adding to cart:", error);
         } finally {
             setIsAddingToCart(false);
@@ -724,13 +719,11 @@ const ProductPage: React.FC = () => {
             </div>
 
             {/* Product Reviews Section */}
-            {/* {product && (
+            {product && (
                 <div className="mt-16">
-                    <ProductReviews
-                        productId={product.id.toString()}
-                    />
+                    <ProductReviews productId={product.id.toString()} />
                 </div>
-            )} */}
+            )}
 
             {/* Top Selling Products Section */}
             {product && (

@@ -44,7 +44,6 @@ import SearchPage from "../pages/SearchPage";
 import SupportPage from "../pages/SupportPage";
 import AdminReviewsPage from "@/pages/admin/AdminReviewsPage.tsx";
 import CreateOrderPage from "@/pages/admin/CreateOrderPage.tsx";
-import Chatbot from "@/components/Chatbot.tsx";
 
 export const routesConfig: RouteObject[] = [
     // User routes with MainLayout (only for ROLE_USER)
@@ -80,10 +79,6 @@ export const routesConfig: RouteObject[] = [
             {
                 path: "blog/:id",
                 element: <BlogPostPage />,
-            },
-            {
-                path: "chatbot",
-                element: <Chatbot />,
             },
         ],
     },

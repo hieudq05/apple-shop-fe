@@ -1,5 +1,4 @@
-// Helper functions for product operations
-import { CreateProductRequest } from '../services/adminProductService';
+import type { CreateProductRequest } from '../services/adminProductService';
 
 /**
  * Helper function to create product with proper data structure

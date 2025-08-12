@@ -44,7 +44,7 @@ privateAPI.interceptors.request.use(async (config) => {
 // Add response interceptor to handle token expiration
 privateAPI.interceptors.response.use(
     (response: AxiosResponse) => {
-        return response.data; // Return only data part
+        return response; // Return only data part
     },
     async (error: AxiosError) => {
         const originalRequest = error.config as AxiosError["config"] & {
@@ -79,7 +79,7 @@ privateAPI.interceptors.response.use(
 
 // Add response interceptor to public API
 publicAPI.interceptors.response.use((response: AxiosResponse) => {
-    return response.data; // Return only data part
+    return response; // Return only data part
 });
 
 userRoleAPI.interceptors.request.use(async (config) => {
@@ -94,7 +94,7 @@ userRoleAPI.interceptors.request.use(async (config) => {
 
 userRoleAPI.interceptors.response.use(
     (response: AxiosResponse) => {
-        return response.data; // Return only data part
+        return response; // Return only data part
     },
     async (error: AxiosError) => {
         const originalRequest = error.config as AxiosError["config"] & {

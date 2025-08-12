@@ -25,6 +25,7 @@ import { RevenueChart } from "@/components/charts/RevenueChart";
 import statisticsService from "@/services/statisticsService";
 import { Badge } from "@/components/ui/badge";
 import { Helmet } from "react-helmet-async";
+import type { ApiResponse } from "@/types/api";
 
 interface DashboardStats {
     totalOrders: number;
@@ -44,15 +45,6 @@ interface RevenueData {
     date: string;
 }
 
-interface RecentActivity {
-    id: string;
-    type: "order" | "user" | "product";
-    title: string;
-    description: string;
-    time: string;
-    status: "success" | "warning" | "info";
-}
-
 export interface ProductSelling {
     countSold: number;
     productId: number;
@@ -63,35 +55,35 @@ export interface ProductSelling {
 const fetchTotalRevenue = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: number }> => {
+): Promise<ApiResponse<number>> => {
     return statisticsService.getTotalRevenue(fromDate, toDate);
 };
 
 const fetchNumberOfOrders = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: number }> => {
+): Promise<ApiResponse<number>> => {
     return statisticsService.getNumberOfOrders(fromDate, toDate);
 };
 
 const fetchNumberOfNewUsers = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: number }> => {
+): Promise<ApiResponse<number>> => {
     return statisticsService.getNumberOfNewUsers(fromDate, toDate);
 };
 
 const fetchNumberOfProducts = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: number }> => {
+): Promise<ApiResponse<number>> => {
     return statisticsService.getNumberOfProductsSold(fromDate, toDate);
 };
 
 const fetchProductSelling = async (
     fromDate: string,
     toDate: string
-): Promise<{ success: boolean; message: string; data: ProductSelling[] }> => {
+): Promise<ApiResponse<ProductSelling[]>> => {
     return statisticsService.getTopSellingProducts(fromDate, toDate);
 };
 
@@ -132,9 +124,6 @@ const AdminDashboard: React.FC = () => {
         ProductSelling[]
     >([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
-        []
-    );
     const [revenueChartData, setRevenueChartData] = useState<RevenueData[]>([]);
     const [chartType, setChartType] = useState<"line" | "area" | "bar">("area");
 
@@ -230,7 +219,7 @@ const AdminDashboard: React.FC = () => {
                     formatLastDayOfMonth(new Date())
                 );
 
-                setTopSellingProducts(topSellingProductsData.data);
+                setTopSellingProducts(topSellingProductsData.data || []);
 
                 // Generate chart data for the last 7 days
                 const chartData: RevenueData[] = [];
@@ -287,28 +276,32 @@ const AdminDashboard: React.FC = () => {
                 }
 
                 setStats({
-                    totalOrders: totalOrdersData.data,
-                    totalUsers: totalUsersData.data,
-                    totalProducts: totalProductsData.data,
+                    totalOrders: totalOrdersData.data || 0,
+                    totalUsers: totalUsersData.data || 0,
+                    totalProducts: totalProductsData.data || 0,
                     // get total revenue from statisticsService in this month
-                    totalRevenue: totalRevenueData.data,
+                    totalRevenue: totalRevenueData.data || 0,
                     ordersGrowth: (
-                        ((totalOrdersData.data - totalPrevOrdersData.data) /
+                        (((totalOrdersData.data || 0) -
+                            (totalPrevOrdersData.data || 0)) /
                             (totalPrevOrdersData.data || 1)) *
                         100
                     ).toFixed(2),
                     usersGrowth: (
-                        ((totalUsersData.data - totalPrevUsersData.data) /
+                        (((totalUsersData.data || 0) -
+                            (totalPrevUsersData.data || 0)) /
                             (totalPrevUsersData.data || 1)) *
                         100
                     ).toFixed(2),
                     productsGrowth: (
-                        ((totalProductsData.data - totalPrevProductsData.data) /
+                        (((totalProductsData.data || 0) -
+                            (totalPrevProductsData.data || 0)) /
                             (totalPrevProductsData.data || 1)) *
                         100
                     ).toFixed(2),
                     revenueGrowth: (
-                        ((totalRevenueData.data - totalPrevRevenueData.data) /
+                        (((totalRevenueData.data || 0) -
+                            (totalPrevRevenueData.data || 0)) /
                             (totalPrevRevenueData.data || 1)) *
                         100
                     ).toFixed(2),
@@ -596,62 +589,6 @@ const AdminDashboard: React.FC = () => {
                                 )}
                             </CardContent>
                         </Card>
-                        {/* <Card className="col-span-3">
-                            <CardHeader>
-                                <CardTitle>Hoạt động gần đây</CardTitle>
-                                <CardDescription>
-                                    Các hoạt động mới nhất trong hệ thống
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-8">
-                                    {recentActivities.map((activity) => (
-                                        <div
-                                            key={activity.id}
-                                            className="flex items-center"
-                                        >
-                                            <Avatar className="h-9 w-9">
-                                                <AvatarImage
-                                                    src="/avatars/01.png"
-                                                    alt="Avatar"
-                                                />
-                                                <AvatarFallback>
-                                                    {activity.type === "order"
-                                                        ? "O"
-                                                        : activity.type ===
-                                                          "user"
-                                                        ? "U"
-                                                        : "P"}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="ml-4 space-y-1">
-                                                <p className="text-sm font-medium leading-none">
-                                                    {activity.title}
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {activity.description}
-                                                </p>
-                                            </div>
-                                            <div className="ml-auto font-medium">
-                                                <Badge
-                                                    variant={
-                                                        activity.status ===
-                                                        "success"
-                                                            ? "default"
-                                                            : activity.status ===
-                                                              "warning"
-                                                            ? "secondary"
-                                                            : "outline"
-                                                    }
-                                                >
-                                                    {activity.time}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card> */}
                     </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         <Card>

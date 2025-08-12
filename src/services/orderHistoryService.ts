@@ -51,9 +51,13 @@ class OrderHistoryService {
                 ApiResponse<ApiOrderHistory[]>
             >("/orders/me", { params });
 
-            if (response.success && response.data && response.data.length > 0) {
+            if (
+                response.data.success &&
+                response.data &&
+                (response.data.data?.length ?? 0) > 0
+            ) {
                 // Transform API data thành UI format
-                const transformedOrders = response.data.map(
+                const transformedOrders = response.data.data?.map(
                     transformApiOrderToOrderHistory
                 );
 
@@ -61,7 +65,7 @@ class OrderHistoryService {
                     success: true,
                     message: "Success",
                     data: transformedOrders,
-                    meta: response.meta, // Include pagination metadata
+                    meta: response.data.meta, // Include pagination metadata
                 };
             }
 
@@ -69,7 +73,7 @@ class OrderHistoryService {
                 success: true,
                 message: "Không có dữ liệu",
                 data: [],
-                meta: response.meta,
+                meta: response.data.meta,
             };
         } catch (error) {
             console.error("Error fetching order history:", error);
@@ -90,14 +94,15 @@ class OrderHistoryService {
                 `/api/v1/orders/${orderId}`
             );
 
-            if (response.success && response.data) {
-                const transformedOrder = transformApiOrderToOrderHistory(
-                    response.data
-                );
+            if (response.data.success && response.data) {
+                const transformedOrder = response.data.data
+                    ? transformApiOrderToOrderHistory(response.data.data)
+                    : undefined;
 
                 return {
-                    success: response.success,
-                    message: response.message || response.msg || "Success",
+                    success: response.data.success,
+                    message:
+                        response.data.message || response.data.msg || "Success",
                     data: transformedOrder,
                 };
             }
@@ -105,8 +110,8 @@ class OrderHistoryService {
             return {
                 success: false,
                 message:
-                    response.message ||
-                    response.msg ||
+                    response.data.message ||
+                    response.data.msg ||
                     "Không tìm thấy đơn hàng",
                 data: undefined,
             };
@@ -123,13 +128,18 @@ class OrderHistoryService {
         orderId: number
     ): Promise<ApiResponse<OrderDetail>> {
         try {
-            const response = await userRoleAPI.get<ApiOrderDetailResponse>(
-                `/orders/${orderId}`
-            );
+            const response = await userRoleAPI.get<
+                ApiResponse<ApiOrderDetailResponse>
+            >(`/orders/${orderId}`);
 
-            if (response.data) {
-                const transformedOrderDetail =
-                    transformApiOrderDetailToOrderDetail(response.data);
+            if (response.data.success) {
+                let transformedOrderDetail: OrderDetail | undefined = undefined;
+                if (response.data.data) {
+                    transformedOrderDetail =
+                        transformApiOrderDetailToOrderDetail(
+                            response.data.data
+                        );
+                }
 
                 return {
                     success: true,
@@ -161,19 +171,11 @@ class OrderHistoryService {
         reason?: string
     ): Promise<ApiResponse<CancelOrderResponse>> {
         try {
-            const response = await userRoleAPI.post<CancelOrderResponse>(
-                `/orders/${orderId}/cancel`,
-                { reason }
-            );
+            const response = await userRoleAPI.post<
+                ApiResponse<CancelOrderResponse>
+            >(`/orders/${orderId}/cancel`, { reason });
 
-            return {
-                success: true,
-                message: "Đơn hàng đã được hủy thành công",
-                data: response.data || {
-                    message: "Đơn hàng đã được hủy thành công",
-                    cancelled: true,
-                },
-            };
+            return response.data;
         } catch (error) {
             console.error("Error cancelling order:", error);
             return {
@@ -194,14 +196,17 @@ class OrderHistoryService {
         searchParams: OrderSearchParams
     ): Promise<ApiResponse<OrderHistory[]>> {
         try {
-            const response = await userRoleAPI.post<ApiOrderHistory[]>(
-                "/orders/search?size=10&page=" + searchParams.page,
-                searchParams
-            );
+            const response = await userRoleAPI.post<
+                ApiResponse<ApiOrderHistory[]>
+            >("/orders/search?size=10&page=" + searchParams.page, searchParams);
 
-            if (response.data && response.data.length > 0) {
+            if (
+                response.data.success &&
+                response.data.data &&
+                (response.data.data?.length ?? 0) > 0
+            ) {
                 // Transform API data thành UI format
-                const transformedOrders = response.data.map(
+                const transformedOrders = response.data.data.map(
                     transformApiOrderToOrderHistory
                 );
 
@@ -209,7 +214,7 @@ class OrderHistoryService {
                     success: true,
                     message: "Tìm kiếm thành công",
                     data: transformedOrders,
-                    meta: response.meta,
+                    meta: response.data.meta,
                 };
             }
 
@@ -217,15 +222,13 @@ class OrderHistoryService {
                 success: true,
                 message: "Không tìm thấy đơn hàng nào",
                 data: [],
-                meta: response.meta,
+                meta: response.data.meta,
             };
         } catch (error) {
-            console.error("Error searching orders:", error);
             return {
                 success: false,
                 message: "Có lỗi xảy ra khi tìm kiếm đơn hàng",
                 data: [],
-                meta: response.meta,
             };
         }
     }

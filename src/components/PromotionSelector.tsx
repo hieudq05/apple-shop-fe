@@ -59,7 +59,7 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
                 });
 
                 if (response.success) {
-                    const newPromotions = response.data.filter(
+                    const newPromotions = response.data?.data.filter(
                         (promotion) =>
                             promotion.isActive &&
                             new Date(promotion.startDate) <= new Date() &&
@@ -70,14 +70,22 @@ const PromotionSelector: React.FC<PromotionSelectorProps> = ({
                     );
 
                     if (reset) {
-                        setPromotions(newPromotions);
+                        setPromotions(newPromotions || []);
                         setCurrentPage(1);
                     } else {
-                        setPromotions((prev) => [...prev, ...newPromotions]);
+                        setPromotions((prev) => [
+                            ...prev,
+                            ...(newPromotions || []),
+                        ]);
                     }
 
                     setHasMorePages(
-                        response.meta.currentPage < response.meta.totalPage - 1
+                        response.meta &&
+                            typeof response.meta.currentPage === "number" &&
+                            typeof response.meta.totalPage === "number"
+                            ? response.meta.currentPage <
+                                  response.meta.totalPage - 1
+                            : false
                     );
                     setCurrentPage(page);
                 } else {

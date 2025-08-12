@@ -27,7 +27,7 @@ const BlogDetailPage: React.FC = () => {
             const response = await blogService.getBlogById(parseInt(id));
 
             if (response.success) {
-                setBlog(response.data);
+                setBlog(response.data || null);
             } else {
                 setError(response.msg || "Không thể tải bài viết");
             }
@@ -63,10 +63,13 @@ const BlogDetailPage: React.FC = () => {
         try {
             const response = await blogService.toggleBlogStatus(parseInt(id));
             if (response.success) {
-                setBlog((prev) => ({
-                    ...prev,
-                    isPublished: !prev?.isPublished,
-                }));
+                setBlog((prev) => {
+                    if (!prev) return null;
+                    return {
+                        ...prev,
+                        isPublished: !prev.isPublished,
+                    };
+                });
                 alert(
                     `Bài viết đã ${
                         response.success ? "được xuất bản" : "bị ẩn"

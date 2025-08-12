@@ -1,5 +1,5 @@
 // Cart service for shopping cart management
-import { userRoleAPI } from "../utils/axios";
+import { privateAPI } from "@/utils/axios";
 import type { ApiResponse } from "../types/api";
 
 export interface CartItemAPI {
@@ -80,12 +80,12 @@ class CartService {
     /**
      * Get user's cart
      */
-    async getCart(): Promise<ApiResponse<Cart>> {
+    async getCart(): Promise<ApiResponse<CartItem>> {
         try {
-            const response = await privateAPI.get<ApiResponse<Cart>>(
+            const response = await privateAPI.get<ApiResponse<CartItem>>(
                 "/api/v1/user/cart"
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching cart:", error);
             throw error;
@@ -95,13 +95,13 @@ class CartService {
     /**
      * Add item to cart
      */
-    async addToCart(item: AddToCartRequest): Promise<ApiResponse<Cart>> {
+    async addToCart(item: AddToCartRequest): Promise<ApiResponse<CartItem>> {
         try {
-            const response = await privateAPI.post<ApiResponse<Cart>>(
+            const response = await privateAPI.post<ApiResponse<CartItem>>(
                 "/api/v1/user/cart/items",
                 item
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error adding to cart:", error);
             throw error;
@@ -114,13 +114,13 @@ class CartService {
     async updateCartItem(
         itemId: number,
         data: UpdateCartItemRequest
-    ): Promise<ApiResponse<Cart>> {
+    ): Promise<ApiResponse<CartItem>> {
         try {
-            const response = await privateAPI.patch<ApiResponse<Cart>>(
+            const response = await privateAPI.patch<ApiResponse<CartItem>>(
                 `/api/v1/user/cart/items/${itemId}`,
                 data
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error updating cart item:", error);
             throw error;
@@ -130,12 +130,12 @@ class CartService {
     /**
      * Remove item from cart
      */
-    async removeFromCart(itemId: number): Promise<ApiResponse<Cart>> {
+    async removeFromCart(itemId: number): Promise<ApiResponse<CartItem>> {
         try {
-            const response = await privateAPI.delete<ApiResponse<Cart>>(
+            const response = await privateAPI.delete<ApiResponse<CartItem>>(
                 `/api/v1/user/cart/items/${itemId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error removing from cart:", error);
             throw error;
@@ -150,7 +150,7 @@ class CartService {
             const response = await privateAPI.delete<ApiResponse<any>>(
                 "/api/v1/user/cart"
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error clearing cart:", error);
             throw error;
@@ -160,15 +160,15 @@ class CartService {
     /**
      * Apply coupon to cart
      */
-    async applyCoupon(couponCode: string): Promise<ApiResponse<Cart>> {
+    async applyCoupon(couponCode: string): Promise<ApiResponse<CartItem>> {
         try {
-            const response = await privateAPI.post<ApiResponse<Cart>>(
+            const response = await privateAPI.post<ApiResponse<CartItem>>(
                 "/api/v1/user/cart/coupon",
                 {
                     couponCode,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error applying coupon:", error);
             throw error;
@@ -178,12 +178,12 @@ class CartService {
     /**
      * Remove coupon from cart
      */
-    async removeCoupon(): Promise<ApiResponse<Cart>> {
+    async removeCoupon(): Promise<ApiResponse<CartItem>> {
         try {
-            const response = await privateAPI.delete<ApiResponse<Cart>>(
+            const response = await privateAPI.delete<ApiResponse<CartItem>>(
                 "/api/v1/user/cart/coupon"
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error removing coupon:", error);
             throw error;
@@ -198,7 +198,7 @@ class CartService {
             const response = await privateAPI.get<
                 ApiResponse<{ count: number }>
             >("/api/v1/user/cart/count");
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching cart count:", error);
             throw error;
@@ -222,7 +222,7 @@ class CartService {
             const response = await privateAPI.post<ApiResponse<any>>(
                 "/api/v1/user/cart/validate"
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error validating cart:", error);
             throw error;
@@ -253,7 +253,7 @@ class CartService {
                 "/api/v1/user/cart/shipping",
                 address
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error calculating shipping:", error);
             throw error;
@@ -263,12 +263,14 @@ class CartService {
     /**
      * Save cart for later (for guest users)
      */
-    async saveCartForLater(): Promise<ApiResponse<{ cartToken: string }>> {
+    async saveCartForLater(): Promise<
+        ApiResponse<{ cartToken: string }>
+    > {
         try {
             const response = await privateAPI.post<ApiResponse<any>>(
                 "/api/v1/cart/save"
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error saving cart:", error);
             throw error;
@@ -278,15 +280,17 @@ class CartService {
     /**
      * Restore saved cart (for guest users)
      */
-    async restoreCart(cartToken: string): Promise<ApiResponse<Cart>> {
+    async restoreCart(
+        cartToken: string
+    ): Promise<ApiResponse<CartItem>> {
         try {
-            const response = await privateAPI.post<ApiResponse<Cart>>(
+            const response = await privateAPI.post<ApiResponse<CartItem>>(
                 "/api/v1/cart/restore",
                 {
                     cartToken,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error restoring cart:", error);
             throw error;
@@ -302,15 +306,15 @@ class CartService {
             colorId: number;
             quantity: number;
         }>
-    ): Promise<ApiResponse<Cart>> {
+    ): Promise<ApiResponse<CartItem>> {
         try {
-            const response = await privateAPI.post<ApiResponse<Cart>>(
+            const response = await privateAPI.post<ApiResponse<CartItem>>(
                 "/api/v1/user/cart/merge",
                 {
                     items: guestCartItems,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error merging cart:", error);
             throw error;

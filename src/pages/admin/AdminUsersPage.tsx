@@ -74,9 +74,9 @@ const AdminUsersPage: React.FC = () => {
             const response = await userService.getUsers(params);
 
             if (response.success) {
-                setUsers(response.data);
-                setTotalPages(response.meta.totalPage);
-                setTotalElements(response.meta.totalElements);
+                setUsers(response.data || []);
+                setTotalPages(response.meta?.totalPage || 0);
+                setTotalElements(response.meta?.totalElements || 0);
             }
         } catch (error) {
             console.error("Error fetching users:", error);

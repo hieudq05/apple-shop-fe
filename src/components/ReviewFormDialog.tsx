@@ -31,7 +31,6 @@ const ReviewFormDialog: React.FC<ReviewFormDialogProps> = ({
     stockId,
     onSuccess,
 }) => {
-    console.log("ReviewFormDialog props:", { open, orderId, stockId });
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<{
@@ -93,7 +92,6 @@ const ReviewFormDialog: React.FC<ReviewFormDialogProps> = ({
             onOpenChange(false);
             onSuccess?.();
         } catch (error) {
-            console.error("Error submitting review:", error);
             toast({
                 title: "Lỗi",
                 description: error.message,

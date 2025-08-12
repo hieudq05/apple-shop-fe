@@ -5,6 +5,7 @@ export interface Review {
         id: number;
         firstName: string;
         lastName: string;
+        email: string;
         image?: string;
     };
     content: string;

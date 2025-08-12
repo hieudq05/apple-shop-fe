@@ -1,5 +1,5 @@
 import * as React from "react";
-import {z} from "zod";
+import { z } from "zod";
 import {
     type ColumnDef,
     type ColumnFiltersState,
@@ -12,25 +12,10 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import {
-    Eye,
-    CheckCircle,
-    Clock,
-    X,
-    Truck,
-    Package,
-    MoreHorizontal, BanknoteX,
-} from "lucide-react";
+import { Eye, Clock, Truck, MoreHorizontal, BanknoteX } from "lucide-react";
 
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     Table,
     TableBody,
@@ -39,7 +24,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 // Schema for order data validation
 export const orderSchema = z.object({
@@ -79,12 +64,7 @@ interface OrderDataTableProps {
     updatingOrderId?: number | null;
 }
 
-export function OrderDataTable({
-                                   data,
-                                   onView,
-                                   onUpdateStatus,
-                                   updatingOrderId,
-                               }: OrderDataTableProps) {
+export function OrderDataTable({ data }: OrderDataTableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] =
         React.useState<ColumnFiltersState>([]);
@@ -105,47 +85,43 @@ export function OrderDataTable({
     const getStatusIcon = (status: Order["status"]) => {
         switch (status) {
             case "PENDING_PAYMENT":
-                return <Clock className="w-4 h-4"/>;
+                return <Clock className="w-4 h-4" />;
             case "FAILED_PAYMENT":
                 return (
                     <div>
-                        <BanknoteX className={"size-4 text-destructive"}/>
+                        <BanknoteX className={"size-4 text-destructive"} />
                     </div>
-                )
+                );
             case "PAID":
                 return (
                     <div className="size-3 bg-purple-500/35 rounded-full relative">
-                        <div
-                            className="size-1.5 bg-purple-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="size-1.5 bg-purple-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                 );
             case "PROCESSING":
-                return <MoreHorizontal className="w-4 h-4"/>;
+                return <MoreHorizontal className="w-4 h-4" />;
             case "AWAITING_SHIPMENT":
                 return (
                     <div className="size-3 bg-yellow-500/35 rounded-full relative">
-                        <div
-                            className="size-1.5 bg-yellow-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="size-1.5 bg-yellow-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                 );
             case "SHIPPED":
-                return <Truck className="w-4 h-4"/>;
+                return <Truck className="w-4 h-4" />;
             case "DELIVERED":
                 return (
                     <div className="size-3 bg-green-500/35 rounded-full relative">
-                        <div
-                            className="size-1.5 bg-green-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="size-1.5 bg-green-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                 );
             case "CANCELLED":
                 return (
                     <div className="size-3 bg-destructive/35 rounded-full relative">
-                        <div
-                            className="size-1.5 bg-destructive rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="size-1.5 bg-destructive rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                     </div>
                 );
             default:
-                return <Clock className="w-4 h-4"/>;
+                return <Clock className="w-4 h-4" />;
         }
     };
 
@@ -197,7 +173,7 @@ export function OrderDataTable({
         {
             accessorKey: "orderNumber",
             header: "Đơn hàng",
-            cell: ({row}) => {
+            cell: ({ row }) => {
                 const order = row.original;
                 return (
                     <div className="py-1">
@@ -214,7 +190,7 @@ export function OrderDataTable({
         {
             accessorKey: "customerName",
             header: "Khách hàng",
-            cell: ({row}) => {
+            cell: ({ row }) => {
                 const order = row.original;
                 return (
                     <>
@@ -258,7 +234,7 @@ export function OrderDataTable({
         {
             accessorKey: "status",
             header: "Trạng thái",
-            cell: ({row}) => {
+            cell: ({ row }) => {
                 const status = row.getValue("status") as Order["status"];
                 return (
                     <Badge
@@ -276,7 +252,7 @@ export function OrderDataTable({
         {
             accessorKey: "approveAt",
             header: "Thông tin",
-            cell: ({row}) => {
+            cell: ({ row }) => {
                 const order = row.original;
                 return (
                     <div className="py-1">
@@ -292,7 +268,7 @@ export function OrderDataTable({
         {
             accessorKey: "createdAt",
             header: "Ngày tạo",
-            cell: ({row}) => (
+            cell: ({ row }) => (
                 <div className="text-muted-foreground py-1">
                     {formatDate(row.getValue("createdAt"))}
                 </div>
@@ -301,7 +277,7 @@ export function OrderDataTable({
         {
             id: "actions",
             header: "",
-            cell: ({row}) => {
+            cell: ({ row }) => {
                 const order = row.original;
 
                 return (
@@ -310,7 +286,7 @@ export function OrderDataTable({
                             className="p-2 hover:bg-foreground/10 border rounded-lg"
                             to={`/admin/orders/${order.id}`}
                         >
-                            <Eye className="w-4 h-4"/>
+                            <Eye className="w-4 h-4" />
                         </Link>
                     </div>
                 );
@@ -350,10 +326,10 @@ export function OrderDataTable({
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
-                                                    header.column.columnDef
-                                                        .header,
-                                                    header.getContext()
-                                                )}
+                                                      header.column.columnDef
+                                                          .header,
+                                                      header.getContext()
+                                                  )}
                                         </TableHead>
                                     );
                                 })}

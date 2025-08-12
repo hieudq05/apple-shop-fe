@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
     Search,
     Filter,
-    Download,
     ChevronLeft,
     ChevronRight,
     Eye,
@@ -56,7 +55,6 @@ const AdminReviewsPage: React.FC = () => {
     const [selectedReview, setSelectedReview] = useState<ReviewDetails | null>(
         null
     );
-    const [showDetailDialog, setShowDetailDialog] = useState(false);
     const [replyContent, setReplyContent] = useState("");
 
     // Filters
@@ -87,7 +85,7 @@ const AdminReviewsPage: React.FC = () => {
             const response = await reviewService.getAllReviews(params);
 
             if (response.success && response.data) {
-                setReviews(response.data.reviews || response.data);
+                setReviews(response.data || response.data);
                 setTotalPages(
                     response.meta?.totalPage ||
                         Math.ceil((response.data.length || 0) / pageSize)
@@ -114,7 +112,6 @@ const AdminReviewsPage: React.FC = () => {
             if (response.success && response.data) {
                 setSelectedReview(response.data);
                 setReplyContent(response.data.replyContent || "");
-                setShowDetailDialog(true);
             }
         } catch (error) {
             console.error("Error fetching review detail:", error);
@@ -138,9 +135,6 @@ const AdminReviewsPage: React.FC = () => {
                         : "Đã từ chối đánh giá",
                 });
                 fetchReviews();
-                if (selectedReview?.id === reviewId) {
-                    setShowDetailDialog(false);
-                }
             }
         } catch (error) {
             console.error("Error updating review status:", error);
@@ -166,7 +160,6 @@ const AdminReviewsPage: React.FC = () => {
                     title: "Thành công",
                     description: "Đã gửi phản hồi",
                 });
-                setShowDetailDialog(false);
                 fetchReviews();
             }
         } catch (error) {
@@ -435,7 +428,7 @@ const AdminReviewsPage: React.FC = () => {
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <div className="flex gap-1 items-end-safe flex-wrap">
+                                                        <div className="flex gap-1 items-center flex-wrap">
                                                             <h4 className="font-medium">
                                                                 {
                                                                     review.user
@@ -471,7 +464,8 @@ const AdminReviewsPage: React.FC = () => {
 
                                                 <div className="flex items-center space-x-2">
                                                     {getStatusBadge(
-                                                        review.isApproved
+                                                        review.isApproved ||
+                                                            false
                                                     )}
 
                                                     <Dialog>

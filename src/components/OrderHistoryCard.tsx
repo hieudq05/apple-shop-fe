@@ -76,7 +76,7 @@ const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({
                 return;
             }
 
-            if (paymentResponse.success && paymentResponse.data.paymentUrl) {
+            if (paymentResponse.success && paymentResponse.data?.paymentUrl) {
                 // Redirect to payment URL
                 window.location.href = paymentResponse.data.paymentUrl;
             } else {

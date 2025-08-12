@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Trash } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea.tsx";
 import MarkdownEditor from "@/components/MarkdownEditor.tsx";
 import { Helmet } from "react-helmet-async";
 

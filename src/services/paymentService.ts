@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/types/api";
 import { userRoleAPI, privateAPI } from "../utils/axios";
 
 export interface CreatePaymentRequest {
@@ -14,13 +15,9 @@ export interface CreatePaymentRequest {
 }
 
 export interface CreatePaymentResponse {
-    success: boolean;
-    msg: string;
-    data: {
-        code: string;
-        message: string;
-        paymentUrl: string;
-    };
+    code: string;
+    message: string;
+    paymentUrl: string;
 }
 
 export interface PaymentVerificationRequest {
@@ -39,28 +36,24 @@ export interface PaymentVerificationRequest {
 }
 
 export interface PaymentVerificationResponse {
-    success: boolean;
-    msg: string;
-    data: {
-        isValid: boolean;
-        orderId?: string;
-        amount?: number;
-        transactionStatus: string;
-        message: string;
-    };
+    isValid: boolean;
+    orderId?: string;
+    amount?: number;
+    transactionStatus: string;
+    message: string;
 }
 
 const paymentService = {
     // Create VNPay payment URL
     createVNPayPayment: async (
         data: CreatePaymentRequest
-    ): Promise<CreatePaymentResponse> => {
+    ): Promise<ApiResponse<CreatePaymentResponse>> => {
         try {
             const response = await userRoleAPI.post(
                 "/payments/vnpay/create-payment-v1",
                 data
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating VNPay payment:", error);
             throw error;
@@ -69,12 +62,12 @@ const paymentService = {
 
     createVNPayPaymentForOrder: async (
         orderId: number
-    ): Promise<CreatePaymentResponse> => {
+    ): Promise<ApiResponse<CreatePaymentResponse>> => {
         try {
             const response = await userRoleAPI.post(
                 `/payments/vnpay/create-payment-v1/order/${orderId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating VNPay payment for order:", error);
             throw error;
@@ -84,13 +77,13 @@ const paymentService = {
     // Create PayPal payment URL
     createPayPalPayment: async (
         data: CreatePaymentRequest
-    ): Promise<CreatePaymentResponse> => {
+    ): Promise<ApiResponse<CreatePaymentResponse>> => {
         try {
             const response = await userRoleAPI.post(
                 "/payments/paypal/create-payment-v1",
                 data
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating PayPal payment:", error);
             throw error;
@@ -99,12 +92,12 @@ const paymentService = {
 
     createPayPalPaymentForOrder: async (
         orderId: number
-    ): Promise<CreatePaymentResponse> => {
+    ): Promise<ApiResponse<CreatePaymentResponse>> => {
         try {
             const response = await userRoleAPI.post(
                 `/payments/paypal/create-payment-v1/order/${orderId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating PayPal payment for order:", error);
             throw error;
@@ -114,7 +107,7 @@ const paymentService = {
     // Verify VNPay payment result
     verifyVNPayPayment: async (
         data: PaymentVerificationRequest
-    ): Promise<PaymentVerificationResponse> => {
+    ): Promise<ApiResponse<PaymentVerificationResponse>> => {
         try {
             const response = await userRoleAPI.post(
                 "/payments/vnpay/verify-payment",
@@ -130,7 +123,7 @@ const paymentService = {
     // Verify PayPal payment result
     verifyPayPalPayment: async (
         data: PaymentVerificationRequest
-    ): Promise<PaymentVerificationResponse> => {
+    ): Promise<ApiResponse<PaymentVerificationResponse>> => {
         try {
             const response = await userRoleAPI.post(
                 "/payments/paypal/verify-payment",
@@ -143,45 +136,15 @@ const paymentService = {
         }
     },
 
-    // Create VNPay payment URL for existing order
-    createVNPayPaymentForOrder: async (
-        orderId: number
-    ): Promise<CreatePaymentResponse> => {
-        try {
-            const response = await userRoleAPI.post(
-                `/payments/vnpay/create-payment-v1/order/${orderId}`
-            );
-            return response;
-        } catch (error) {
-            console.error("Error creating VNPay payment for order:", error);
-            throw error;
-        }
-    },
-
-    // Create PayPal payment URL for existing order
-    createPayPalPaymentForOrder: async (
-        orderId: number
-    ): Promise<CreatePaymentResponse> => {
-        try {
-            const response = await userRoleAPI.post(
-                `/payments/paypal/create-payment-v1/order/${orderId}`
-            );
-            return response;
-        } catch (error) {
-            console.error("Error creating PayPal payment for order:", error);
-            throw error;
-        }
-    },
-
     // Create VNPay payment URL for admin (using privateAPI)
     createAdminVNPayPaymentUrl: async (
         orderId: number
-    ): Promise<CreatePaymentResponse> => {
+    ): Promise<ApiResponse<CreatePaymentResponse>> => {
         try {
             const response = await privateAPI.post(
                 `/payments/vnpay/payment-url?orderId=${orderId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating admin VNPay payment URL:", error);
             throw error;
@@ -191,12 +154,12 @@ const paymentService = {
     // Create PayPal payment URL for admin (using privateAPI)
     createAdminPayPalPaymentUrl: async (
         orderId: number
-    ): Promise<CreatePaymentResponse> => {
+    ): Promise<ApiResponse<CreatePaymentResponse>> => {
         try {
             const response = await privateAPI.post(
                 `/payments/paypal/payment-url?orderId=${orderId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating admin PayPal payment URL:", error);
             throw error;

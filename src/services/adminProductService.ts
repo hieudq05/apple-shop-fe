@@ -1,5 +1,3 @@
-import { description } from "./../components/chart-area-interactive";
-// Admin Product service for admin product operations
 import { privateAPI } from "../utils/axios";
 import type { ApiResponse } from "../types/api";
 
@@ -19,18 +17,16 @@ export interface AdminProduct {
     }>;
     stocks: Array<{
         id: number;
-        color: {
-            id: number;
-            name: string;
-            hexCode: string;
-        };
+        colorId: number;
+        colorName: string;
+        hexCode: string;
         instanceProperties?: Array<{
             id: number;
             name: string;
         }>;
         productPhotos: Array<{
             id: number;
-            imageUrl: Object;
+            imageUrl: object;
             alt: string;
         }>;
         quantity: number;
@@ -234,8 +230,13 @@ class ProductDataNormalizer {
                 ApiResponse<CompleteCategory>
             >(`/categories/${categoryId}`);
             const category = response.data.data;
-            this.categoryCache.set(categoryId, category);
-            return category;
+            this.categoryCache.set(
+                categoryId,
+                category ?? { id: categoryId, name: `Category ${categoryId}` }
+            );
+            return (
+                category ?? { id: categoryId, name: `Category ${categoryId}` }
+            );
         } catch (error) {
             console.warn(`Failed to fetch category ${categoryId}:`, error);
             // Return minimal category data as fallback
@@ -256,8 +257,13 @@ class ProductDataNormalizer {
                 `/colors/${colorId}`
             );
             const color = response.data.data;
-            this.colorCache.set(colorId, color);
-            return color;
+            const completeColor: CompleteColor = color ?? {
+                id: colorId,
+                name: `Color ${colorId}`,
+                hex: "#000000",
+            };
+            this.colorCache.set(colorId, completeColor);
+            return completeColor;
         } catch (error) {
             console.warn(`Failed to fetch color ${colorId}:`, error);
             // Return minimal color data as fallback
@@ -280,8 +286,12 @@ class ProductDataNormalizer {
                 `/features/${featureId}`
             );
             const feature = response.data.data;
-            this.featureCache.set(featureId, feature);
-            return feature;
+            const completeFeature: CompleteFeature = feature ?? {
+                id: featureId,
+                name: `Feature ${featureId}`,
+            };
+            this.featureCache.set(featureId, completeFeature);
+            return completeFeature;
         } catch (error) {
             console.warn(`Failed to fetch feature ${featureId}:`, error);
             // Return minimal feature data as fallback
@@ -342,11 +352,15 @@ class ProductDataNormalizer {
                     };
                 }
 
-                return feature;
+                return (
+                    feature ?? { id: feature.id, name: `Feature ${feature.id}` }
+                );
             })
         );
 
-        return normalizedFeatures.filter(Boolean) as CompleteFeature[];
+        return normalizedFeatures.filter(
+            (f): f is CompleteFeature => f !== null
+        ) as CompleteFeature[];
     }
 
     /**
@@ -465,7 +479,7 @@ export class AdminProductService {
                     params,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching admin products:", error);
             throw error;
@@ -483,7 +497,7 @@ export class AdminProductService {
                 "/products/search",
                 searchParams
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error searching products:", error);
             throw error;
@@ -501,7 +515,7 @@ export class AdminProductService {
             const response = await privateAPI.get<ApiResponse<AdminProduct>>(
                 `/products/${categoryId}/${productId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching admin product:", error);
             throw error;
@@ -538,7 +552,7 @@ export class AdminProductService {
                     },
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating product:", error);
             throw error;
@@ -608,7 +622,7 @@ export class AdminProductService {
                     },
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error updating product:", error);
             throw error;
@@ -626,7 +640,7 @@ export class AdminProductService {
             const response = await privateAPI.delete<ApiResponse<void>>(
                 `/products/${categoryId}/${productId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error deleting product:", error);
             throw error;

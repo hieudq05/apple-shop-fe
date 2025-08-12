@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/types/api";
 import { publicAPI } from "../utils/axios";
 
 export interface SearchFilters {
@@ -19,10 +20,6 @@ export interface SearchFilters {
     maxRating?: number;
     inStock?: boolean;
     page?: number;
-    // sortBy?: string;
-    // sortDirection?: "ASC" | "DESC";
-    // page?: number;
-    // size?: number;
 }
 
 export interface Color {
@@ -59,20 +56,10 @@ export interface SearchProduct {
     stocks: Stock[];
 }
 
-export interface SearchResponse {
-    success: boolean;
-    msg: string;
-    data: SearchProduct[];
-    meta: {
-        currentPage: number;
-        pageSize: number;
-        totalPage: number;
-        totalElements: number;
-    };
-}
-
 class SearchService {
-    async searchProducts(filters: SearchFilters): Promise<SearchResponse> {
+    async searchProducts(
+        filters: SearchFilters
+    ): Promise<ApiResponse<SearchProduct[]>> {
         try {
             // Prepare request body with all filters
             const requestBody: Partial<SearchFilters> = {};
@@ -133,20 +120,11 @@ class SearchService {
             if (filters.inStock !== undefined)
                 requestBody.inStock = filters.inStock;
 
-            // Sorting
-            // if (filters.sortBy) requestBody.sortBy = filters.sortBy;
-            // if (filters.sortDirection)
-            //     requestBody.sortDirection = filters.sortDirection;
-
-            // Pagination
-            // if (filters.page !== undefined) requestBody.page = filters.page;
-            // if (filters.size !== undefined) requestBody.size = filters.size;
-
             const response = await publicAPI.post(
                 "/products/search",
                 requestBody
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error searching products:", error);
             throw error;
