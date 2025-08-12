@@ -25,18 +25,6 @@ export interface Promotion {
     createdBy: CreatedBy;
 }
 
-export interface PromotionResponse {
-    success: boolean;
-    msg: string;
-    data: Promotion[];
-    meta: {
-        currentPage: number;
-        pageSize: number;
-        totalPage: number;
-        totalElements: number;
-    };
-}
-
 export interface PromotionParams {
     page?: number;
     size?: number;
@@ -84,7 +72,7 @@ const promotionService = {
     // Get all promotions with pagination and filters
     getPromotions: async (
         params: PromotionParams = {}
-    ): Promise<ApiResponse<PromotionResponse>> => {
+    ): Promise<ApiResponse<Promotion[]>> => {
         try {
             const searchParams = new URLSearchParams();
 
@@ -108,7 +96,7 @@ const promotionService = {
     // Advanced search promotions
     searchPromotions: async (
         searchParams: PromotionSearchParams = {}
-    ): Promise<ApiResponse<PromotionResponse>> => {
+    ): Promise<ApiResponse<Promotion[]>> => {
         try {
             const response = await privateAPI.post(
                 `/promotions/search?page=${searchParams.page || 0}&size=${

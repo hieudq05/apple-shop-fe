@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -23,9 +23,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {Button} from "@/components/ui/button";
-import {Badge} from "@/components/ui/badge";
-import userService, {type MyShippingAddress} from "@/services/userService";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import userService, { type MyShippingAddress } from "@/services/userService";
 import EditAddressDialog from "./EditAddressDialog";
 import CreateAddressDialog from "./CreateAddressDialog";
 
@@ -79,8 +79,8 @@ interface ShippingAddressDialogProps {
 }
 
 const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
-                                                                         children,
-                                                                     }) => {
+    children,
+}) => {
     const [isOpen, setIsOpen] = useState(false);
     const [addresses, setAddresses] = useState<MyShippingAddress[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -196,7 +196,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
             const response = await userService.getMyShippingAddress();
 
             if (response.success) {
-                setAddresses(response.data);
+                setAddresses(response.data || []);
             } else {
                 setErrorMessage(
                     response.message || "Không thể tải địa chỉ giao hàng"
@@ -300,8 +300,8 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
 
     // Component to display formatted address
     const AddressDisplay: React.FC<{ address: MyShippingAddress }> = ({
-                                                                          address,
-                                                                      }) => {
+        address,
+    }) => {
         const [formattedAddress, setFormattedAddress] = useState<string>(
             "Đang tải địa chỉ..."
         );
@@ -553,7 +553,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                                                         <span className="font-medium text-foreground">
                                                             Tạo:
                                                         </span>
-                                                        <br/>
+                                                        <br />
                                                         {formatDate(
                                                             address.createdAt
                                                         )}
@@ -562,7 +562,7 @@ const ShippingAddressDialog: React.FC<ShippingAddressDialogProps> = ({
                                                         <span className="font-medium text-foreground">
                                                             Cập nhật:
                                                         </span>
-                                                        <br/>
+                                                        <br />
                                                         {formatDate(
                                                             address.updatedAt
                                                         )}

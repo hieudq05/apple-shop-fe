@@ -8,7 +8,7 @@ import axios from "axios";
 import { setAccessToken, setRefreshToken } from "../utils/storage.ts";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../hooks/useAuthContext.ts";
-import { useNavigate, Navigate, Link } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Home } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { useTheme } from "@/components/theme-provider.tsx";

@@ -38,61 +38,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Clock } from "lucide-react";
 
-interface ProductDetail {
-    id: number;
-    name: string;
-    description: string;
-    createdAt: string;
-    createdBy: {
-        id: number;
-        email: string;
-        firstName: string;
-        lastName: string;
-        image: string;
-    };
-    updatedAt: string;
-    updatedBy: {
-        id: number;
-        email: string;
-        firstName: string;
-        lastName: string;
-        image: string;
-    };
-    category: {
-        id: number;
-        name: string;
-        image: string;
-    };
-    features: Array<{
-        id: number;
-        name: string;
-        description: string;
-        image: string;
-        createdAt: string;
-    }>;
-    promotions: [];
-    reviews: [];
-    stocks: Array<{
-        id: number;
-        color: {
-            id: number;
-            name: string;
-            hexCode: string;
-        };
-        quantity: number;
-        price: number;
-        productPhotos: Array<{
-            id: number;
-            imageUrl: string;
-            alt: string;
-        }>;
-        instanceProperties: Array<{
-            id: number;
-            name: string;
-        }>;
-    }>;
-}
-
 const ProductDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const { categoryId } = useParams<{ categoryId: string }>();
@@ -280,7 +225,15 @@ const ProductDetailPage: React.FC = () => {
                                 <div>
                                     <div className="aspect-square rounded-xl overflow-hidden mb-4">
                                         <img
-                                            src={allPhotos[selectedImageIndex]}
+                                            src={
+                                                typeof allPhotos[
+                                                    selectedImageIndex
+                                                ] === "string"
+                                                    ? allPhotos[
+                                                          selectedImageIndex
+                                                      ]
+                                                    : ""
+                                            }
                                             alt={product.name}
                                             className="w-full h-full object-cover"
                                         />
@@ -300,7 +253,12 @@ const ProductDetailPage: React.FC = () => {
                                                 }`}
                                             >
                                                 <img
-                                                    src={photo}
+                                                    src={
+                                                        typeof photo ===
+                                                        "string"
+                                                            ? photo
+                                                            : ""
+                                                    }
                                                     alt={`${product.name} ${
                                                         index + 1
                                                     }`}
@@ -347,7 +305,7 @@ const ProductDetailPage: React.FC = () => {
                                         Danh mục
                                     </label>
                                     <Badge variant="outline">
-                                        {product.category.name}
+                                        {product.categoryName}
                                     </Badge>
                                 </div>
 
@@ -434,20 +392,19 @@ const ProductDetailPage: React.FC = () => {
                                                         className="w-4 h-4 rounded-full border border-gray-300"
                                                         style={{
                                                             backgroundColor:
-                                                                stock.color
-                                                                    ?.hexCode,
+                                                                stock.hexCode,
                                                         }}
                                                     />
                                                     <span>
-                                                        {stock.color?.name}
+                                                        {stock.colorName}
                                                     </span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                {stock.instanceProperties
-                                                    ?.length > 0 ? (
+                                                {(stock?.instanceProperties
+                                                    ?.length || 0) > 0 ? (
                                                     <div className="flex flex-wrap gap-1">
-                                                        {stock.instanceProperties.map(
+                                                        {stock?.instanceProperties?.map(
                                                             (property) => (
                                                                 <Badge
                                                                     key={

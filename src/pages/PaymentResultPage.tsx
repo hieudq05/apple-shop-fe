@@ -17,9 +17,6 @@ import {
     CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import paymentService, {
-    type PaymentVerificationRequest,
-} from "../services/paymentService";
 
 interface PaymentResultData {
     Amount?: string;
@@ -41,10 +38,6 @@ const PaymentResultPage: React.FC = () => {
     const [searchParams] = useSearchParams();
     const [isVerifying, setIsVerifying] = useState(true);
     const [paymentData, setPaymentData] = useState<PaymentResultData>({});
-    const [verificationResult, setVerificationResult] = useState<{
-        success: boolean;
-        message: string;
-    } | null>(null);
 
     useEffect(() => {
         // Extract payment data from URL parameters
@@ -54,105 +47,7 @@ const PaymentResultPage: React.FC = () => {
         });
         setPaymentData(data);
         setIsVerifying(false);
-
     }, []);
-
-    /*const verifyPayment = React.useCallback(async (data: PaymentResultData) => {
-        try {
-            setIsVerifying(true);
-
-            // Prepare verification data
-            const verificationData: PaymentVerificationRequest = {
-                Amount: data.Amount,
-                BankCode: data.BankCode,
-                BankTranNo: data.BankTranNo,
-                CardType: data.CardType,
-                OrderInfo: data.OrderInfo,
-                PayDate: data.PayDate,
-                ResponseCode: data.ResponseCode,
-                TmnCode: data.TmnCode,
-                TransactionNo: data.TransactionNo,
-                TransactionStatus: data.TransactionStatus,
-                TxnRef: data.TxnRef,
-                SecureHash: data.SecureHash,
-            };
-
-            // Call API to verify payment
-            const response = await paymentService.verifyVNPayPayment(
-                verificationData
-            );
-
-            if (response.success && response.data.isValid) {
-                setVerificationResult({
-                    success: true,
-                    message:
-                        response.data.message ||
-                        "Thanh toán thành công! Đơn hàng của bạn đã được xác nhận.",
-                });
-            } else {
-                setVerificationResult({
-                    success: false,
-                    message:
-                        response.data.message ||
-                        getErrorMessage(data.ResponseCode || ""),
-                });
-            }
-        } catch (error) {
-            console.error("Error verifying payment:", error);
-
-            // Fallback to client-side verification if API fails
-            if (
-                data.ResponseCode === "00" &&
-                data.TransactionStatus === "00"
-            ) {
-                setVerificationResult({
-                    success: true,
-                    message:
-                        "Thanh toán thành công! Đơn hàng của bạn đã được xác nhận.",
-                });
-            } else {
-                setVerificationResult({
-                    success: false,
-                    message: getErrorMessage(data.ResponseCode || ""),
-                });
-            }
-        } finally {
-            setIsVerifying(false);
-        }
-    }, []);*/
-
-    const getErrorMessage = (responseCode: string): string => {
-        const errorMessages: { [key: string]: string } = {
-            "01": "Giao dịch chưa hoàn tất",
-            "02": "Giao dịch bị lỗi",
-            "04": "Giao dịch đảo (Khách hàng đã bị trừ tiền tại Ngân hàng nhưng GD chưa thành công ở VNPAY)",
-            "05": "VNPAY đang xử lý giao dịch này (GD hoàn tiền)",
-            "06": "VNPAY đã gửi yêu cầu hoàn tiền sang Ngân hàng (GD hoàn tiền)",
-            "07": "Giao dịch bị nghi ngờ gian lận",
-            "09": "GD Hoàn trả bị từ chối",
-            "10": "Đã giao hàng",
-            "11": "Đã hủy (GD hoàn tiền)",
-            "12": "Đã hủy (GD không hoàn tiền)",
-            "13": "Đã hủy, quay lại tạo GD mới",
-            "20": "Đã thanh toán (GD thành công)",
-            "21": "Đã hoàn trả (GD thành công)",
-            "22": "Đã giao hàng (GD thành công)",
-            "30": "Chờ thanh toán",
-            "31": "Chờ xác nhận",
-            "32": "Đã xác nhận",
-            "40": "Đã hủy",
-            "50": "Đã hoàn trả",
-            "24": "Khách hàng hủy giao dịch",
-            "51": "Số tiền không đủ để thanh toán",
-            "65": "Tài khoản của bạn đã vượt quá hạn mức giao dịch trong ngày",
-            "75": "Ngân hàng thanh toán đang bảo trì",
-            "79": "KH nhập sai mật khẩu quá số lần quy định",
-            "99": "Lỗi không xác định",
-        };
-
-        return errorMessages[responseCode] || "Giao dịch không thành công";
-    };
-
     const formatAmount = (amount: string): string => {
         // VNPay amount is in cents, convert to VND
         const amountInVND = parseInt(amount) / 100;
@@ -207,7 +102,11 @@ const PaymentResultPage: React.FC = () => {
             return <Loader2 className="h-16 w-16 animate-spin text-blue-600" />;
         }
 
-        if (paymentData.ResponseCode === "00" && (paymentData.TransactionStatus === "00" || paymentData.TransactionStatus === "approved")) {
+        if (
+            paymentData.ResponseCode === "00" &&
+            (paymentData.TransactionStatus === "00" ||
+                paymentData.TransactionStatus === "approved")
+        ) {
             return <CheckCircle className="h-16 w-16 text-green-600" />;
         } else {
             return <XCircle className="h-16 w-16 text-red-600" />;
@@ -216,12 +115,18 @@ const PaymentResultPage: React.FC = () => {
 
     const getStatusColor = () => {
         if (isVerifying) return "text-blue-600";
-        return (paymentData.ResponseCode === "00" && (paymentData.TransactionStatus === "00" || paymentData.TransactionStatus === "approved")) ? "text-green-600" : "text-red-600";
+        return paymentData.ResponseCode === "00" &&
+            (paymentData.TransactionStatus === "00" ||
+                paymentData.TransactionStatus === "approved")
+            ? "text-green-600"
+            : "text-red-600";
     };
 
     const getStatusTitle = () => {
         if (isVerifying) return "Đang xác thực thanh toán...";
-        return (paymentData.ResponseCode === "00" && (paymentData.TransactionStatus === "00" || paymentData.TransactionStatus === "approved"))
+        return paymentData.ResponseCode === "00" &&
+            (paymentData.TransactionStatus === "00" ||
+                paymentData.TransactionStatus === "approved")
             ? "Thanh toán thành công!"
             : "Thanh toán thất bại";
     };
@@ -244,7 +149,7 @@ const PaymentResultPage: React.FC = () => {
                             <p className="text-gray-600 mb-6">
                                 {isVerifying
                                     ? "Vui lòng đợi trong giây lát..."
-                                    : verificationResult?.message}
+                                    : ""}
                             </p>
 
                             {!isVerifying && (
@@ -252,7 +157,12 @@ const PaymentResultPage: React.FC = () => {
                                     <Button
                                         variant="outline"
                                         onClick={() =>
-                                            navigate("/order-detail/"+ paymentData.OrderInfo.split("#")[1])
+                                            navigate(
+                                                "/order-detail/" +
+                                                    paymentData.OrderInfo?.split(
+                                                        "#"
+                                                    )[1]
+                                            )
                                         }
                                         className="flex items-center gap-2"
                                     >
@@ -317,9 +227,7 @@ const PaymentResultPage: React.FC = () => {
                                             Số tiền
                                         </label>
                                         <p className="text-lg font-semibold text-blue-600">
-                                            {formatAmount(
-                                                paymentData.Amount
-                                            )}
+                                            {formatAmount(paymentData.Amount)}
                                         </p>
                                     </div>
                                 )}
@@ -343,9 +251,7 @@ const PaymentResultPage: React.FC = () => {
                                             Ngân hàng
                                         </label>
                                         <p className="text-sm">
-                                            {getBankName(
-                                                paymentData.BankCode
-                                            )}
+                                            {getBankName(paymentData.BankCode)}
                                         </p>
                                     </div>
                                 )}

@@ -35,7 +35,21 @@ export interface AdminProduct {
     }>;
     isDeleted: boolean;
     createdAt: string;
+    createdBy: {
+        email: string;
+        firstName: string;
+        lastName: string;
+        image: string;
+        id: number;
+    };
     updatedAt: string;
+    updatedBy: {
+        email: string;
+        firstName: string;
+        lastName: string;
+        image: string;
+        id: number;
+    };
     isActive?: boolean;
     totalSold?: number;
     totalRevenue?: number;

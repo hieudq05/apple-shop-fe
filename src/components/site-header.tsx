@@ -1,7 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import {ModeToggle} from "@/components/mode-toggle.tsx";
-import * as React from "react";
+import { ModeToggle } from "@/components/mode-toggle.tsx";
 
 export function SiteHeader() {
     return (

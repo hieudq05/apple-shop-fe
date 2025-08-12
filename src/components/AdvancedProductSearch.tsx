@@ -3,10 +3,8 @@ import {
     Search,
     Filter,
     X,
-    Calendar,
     DollarSign,
     Package,
-    Tag,
     ChevronDown,
     ChevronUp,
     Sliders,
@@ -108,7 +106,6 @@ const AdvancedProductSearch: React.FC<AdvancedProductSearchProps> = ({
     const [basicOpen, setBasicOpen] = useState(true);
     const [priceOpen, setPriceOpen] = useState(false);
     const [quantityOpen, setQuantityOpen] = useState(false);
-    const [categoriesOpen, setCategoriesOpen] = useState(false);
     const [statusOpen, setStatusOpen] = useState(false);
 
     // Price range state for slider

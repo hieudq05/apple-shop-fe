@@ -11,7 +11,7 @@ const NotFoundPage: React.FC = () => {
         const loadCategories = async () => {
             try {
                 const data = await fetchCategories();
-                setCategories(data.data);
+                setCategories(data.data || []);
             } catch (error) {
                 console.error("Error loading categories:", error);
                 // Fallback to default categories if API fails

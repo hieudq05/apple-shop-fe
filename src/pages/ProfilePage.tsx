@@ -18,7 +18,7 @@ const ProfilePage: React.FC = () => {
         try {
             const response = await userService.getMe();
             if (response.success) {
-                setMyInfo(response.data);
+                setMyInfo(response.data || null);
             }
         } catch (error) {
             console.error("Error fetching user info:", error);

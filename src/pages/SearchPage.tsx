@@ -44,10 +44,6 @@ const SearchPage: React.FC = () => {
     const [inStockOnly, setInStockOnly] = useState(
         searchParams.get("inStock") === "true"
     );
-    const [sortBy, setSortBy] = useState(searchParams.get("sort") || "name");
-    const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">(
-        (searchParams.get("direction") as "ASC" | "DESC") || "ASC"
-    );
     const [showFilters, setShowFilters] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -140,8 +136,6 @@ const SearchPage: React.FC = () => {
         selectedColors,
         priceRange,
         inStockOnly,
-        sortBy,
-        sortDirection,
         currentPage,
         performSearch,
     ]);

@@ -28,7 +28,7 @@ const UserDetailPage: React.FC = () => {
             const response = await userService.getUserById(parseInt(id));
 
             if (response.success) {
-                setUser(response.data);
+                setUser(response.data || null);
             } else {
                 setError("Không thể tải thông tin người dùng");
             }
@@ -45,10 +45,7 @@ const UserDetailPage: React.FC = () => {
 
         setIsUpdating(true);
         try {
-            const response = await userService.toggleUserStatus(
-                user.id,
-                !user.enabled
-            );
+            const response = await userService.toggleUserStatus(user.id);
 
             if (response.success) {
                 setUser((prev) =>

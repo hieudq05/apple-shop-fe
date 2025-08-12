@@ -91,10 +91,10 @@ const ReviewFormDialog: React.FC<ReviewFormDialogProps> = ({
 
             onOpenChange(false);
             onSuccess?.();
-        } catch (error) {
+        } catch {
             toast({
                 title: "Lỗi",
-                description: error.message,
+                description: "Không thể gửi phản hồi",
                 variant: "destructive",
             });
         } finally {

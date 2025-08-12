@@ -337,7 +337,7 @@ const CreateOrderPage: React.FC = () => {
 
             if (response.success && response.data) {
                 // Filter active promotions and by type
-                const activePromotions = response.data.data.filter((promo) => {
+                const activePromotions = response.data.filter((promo) => {
                     if (!promo.isActive) return false;
 
                     if (type === "shipping") {
@@ -478,12 +478,8 @@ const CreateOrderPage: React.FC = () => {
                 size: 1,
             });
 
-            if (
-                response.success &&
-                response.data &&
-                response.data.data.length > 0
-            ) {
-                const promotion = response.data.data[0];
+            if (response.success && response.data && response.data.length > 0) {
+                const promotion = response.data[0];
 
                 if (!promotion.isActive) {
                     toast.error("Mã giảm giá không còn hiệu lực");

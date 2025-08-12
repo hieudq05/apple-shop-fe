@@ -12,16 +12,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import {
-    MoreHorizontal,
-    UserIcon,
-    Eye,
-    Lock,
-    Unlock,
-    Phone,
-    Mail,
-    Calendar,
-} from "lucide-react";
+import { MoreHorizontal, UserIcon, Eye, Lock, Unlock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +65,6 @@ export function UserDataTable({
     data,
     onToggleStatus,
     onView,
-    toggleLoading,
 }: UserDataTableProps) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] =
@@ -245,7 +235,6 @@ export function UserDataTable({
             header: "Thao tác",
             cell: ({ row }) => {
                 const user = row.original;
-                const isLoading = toggleLoading === user.id;
 
                 return (
                     <DropdownMenu>
