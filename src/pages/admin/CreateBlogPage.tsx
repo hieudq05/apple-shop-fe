@@ -89,15 +89,6 @@ const CreateBlogPage: React.FC = () => {
         setFormData((prev) => ({ ...prev, thumbnail: url }));
     };
 
-    const validateUrl = (url: string): boolean => {
-        try {
-            new URL(url);
-            return url.match(/\.(jpg|jpeg|png|gif|webp)$/i) !== null;
-        } catch {
-            return false;
-        }
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 

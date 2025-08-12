@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import AuthService from "@/services/authService";
 import { useAuth } from "@/hooks/useAuthContext";
-import { CheckCircle2 } from "lucide-react";
 
 interface ForgotPasswordConfirmDialogProps {
     children: React.ReactNode;

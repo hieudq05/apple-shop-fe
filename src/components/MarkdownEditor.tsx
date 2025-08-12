@@ -70,7 +70,7 @@ const MarkdownEditor = ({
     }, [value]);
 
     // Update history chỉ khi cần thiết
-    const updateHistoryRef = useRef<NodeJS.Timeout>();
+    const updateHistoryRef = useRef<NodeJS.Timeout | null>(null);
     const updateHistory = useCallback((newValue: string) => {
         if (updateHistoryRef.current) {
             clearTimeout(updateHistoryRef.current);

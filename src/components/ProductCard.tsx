@@ -1,53 +1,20 @@
 import React from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "./ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
+import type { Product } from "@/services/productService";
 
-export interface ProductColor {
-    id: string;
-    name: string;
-    hexCode: string;
+interface ProductCardProps {
+    product: Product;
 }
 
-export interface ProductStock {
-    id: string;
-    color: ProductColor;
-    quantity: number;
-    productPhotos: ProductPhoto[];
-    price: number;
-}
-
-export interface ProductPhoto {
-    id: string;
-    imageUrl: string;
-    alt: string;
-}
-
-export interface ProductCardProps {
-    id: string;
-    name: string;
-    description: string;
-    stocks: ProductStock[];
-    category: string;
-}
-
-const ProductCard: React.FC<ProductCardProps> = ({
-    id,
-    name,
-    description,
-    stocks,
-    categoryId,
-}) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const allPhotos = React.useMemo(() => {
-        if (!stocks || stocks.length === 0) return [];
+        if (!product.stocks || product.stocks.length === 0) return [];
 
         // Thu thập tất cả ảnh từ tất cả stocks
-        const photos = stocks.flatMap((stock) => stock.productPhotos || []);
+        const photos = product.stocks.flatMap(
+            (stock) => stock.productPhotos || []
+        );
 
         // Sắp xếp theo id, xử lý cả trường hợp id là số hoặc chuỗi
         return photos.sort((a, b) => {
@@ -59,24 +26,27 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
             return idA.localeCompare(idB);
         });
-    }, [stocks]);
+    }, [product.stocks]);
 
     const uniqueColors = React.useMemo(() => {
-        if (!stocks || stocks.length === 0) return [];
+        if (!product.stocks || product.stocks.length === 0) return [];
 
         // Thu thập tất cả màu và loại bỏ trùng lặp dựa trên hexCode
         const colorMap = new Map();
-        stocks.forEach((stock) => {
+        product.stocks.forEach((stock) => {
             if (stock.color && stock.color.hexCode) {
                 colorMap.set(stock.color.hexCode, stock.color);
             }
         });
 
         return Array.from(colorMap.values());
-    }, [stocks]);
+    }, [product]);
 
     return (
-        <div className="bg-transparent flex flex-col space-y-6 h-full" key={id}>
+        <div
+            className="bg-transparent flex flex-col space-y-6 h-full"
+            key={product.id}
+        >
             <Carousel className="w-full aspect-[9/12] relative hover:scale-[1.03] transition-transform duration-200">
                 <CarouselContent className="w-full h-full">
                     {allPhotos.length > 0 ? (
@@ -86,7 +56,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                                 className="w-fit h-full"
                             >
                                 <a
-                                    href={`/product/${categoryId}/${id}`}
+                                    href={`/product/${product.categoryId}/${product?.id}`}
                                     className="block w-full h-full focus:outline-none rounded-3xl"
                                     style={{
                                         backgroundImage: `url(${photo.imageUrl})`,
@@ -99,7 +69,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     ) : (
                         <CarouselItem>
                             <a
-                                href={`/product/${categoryId}/${id}`}
+                                href={`/product/${product.categoryId}/${product?.id}`}
                                 className="block w-full h-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <div className="w-full h-full rounded-3xl bg-gray-200 flex items-center justify-center">
@@ -125,14 +95,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 ))}
             </div>
             <div className={"flex flex-col items-center h-full"}>
-                <h2 className="text-xl font-medium">{name}</h2>
+                <h2 className="text-xl font-medium">{product.name}</h2>
                 <p className="mb-8 font-light text-center h-full">
-                    {description}
+                    {product.description}
                 </p>
                 <div className="text-center">
-                    {stocks && stocks.length > 0
+                    {product.stocks && product.stocks.length > 0
                         ? `Từ ${Math.min(
-                              ...stocks.map((stockItem) => stockItem.price)
+                              ...product.stocks.map(
+                                  (stockItem) => stockItem.price
+                              )
                           ).toLocaleString("vi-VN", {
                               style: "currency",
                               currency: "VND",
@@ -144,7 +116,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                         Tìm hiểu thêm
                     </button>
                     <a
-                        href={`/product/${categoryId}/${id}`}
+                        href={`/product/${product.categoryId}/${product.id}`}
                         className="mt-4 flex text-sm items-center gap-1 ml-4 bg-transparent text-blue-600 hover:underline rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         Mua <ChevronRightIcon className={"size-4 mt-0.5"} />

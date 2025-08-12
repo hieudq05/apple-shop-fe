@@ -7,15 +7,12 @@ import {
     TrashIcon,
     EyeIcon,
     MagnifyingGlassIcon,
-    CalendarIcon,
-    UserIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
     EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     Dialog,
     DialogContent,
@@ -92,9 +89,9 @@ const BlogManagementPage: React.FC = () => {
             const response = await blogService.getBlogs(params);
 
             if (response.success) {
-                setBlogs(response.data);
-                setTotalPages(response.meta.totalPage);
-                setTotalElements(response.meta.totalElements);
+                setBlogs(response.data || []);
+                setTotalPages(response.meta?.totalPage || 0);
+                setTotalElements(response.meta?.totalElements || 0);
             }
         } catch (error) {
             console.error("Error fetching blogs:", error);
@@ -171,10 +168,7 @@ const BlogManagementPage: React.FC = () => {
         );
 
         try {
-            const response = await blogService.toggleBlogStatus(
-                blogId,
-                newStatus
-            );
+            const response = await blogService.toggleBlogStatus(blogId);
 
             if (response.success) {
                 // Update local state instead of refetching

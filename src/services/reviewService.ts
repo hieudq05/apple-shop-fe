@@ -30,10 +30,10 @@ const reviewService = {
                 queryParams.append("rating", params.rating.toString());
             if (params?.search) queryParams.append("search", params.search);
 
-            const response = await privateAPI.get<Review[]>(
+            const response = await privateAPI.get<ApiResponse<Review[]>>(
                 `/reviews?${queryParams.toString()}`
             );
-            return { success: true, data: response.data };
+            return response.data;
         } catch (error) {
             console.error("Error fetching reviews:", error);
             return {
@@ -50,10 +50,10 @@ const reviewService = {
         reviewId: number
     ): Promise<ApiResponse<ReviewDetails>> => {
         try {
-            const response = await privateAPI.get<ReviewDetails>(
+            const response = await privateAPI.get<ApiResponse<ReviewDetails>>(
                 `/reviews/${reviewId}`
             );
-            return { success: true, data: response.data };
+            return response.data;
         } catch (error) {
             console.error("Error fetching review detail:", error);
             return {
@@ -68,10 +68,10 @@ const reviewService = {
 
     approveReview: async (reviewId: number): Promise<ApiResponse<Review>> => {
         try {
-            const response = await privateAPI.put<Review>(
+            const response = await privateAPI.put<ApiResponse<Review>>(
                 `/reviews/approve/${reviewId}`
             );
-            return { success: true, data: response.data };
+            return response.data;
         } catch (error) {
             console.error("Error approving review:", error);
             return {
@@ -89,11 +89,11 @@ const reviewService = {
         reason?: string
     ): Promise<ApiResponse<Review>> => {
         try {
-            const response = await privateAPI.put<Review>(
+            const response = await privateAPI.put<ApiResponse<Review>>(
                 `/reviews/reject/${reviewId}`,
                 { reason }
             );
-            return { success: true, data: response.data };
+            return response.data;
         } catch (error) {
             console.error("Error rejecting review:", error);
             return {
@@ -111,11 +111,11 @@ const reviewService = {
         replyContent: string
     ): Promise<ApiResponse<Review>> => {
         try {
-            const response = await privateAPI.put<Review>(
+            const response = await privateAPI.put<ApiResponse<Review>>(
                 `/reviews/reply/${reviewId}`,
                 { replyContent }
             );
-            return { success: true, data: response.data };
+            return response.data;
         } catch (error) {
             console.error("Error replying to review:", error);
             return {
@@ -133,11 +133,11 @@ const reviewService = {
         reviewData: CreateReviewRequest
     ): Promise<ApiResponse<Review>> => {
         try {
-            const response = await userRoleAPI.post<Review>(
+            const response = await userRoleAPI.post<ApiResponse<Review>>(
                 "/reviews",
                 reviewData
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating review:", error);
             return {
@@ -155,7 +155,7 @@ const reviewService = {
         reviewData: UpdateReviewRequest
     ): Promise<ApiResponse<Review>> => {
         try {
-            const response = await privateAPI.put<Review>(
+            const response = await privateAPI.put<ApiResponse<Review>>(
                 `/reviews/${reviewId}`,
                 reviewData
             );
@@ -174,8 +174,8 @@ const reviewService = {
 
     deleteReview: async (reviewId: number): Promise<ApiResponse<void>> => {
         try {
-            await privateAPI.delete(`/reviews/${reviewId}`);
-            return { success: true };
+            const response = await privateAPI.delete(`/reviews/${reviewId}`);
+            return response.data;
         } catch (error) {
             console.error("Error deleting review:", error);
             return {
@@ -190,13 +190,7 @@ const reviewService = {
 
     getUserReviews: async (
         params?: PaginationParams
-    ): Promise<
-        ApiResponse<{
-            reviews: Review[];
-            totalPages: number;
-            totalElements: number;
-        }>
-    > => {
+    ): Promise<ApiResponse<Review[]>> => {
         try {
             const queryParams = new URLSearchParams();
             if (params?.page !== undefined)
@@ -204,12 +198,10 @@ const reviewService = {
             if (params?.size)
                 queryParams.append("size", params.size.toString());
 
-            const response = await userRoleAPI.get<{
-                reviews: Review[];
-                totalPages: number;
-                totalElements: number;
-            }>(`/reviews/my?${queryParams.toString()}`);
-            return response;
+            const response = await userRoleAPI.get<ApiResponse<Review[]>>(
+                `/reviews/my?${queryParams.toString()}`
+            );
+            return response.data;
         } catch (error) {
             console.error("Error fetching user reviews:", error);
             return {
@@ -225,13 +217,7 @@ const reviewService = {
     getProductReviews: async (
         productId: number,
         params?: PaginationParams & { rating?: number; status?: string }
-    ): Promise<
-        ApiResponse<{
-            reviews: Review[];
-            totalPages: number;
-            totalElements: number;
-        }>
-    > => {
+    ): Promise<ApiResponse<Review[]>> => {
         try {
             const queryParams = new URLSearchParams();
             if (params?.page !== undefined)
@@ -252,16 +238,15 @@ const reviewService = {
                 headers.Authorization = token;
             }
 
-            const response = await publicAPI.get<{
-                reviews: Review[];
-                totalPages: number;
-                totalElements: number;
-            }>(`/reviews/product/${productId}?${queryParams.toString()}`, {
-                headers,
-            });
+            const response = await publicAPI.get<ApiResponse<Review[]>>(
+                `/reviews/product/${productId}?${queryParams.toString()}`,
+                {
+                    headers,
+                }
+            );
 
             // publicAPI response interceptor already unwraps response.data
-            return { success: true, data: response };
+            return response.data;
         } catch (error) {
             console.error("Error fetching product reviews:", error);
             return {
@@ -278,11 +263,11 @@ const reviewService = {
         productId: number
     ): Promise<ApiResponse<ProductReviewStatistics>> => {
         try {
-            const response = await privateAPI.get<ProductReviewStatistics>(
-                `/reviews/statistics/avg-review/${productId}`
-            );
+            const response = await privateAPI.get<
+                ApiResponse<ProductReviewStatistics>
+            >(`/reviews/statistics/avg-review/${productId}`);
             // privateAPI response interceptor already unwraps response.data
-            return { success: true, data: response as ProductReviewStatistics };
+            return response.data;
         } catch (error) {
             console.error("Error fetching product review statistics:", error);
             return {

@@ -1,4 +1,3 @@
-// Product service for public product operations
 import { publicAPI, privateAPI } from "../utils/axios";
 import type { ApiResponse } from "../types/api";
 
@@ -10,11 +9,7 @@ export interface Product {
     originalPrice?: number;
     discount?: number;
     images: string[];
-    category: {
-        id: number;
-        name: string;
-        image: string;
-    };
+    categoryId: number;
     features: Array<{
         id: number;
         name: string;
@@ -72,7 +67,7 @@ class ProductService {
                     params,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching products:", error);
             throw error;
@@ -90,7 +85,7 @@ class ProductService {
             const response = await publicAPI.get<ApiResponse<Product>>(
                 `/products/${categoryId}/${productId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching product:", error);
             throw error;
@@ -111,7 +106,7 @@ class ProductService {
                     params,
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching products by category:", error);
             throw error;
@@ -132,7 +127,7 @@ class ProductService {
                     params: { ...params, search: query },
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error searching products:", error);
             throw error;
@@ -147,7 +142,7 @@ class ProductService {
             const response = await publicAPI.get<ApiResponse<Category[]>>(
                 "/api/v1/categories"
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching categories:", error);
             throw error;
@@ -162,7 +157,7 @@ class ProductService {
             const response = await publicAPI.get<ApiResponse<Category>>(
                 `/api/v1/categories/${categoryId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching category:", error);
             throw error;
@@ -182,7 +177,7 @@ class ProductService {
                     params: { limit },
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching featured products:", error);
             throw error;
@@ -203,7 +198,7 @@ class ProductService {
                     params: { limit },
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching related products:", error);
             throw error;
@@ -225,7 +220,7 @@ class ProductService {
                     params: { page, size },
                 }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching top selling products:", error);
             throw error;
@@ -235,12 +230,12 @@ class ProductService {
     /**
      * Add product to wishlist (requires authentication)
      */
-    async addToWishlist(productId: number): Promise<ApiResponse<any>> {
+    async addToWishlist(productId: number): Promise<ApiResponse<unknown>> {
         try {
-            const response = await privateAPI.post<ApiResponse<any>>(
+            const response = await privateAPI.post<ApiResponse<unknown>>(
                 `/api/v1/user/wishlist/${productId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error adding to wishlist:", error);
             throw error;
@@ -250,12 +245,12 @@ class ProductService {
     /**
      * Remove product from wishlist (requires authentication)
      */
-    async removeFromWishlist(productId: number): Promise<ApiResponse<any>> {
+    async removeFromWishlist(productId: number): Promise<ApiResponse<unknown>> {
         try {
-            const response = await privateAPI.delete<ApiResponse<any>>(
+            const response = await privateAPI.delete<ApiResponse<unknown>>(
                 `/api/v1/user/wishlist/${productId}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error removing from wishlist:", error);
             throw error;
@@ -270,7 +265,7 @@ class ProductService {
             const response = await privateAPI.get<ApiResponse<Product[]>>(
                 "/api/v1/user/wishlist"
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching wishlist:", error);
             throw error;

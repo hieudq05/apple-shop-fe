@@ -6,7 +6,7 @@ const statisticsService = {
     getTotalRevenue: async (
         fromDate?: string,
         toDate?: string
-    ): Promise<{ success: boolean; message: string; data: number }> => {
+    ): Promise<ApiResponse<number>> => {
         try {
             const response = await privateAPI.get<ApiResponse<number>>(
                 "/orders/statistics/all-total-revenue?fromDate=" +
@@ -14,10 +14,10 @@ const statisticsService = {
                     "&toDate=" +
                     toDate
             );
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error("Failed to fetch total revenue");
             }
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching total revenue:", error);
             throw error;
@@ -26,7 +26,7 @@ const statisticsService = {
     getNumberOfOrders: async (
         fromDate?: string,
         toDate?: string
-    ): Promise<{ success: boolean; message: string; data: number }> => {
+    ): Promise<ApiResponse<number>> => {
         try {
             const response = await privateAPI.get<ApiResponse<number>>(
                 "/orders/statistics/all-number-orders?fromDate=" +
@@ -34,10 +34,10 @@ const statisticsService = {
                     "&toDate=" +
                     toDate
             );
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error("Failed to fetch total orders");
             }
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching total orders:", error);
             throw error;
@@ -46,7 +46,7 @@ const statisticsService = {
     getNumberOfNewUsers: async (
         fromDate?: string,
         toDate?: string
-    ): Promise<{ success: boolean; message: string; data: number }> => {
+    ): Promise<ApiResponse<number>> => {
         try {
             const response = await privateAPI.get<ApiResponse<number>>(
                 "/users/statistics/new-user-count?fromDate=" +
@@ -54,10 +54,10 @@ const statisticsService = {
                     "&toDate=" +
                     toDate
             );
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error("Failed to fetch total new users");
             }
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching total new users:", error);
             throw error;
@@ -66,7 +66,7 @@ const statisticsService = {
     getNumberOfProductsSold: async (
         fromDate?: string,
         toDate?: string
-    ): Promise<{ success: boolean; message: string; data: number }> => {
+    ): Promise<ApiResponse<number>> => {
         try {
             const response = await privateAPI.get<ApiResponse<number>>(
                 "/orders/statistics/number-products-sold?fromDate=" +
@@ -74,10 +74,10 @@ const statisticsService = {
                     "&toDate=" +
                     toDate
             );
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error("Failed to fetch total products sold");
             }
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching total products sold:", error);
             throw error;
@@ -86,18 +86,20 @@ const statisticsService = {
     getTopSellingProducts: async (
         fromDate?: string,
         toDate?: string
-    ): Promise<{ success: boolean; message: string; data: ProductSelling[] }> => {
+    ): Promise<ApiResponse<ProductSelling[]>> => {
         try {
-            const response = await privateAPI.get<ApiResponse<ProductSelling[]>>(
+            const response = await privateAPI.get<
+                ApiResponse<ProductSelling[]>
+            >(
                 "/products/statistics/top-selling?fromDate=" +
                     fromDate +
                     "&toDate=" +
                     toDate
             );
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error("Failed to fetch top selling products");
             }
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching top selling products:", error);
             throw error;
@@ -107,19 +109,15 @@ const statisticsService = {
         status: string,
         fromDate?: string,
         toDate?: string
-    ): Promise<{ success: boolean; message: string; data: number }> => {
+    ): Promise<ApiResponse<number>> => {
         try {
             const response = await privateAPI.get<ApiResponse<number>>(
                 `/orders/statistics/number-orders?status=${status}&fromDate=${fromDate}&toDate=${toDate}`
             );
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error("Failed to fetch orders by status");
             }
-            return {
-                success: response.success,
-                message: response.message || response.msg || "Success",
-                data: response.data || 0
-            };
+            return response.data;
         } catch (error) {
             console.error("Error fetching orders by status:", error);
             throw error;

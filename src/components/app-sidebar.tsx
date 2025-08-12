@@ -9,8 +9,6 @@ import {
     Tag,
     Gift,
     Home,
-    Search,
-    HelpCircle,
     Star,
 } from "lucide-react";
 
@@ -28,7 +26,6 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuthContext";
-import {ModeToggle} from "@/components/mode-toggle.tsx";
 
 const data = {
     navMain: [

@@ -58,14 +58,6 @@ const SearchPage: React.FC = () => {
     const [availableColors, setAvailableColors] = useState<Color[]>([]);
     const [isLoadingFilters, setIsLoadingFilters] = useState(true);
 
-    const sortOptions = [
-        { value: "name", label: "Tên sản phẩm" },
-        { value: "createdbyname", label: "Ngày mở bán" },
-        { value: "quantity", label: "Giá" },
-        { value: "createdAt", label: "Mới nhất" },
-        { value: "updatedAt", label: "Cập nhật gần đây" },
-    ];
-
     // Fetch filter data
     const fetchFilterData = useCallback(async () => {
         setIsLoadingFilters(true);
@@ -74,8 +66,8 @@ const SearchPage: React.FC = () => {
                 fetchCategories(),
                 fetchColors(),
             ]);
-            setCategories(categoriesData.data);
-            setAvailableColors(colorsData.data);
+            setCategories(categoriesData.data || []);
+            setAvailableColors(colorsData.data || []);
         } catch (error) {
             console.error("Error fetching filter data:", error);
         } finally {
@@ -114,10 +106,10 @@ const SearchPage: React.FC = () => {
             const response = await searchService.searchProducts(filters);
 
             if (response.success) {
-                setProducts(response.data);
-                setCurrentPage(response.meta.currentPage);
-                setTotalPages(response.meta.totalPage);
-                setTotalElements(response.meta.totalElements);
+                setProducts(response.data || []);
+                setCurrentPage(response.meta?.currentPage || 0);
+                setTotalPages(response.meta?.totalPage || 0);
+                setTotalElements(response.meta?.totalElements || 0);
             } else {
                 console.log("Search was not successful:", response);
                 setProducts([]);

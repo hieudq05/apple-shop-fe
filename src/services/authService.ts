@@ -2,6 +2,7 @@
 import axios from "axios";
 import type { RegisterRequest, ApiResponse, OtpResponse } from "../types/api";
 import { getRefreshToken, getAccessToken } from "../utils/storage";
+import { toast } from "sonner";
 
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
@@ -16,9 +17,7 @@ const axiosInstance = axios.create({
 });
 
 const AuthService = {
-    login: async (credentials: any) => {
-        // Replace with actual API call
-        console.log("AuthService login:", credentials);
+    login: async () => {
         // Simulate API call
         await new Promise((resolve) => setTimeout(resolve, 1000));
         // Simulate successful login
@@ -58,10 +57,8 @@ const AuthService = {
                 token: googleToken,
             });
 
-            console.log("✅ AuthService: Google registration successful");
             return response.data;
         } catch (error: any) {
-            console.error("❌ AuthService: Google registration error:", error);
             return {
                 success: false,
                 message:
@@ -89,12 +86,9 @@ const AuthService = {
                     },
                 }
             );
-            console.log("Logout API call successful");
-        } catch (error) {
-            console.error("Logout API call failed:", error);
-            // Continue with local logout even if API call fails
+        } catch {
+            toast.error("Logout failed");
         } finally {
-            // Always clear local storage regardless of API result
             localStorage.removeItem("token");
             localStorage.removeItem("user");
         }
@@ -109,15 +103,12 @@ const AuthService = {
                 throw new Error("No refresh token available");
             }
 
-            console.log("🔄 AuthService: Refreshing token...");
             const response = await axiosInstance.post("/auth/refresh-token", {
                 refreshToken: refreshToken,
             });
 
-            console.log("✅ AuthService: Token refresh successful");
             return response.data;
         } catch (error: any) {
-            console.error("❌ AuthService: Token refresh failed:", error);
             return {
                 success: false,
                 message:
@@ -170,10 +161,6 @@ const AuthService = {
             };
         }
     },
-
-    // getCurrentUser: () => {
-    //     // Logic to get user from localStorage or context
-    // }
 };
 
 export default AuthService;

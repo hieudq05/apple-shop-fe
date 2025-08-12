@@ -65,7 +65,7 @@ const EditUserInfoDialog: React.FC<EditUserInfoDialogProps> = ({
             // Extract error message from response
             const errorObj = error as ErrorResponse;
             const message =
-                errorObj?.response?.data?.error?.message ||
+                errorObj?.response?.data?.message ||
                 "Có lỗi xảy ra khi cập nhật thông tin";
             setErrorMessage(message);
         } finally {

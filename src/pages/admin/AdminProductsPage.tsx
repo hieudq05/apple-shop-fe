@@ -1,10 +1,16 @@
-import React, {useEffect, useState} from "react";
-import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {Link} from "react-router-dom";
-import {ChevronLeft, ChevronRight, Plus, Search} from "lucide-react";
-import {toast} from "sonner";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { toast } from "sonner";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,12 +21,18 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {Skeleton} from "@/components/ui/skeleton";
-import adminProductService, {type AdminProduct, type ProductSearchParams,} from "../../services/adminProductService";
-import {type Product, ProductDataTable,} from "@/components/product-data-table";
+import { Skeleton } from "@/components/ui/skeleton";
+import adminProductService, {
+    type AdminProduct,
+    type ProductSearchParams,
+} from "../../services/adminProductService";
+import {
+    type Product,
+    ProductDataTable,
+} from "@/components/product-data-table";
 import AdvancedProductSearch from "@/components/AdvancedProductSearch";
 
-import type {MetadataResponse} from "@/types/api.ts";
+import type { MetadataResponse } from "@/types/api.ts";
 import { Helmet } from "react-helmet-async";
 
 // Transform AdminProduct to Product interface for the data table
@@ -39,13 +51,16 @@ const transformToProduct = (adminProduct: AdminProduct): Product => {
                 productId: adminProduct.id,
                 colorId: stock.colorId,
                 colorName: stock.colorName,
-                colorHexCode: stock.colorHexCode,
+                colorHexCode: stock.hexCode,
                 quantity: stock.quantity,
                 price: stock.price,
                 productPhotos:
                     stock.productPhotos?.map((photo) => ({
                         id: photo.id,
-                        imageUrl: photo.imageUrl,
+                        imageUrl:
+                            typeof photo.imageUrl === "string"
+                                ? photo.imageUrl
+                                : String(photo.imageUrl),
                         alt: photo.alt,
                     })) || [],
             })) || [],
@@ -69,7 +84,7 @@ const AdminProductsPage: React.FC = () => {
         sortBy: "createdAt",
         sortDirection: "desc",
         searchKeyword: "",
-    })
+    });
     const [metadata, setMetadata] = useState<MetadataResponse>({
         currentPage: 0,
         pageSize: 10,
@@ -118,7 +133,7 @@ const AdminProductsPage: React.FC = () => {
         sortBy: "createdAt",
         sortDirection: "desc",
         searchKeyword: "",
-    }
+    };
 
     const fetchProducts = async () => {
         try {
@@ -441,7 +456,7 @@ const AdminProductsPage: React.FC = () => {
                                                 0,
                                                 Math.max(
                                                     0,
-                                                    prev.page - 1
+                                                    (prev.page || 0) - 1
                                                 )
                                             ),
                                         }))
@@ -502,9 +517,9 @@ const AdminProductsPage: React.FC = () => {
                                             ...prev,
                                             page: Math.min(
                                                 Math.min(
-                                                    metadata.currentPage + 1,
+                                                    metadata.currentPage + 1
                                                 )
-                                            )
+                                            ),
                                         }))
                                     }
                                     disabled={
@@ -559,12 +574,13 @@ const AdminProductsPage: React.FC = () => {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Xác nhận thao tác với sản phẩm "{deleteDialog.productName}"?
+                            Xác nhận thao tác với sản phẩm "
+                            {deleteDialog.productName}"?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Bạn có chắc chắn thực hiện hành động này với sản phẩm "
-                            {deleteDialog.productName}"? Hành động này không thể
-                            hoàn tác.
+                            Bạn có chắc chắn thực hiện hành động này với sản
+                            phẩm "{deleteDialog.productName}"? Hành động này
+                            không thể hoàn tác.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -574,7 +590,9 @@ const AdminProductsPage: React.FC = () => {
                             className="bg-destructive text-white hover:bg-destructive/90"
                             disabled={deleteDialog.isDeleting}
                         >
-                            {deleteDialog.isDeleting ? "Đang thực hiện..." : "Tiếp tục"}
+                            {deleteDialog.isDeleting
+                                ? "Đang thực hiện..."
+                                : "Tiếp tục"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

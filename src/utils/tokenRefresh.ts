@@ -63,7 +63,6 @@ class TokenRefreshService {
                 return null;
             }
 
-            console.log("🔄 TokenRefreshService: Refreshing access token...");
             const response = await AuthService.refreshToken();
 
             if (response.success && response.data) {
@@ -78,25 +77,15 @@ class TokenRefreshService {
                     setRefreshToken(newRefreshToken);
                 }
 
-                console.log("✅ TokenRefreshService: Token refresh successful");
-
                 // Schedule next refresh check
                 this.scheduleNextRefresh(newAccessToken);
 
                 return newAccessToken;
             } else {
-                console.error(
-                    "❌ TokenRefreshService: Token refresh failed:",
-                    response.message
-                );
                 this.handleRefreshFailure();
                 return null;
             }
         } catch (error) {
-            console.error(
-                "❌ TokenRefreshService: Token refresh error:",
-                error
-            );
             this.handleRefreshFailure();
             return null;
         }
@@ -110,9 +99,6 @@ class TokenRefreshService {
 
         // Redirect to login page if not already there
         if (window.location.pathname !== "/login") {
-            console.log(
-                "🔓 TokenRefreshService: Redirecting to login due to refresh failure"
-            );
             window.location.href = "/login";
         }
     }
@@ -137,11 +123,6 @@ class TokenRefreshService {
         const timeUntilRefresh = refreshTime - currentTime;
 
         if (timeUntilRefresh > 0) {
-            console.log(
-                `⏰ TokenRefreshService: Scheduling next refresh in ${Math.round(
-                    timeUntilRefresh / 1000
-                )} seconds`
-            );
             this.refreshTimer = setTimeout(() => {
                 this.checkAndRefreshToken();
             }, timeUntilRefresh);

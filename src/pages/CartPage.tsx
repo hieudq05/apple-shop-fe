@@ -115,7 +115,7 @@ const CartPage: React.FC = () => {
             setLoading(true);
             setError(null);
             const items = await cartApiService.getCart();
-            setCartItems(items);
+            setCartItems(items.data ?? []);
         } catch (err) {
             console.error("Error loading cart:", err);
             setError("Không thể tải giỏ hàng. Vui lòng thử lại.");

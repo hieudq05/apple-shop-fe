@@ -426,7 +426,7 @@ const PaymentPage: React.FC = () => {
             setLoading(true);
             setError(null);
             const items = await cartApiService.getCart();
-            setCartItems(items);
+            setCartItems(items.data || []);
         } catch (err) {
             console.error("Error loading cart:", err);
             setError("Không thể tải giỏ hàng. Vui lòng thử lại.");
@@ -443,10 +443,10 @@ const PaymentPage: React.FC = () => {
             const response = await userService.getMyShippingAddress();
 
             if (response.success) {
-                setShippingAddresses(response.data);
+                setShippingAddresses(response.data || []);
 
                 // Auto-select default address if available
-                const defaultAddress = response.data.find(
+                const defaultAddress = response.data?.find(
                     (addr: MyShippingAddress) => addr.isDefault
                 );
                 if (defaultAddress) {
@@ -533,6 +533,15 @@ const PaymentPage: React.FC = () => {
     };
 
     const handleSubmitOrder = async () => {
+        if (!selectedShippingAddress) {
+            showNotification(
+                "error",
+                "Lỗi đặt hàng",
+                "Vui lòng chọn địa chỉ giao hàng trước khi thanh toán."
+            );
+            return;
+        }
+
         const subtotal = cartItems.reduce(
             (total, item) => total + item.total,
             0
@@ -639,7 +648,7 @@ const PaymentPage: React.FC = () => {
                 return;
             }
 
-            if (paymentResponse.success && paymentResponse.data.paymentUrl) {
+            if (paymentResponse.success && paymentResponse.data?.paymentUrl) {
                 // Show success notification before redirect
                 showNotification(
                     "success",
@@ -649,7 +658,8 @@ const PaymentPage: React.FC = () => {
 
                 // Redirect after a short delay to let user see the notification
                 setTimeout(() => {
-                    window.location.href = paymentResponse.data.paymentUrl;
+                    window.location.href =
+                        paymentResponse.data?.paymentUrl ?? "";
                 }, 2000);
             } else {
                 showNotification(
@@ -1856,7 +1866,10 @@ const PaymentPage: React.FC = () => {
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-lg" onClick={handleCancelPayment}>
+                            <AlertDialogCancel
+                                className="rounded-lg"
+                                onClick={handleCancelPayment}
+                            >
                                 Hủy
                             </AlertDialogCancel>
                             <AlertDialogAction

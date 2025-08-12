@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/types/api";
 import { privateAPI, userRoleAPI } from "../utils/axios";
 
 export interface User {
@@ -79,39 +80,9 @@ export interface MyShippingAddress {
     createdAt: string | null;
     updatedAt: string | null;
 }
-
-export interface MyShippingAddressResponse {
-    success: boolean;
-    message: string;
-    data: MyShippingAddress[];
-    meta: {
-        currentPage: number;
-        pageSize: number;
-        totalPage: number;
-        totalElements: number;
-    };
-}
-
-export interface MyInfoResponse {
-    success: boolean;
-    message: string;
-    data: MyInfo;
-}
 export interface Role {
     id: string;
     name: string;
-}
-
-export interface UserResponse {
-    success: boolean;
-    message: string;
-    data: User[];
-    meta: {
-        currentPage: number;
-        pageSize: number;
-        totalPage: number;
-        totalElements: number;
-    };
 }
 
 export interface UserParams {
@@ -146,10 +117,10 @@ export interface UserSearchCriteria {
 }
 
 const userService = {
-    getMe: async (): Promise<MyInfoResponse> => {
+    getMe: async (): Promise<ApiResponse<MyInfo>> => {
         try {
             const response = await userRoleAPI.get("/users/me");
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching user info:", error);
             throw error;
@@ -159,7 +130,7 @@ const userService = {
     updateMyInfo: async (
         updateData: UpdateMyInfoData,
         imageFile?: File
-    ): Promise<MyInfoResponse> => {
+    ): Promise<ApiResponse<MyInfo>> => {
         try {
             const formData = new FormData();
 
@@ -175,11 +146,11 @@ const userService = {
                 imageFile ? imageFile : new File([], "")
             );
 
-            const response = await userRoleAPI.patch<MyInfoResponse>(
+            const response = await userRoleAPI.patch<ApiResponse<MyInfo>>(
                 "/users/me",
                 formData
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error updating user info:", error);
             throw error;
@@ -188,23 +159,24 @@ const userService = {
 
     changePassword: async (
         data: ChangePasswordData
-    ): Promise<ChangePasswordResponse> => {
+    ): Promise<ApiResponse<ChangePasswordResponse>> => {
         try {
-            const response = await userRoleAPI.post<ChangePasswordResponse>(
-                "/users/change-password",
-                data
-            );
-            return response;
+            const response = await userRoleAPI.post<
+                ApiResponse<ChangePasswordResponse>
+            >("/users/change-password", data);
+            return response.data;
         } catch (error) {
             console.error("Error changing password:", error);
             throw error;
         }
     },
 
-    getMyShippingAddress: async (): Promise<MyShippingAddressResponse> => {
+    getMyShippingAddress: async (): Promise<
+        ApiResponse<MyShippingAddress[]>
+    > => {
         try {
             const response = await userRoleAPI.get("/shipping-infos");
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching shipping addresses:", error);
             throw error;
@@ -214,10 +186,10 @@ const userService = {
     // Create new shipping address
     createShippingAddress: async (
         data: CreateShippingAddressData
-    ): Promise<ShippingAddressResponse> => {
+    ): Promise<ApiResponse<ShippingAddressResponse>> => {
         try {
             const response = await userRoleAPI.post("/shipping-infos", data);
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating shipping address:", error);
             throw error;
@@ -228,13 +200,13 @@ const userService = {
     updateShippingAddress: async (
         id: number,
         data: UpdateShippingAddressData
-    ): Promise<ShippingAddressResponse> => {
+    ): Promise<ApiResponse<ShippingAddressResponse>> => {
         try {
             const response = await userRoleAPI.put(
                 `/shipping-infos/${id}`,
                 data
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error updating shipping address:", error);
             throw error;
@@ -242,12 +214,10 @@ const userService = {
     },
 
     // Delete shipping address
-    deleteShippingAddress: async (
-        id: number
-    ): Promise<{ success: boolean; message: string }> => {
+    deleteShippingAddress: async (id: number): Promise<ApiResponse<void>> => {
         try {
             const response = await userRoleAPI.delete(`/shipping-infos/${id}`);
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error deleting shipping address:", error);
             throw error;
@@ -257,12 +227,12 @@ const userService = {
     // Set default shipping address
     setDefaultShippingAddress: async (
         id: number
-    ): Promise<ShippingAddressResponse> => {
+    ): Promise<ApiResponse<ShippingAddressResponse>> => {
         try {
             const response = await userRoleAPI.put(
                 `/shipping-infos/${id}/default`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error setting default shipping address:", error);
             throw error;
@@ -270,7 +240,7 @@ const userService = {
     },
 
     // Get all users with pagination and filters
-    getUsers: async (params: UserParams = {}): Promise<UserResponse> => {
+    getUsers: async (params: UserParams = {}): Promise<ApiResponse<User[]>> => {
         try {
             // Build criteria object for request body
             const criteria: UserSearchCriteria = {};
@@ -315,7 +285,7 @@ const userService = {
                 `/users/search?${searchParams.toString()}`,
                 criteria
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching users:", error);
             throw error;
@@ -323,12 +293,10 @@ const userService = {
     },
 
     // Get user by ID
-    getUserById: async (
-        id: number
-    ): Promise<{ success: boolean; message: string; data: User }> => {
+    getUserById: async (id: number): Promise<ApiResponse<User>> => {
         try {
             const response = await privateAPI.get(`/users/${id}`);
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching user:", error);
             throw error;
@@ -336,14 +304,12 @@ const userService = {
     },
 
     // Toggle user status (enable/disable)
-    toggleUserStatus: async (
-        id: number
-    ): Promise<{ success: boolean; message: string; data: User }> => {
+    toggleUserStatus: async (id: number): Promise<ApiResponse<User>> => {
         try {
             const response = await privateAPI.put(
                 `/users/${id}/toggle-enabled`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error toggling user status:", error);
             throw error;
@@ -354,12 +320,12 @@ const userService = {
     updateUserRole: async (
         id: number,
         role: string
-    ): Promise<{ success: boolean; message: string; data: User }> => {
+    ): Promise<ApiResponse<User>> => {
         try {
             const response = await privateAPI.patch(`/users/${id}/role`, {
                 role,
             });
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error updating user role:", error);
             throw error;

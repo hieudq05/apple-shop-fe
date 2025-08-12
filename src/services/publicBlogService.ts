@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/types/api";
 import { publicAPI } from "../utils/axios";
 
 export interface BlogAuthor {
@@ -49,23 +50,28 @@ export interface BlogListParams {
 
 const publicBlogService = {
     // Lấy danh sách blog public
-    getBlogs: async (params?: BlogListParams): Promise<BlogListResponse> => {
-        const response = await publicAPI.get<BlogListResponse>("/blogs", {
-            params: {
-                page: params?.page || 0,
-                size: params?.size || 6,
-                ...params,
-            },
-        });
-        return response;
+    getBlogs: async (
+        params?: BlogListParams
+    ): Promise<ApiResponse<BlogListResponse>> => {
+        const response = await publicAPI.get<ApiResponse<BlogListResponse>>(
+            "/blogs",
+            {
+                params: {
+                    page: params?.page || 0,
+                    size: params?.size || 6,
+                    ...params,
+                },
+            }
+        );
+        return response.data;
     },
 
     // Lấy chi tiết blog theo ID
-    getBlogById: async (blogId: number): Promise<BlogDetailResponse> => {
-        const response = await publicAPI.get<BlogDetailResponse>(
+    getBlogById: async (blogId: number): Promise<ApiResponse<BlogDetail>> => {
+        const response = await publicAPI.get<ApiResponse<BlogDetail>>(
             `/blogs/${blogId}`
         );
-        return response;
+        return response.data;
     },
 };
 

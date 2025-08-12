@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/types/api";
 import { privateAPI } from "../utils/axios";
 
 export interface CreatedBy {
@@ -83,7 +84,7 @@ const promotionService = {
     // Get all promotions with pagination and filters
     getPromotions: async (
         params: PromotionParams = {}
-    ): Promise<PromotionResponse> => {
+    ): Promise<ApiResponse<PromotionResponse>> => {
         try {
             const searchParams = new URLSearchParams();
 
@@ -97,7 +98,7 @@ const promotionService = {
             const response = await privateAPI.get(
                 `/promotions?page=${params.page || 0}&size=${params.size || 6}`
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching promotions:", error);
             throw error;
@@ -107,7 +108,7 @@ const promotionService = {
     // Advanced search promotions
     searchPromotions: async (
         searchParams: PromotionSearchParams = {}
-    ): Promise<PromotionResponse> => {
+    ): Promise<ApiResponse<PromotionResponse>> => {
         try {
             const response = await privateAPI.post(
                 `/promotions/search?page=${searchParams.page || 0}&size=${
@@ -115,7 +116,7 @@ const promotionService = {
                 }`,
                 searchParams
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error searching promotions:", error);
             throw error;
@@ -123,12 +124,10 @@ const promotionService = {
     },
 
     // Get promotion by ID
-    getPromotionById: async (
-        id: number
-    ): Promise<{ success: boolean; msg: string; data: Promotion }> => {
+    getPromotionById: async (id: number): Promise<ApiResponse<Promotion>> => {
         try {
             const response = await privateAPI.get(`/promotions/${id}`);
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error fetching promotion:", error);
             throw error;
@@ -138,10 +137,10 @@ const promotionService = {
     // Create new promotion
     createPromotion: async (
         data: CreatePromotionData
-    ): Promise<{ success: boolean; msg: string; data: Promotion }> => {
+    ): Promise<ApiResponse<Promotion>> => {
         try {
             const response = await privateAPI.post("/promotions", data);
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error creating promotion:", error);
             throw error;
@@ -152,10 +151,10 @@ const promotionService = {
     updatePromotion: async (
         id: number,
         data: Partial<CreatePromotionData>
-    ): Promise<{ success: boolean; msg: string; data: Promotion }> => {
+    ): Promise<ApiResponse<Promotion>> => {
         try {
             const response = await privateAPI.put(`/promotions/${id}`, data);
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error updating promotion:", error);
             throw error;
@@ -163,12 +162,10 @@ const promotionService = {
     },
 
     // Delete promotion
-    deletePromotion: async (
-        id: number
-    ): Promise<{ success: boolean; msg: string }> => {
+    deletePromotion: async (id: number): Promise<ApiResponse<void>> => {
         try {
             const response = await privateAPI.delete(`/promotions/${id}`);
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error deleting promotion:", error);
             throw error;
@@ -179,13 +176,13 @@ const promotionService = {
     togglePromotionStatus: async (
         id: number,
         isActive: boolean
-    ): Promise<{ success: boolean; msg: string; data: Promotion }> => {
+    ): Promise<ApiResponse<void>> => {
         try {
             const response = await privateAPI.put(
                 `/promotions/${id}/toggle-status`,
                 { isActive }
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error toggling promotion status:", error);
             throw error;

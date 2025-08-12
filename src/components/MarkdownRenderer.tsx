@@ -15,7 +15,7 @@ const MarkdownRenderer = ({
     // Pre-process content để xử lý alignment containers
     const processedContent = content.replace(
         /:::(center|right|justify)\n([\s\S]*?)\n:::/g,
-        (match, alignment, content) => {
+        (alignment, content) => {
             return `<div style="text-align: ${alignment}">\n\n${content.trim()}\n\n</div>`;
         }
     );
@@ -73,7 +73,7 @@ const MarkdownRenderer = ({
                     ),
 
                     // Code formatting
-                    code: ({ node, inline, className, children, ...props }) => {
+                    code: ({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode; [key: string]: any }) => {
                         const match = /language-(\w+)/.exec(className || "");
                         const language = match ? match[1] : "";
 

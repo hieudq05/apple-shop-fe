@@ -1,9 +1,7 @@
-import { useContext } from 'react';
 // Assuming AuthContext is defined in '../contexts/AuthContext'
 // and AuthContextType is exported from there.
 // You would need to export AuthContext from AuthContext.tsx for this to work.
 // import { AuthContext, AuthContextType } from '../contexts/AuthContext';
-
 
 // This is a placeholder. For the above AuthContext.tsx, useAuth is already defined there.
 // If you create a separate AuthContext (e.g. const AuthContext = createContext...),

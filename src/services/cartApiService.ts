@@ -1,5 +1,6 @@
-// Cart API service for shopping cart management
 import { userRoleAPI } from "../utils/axios";
+import type { ApiResponse } from "@/types/api";
+import { toast } from "sonner";
 
 export interface CartItemAPI {
     id: number;
@@ -102,36 +103,52 @@ class CartApiService {
     /**
      * Get user's cart
      */
-    async getCart(): Promise<CartItem[]> {
+    async getCart(): Promise<ApiResponse<CartItem[]>> {
         try {
             const response = await userRoleAPI.get<CartResponseAPI>("/cart");
 
-            if (response.success) {
-                return response.data.map((item) =>
-                    this.transformCartItem(item)
-                );
+            if (response.data.success) {
+                return {
+                    ...response.data,
+                    data: response.data.data.map(this.transformCartItem),
+                };
             } else {
-                throw new Error(response.msg || "Failed to get cart");
+                toast.error(response.data.msg || "Failed to get cart");
+                return {
+                    ...response.data,
+                    data: [],
+                };
             }
         } catch (error) {
             console.error("Error fetching cart:", error);
-            throw error;
+            return {
+                success: false,
+                msg: "Error fetching cart",
+                data: [],
+                meta: {
+                    currentPage: 1,
+                    pageSize: 0,
+                    totalPage: 0,
+                    totalElements: 0,
+                },
+            };
         }
     }
 
     /**
      * Add item to cart
      */
-    async addToCart(item: AddToCartRequest): Promise<void> {
+    async addToCart(item: AddToCartRequest): Promise<ApiResponse<void>> {
         try {
             const response = await userRoleAPI.post("/cart/items", item);
 
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error(
-                    response.msg || "Failed to add item to cart"
+                    response.data.msg || "Failed to add item to cart"
                 );
             }
-            return response
+
+            return response.data;
         } catch (error) {
             console.error("Error adding to cart:", error);
             throw error;
@@ -144,15 +161,20 @@ class CartApiService {
     async updateCartItem(
         itemId: number,
         data: UpdateCartItemRequest
-    ): Promise<void> {
+    ): Promise<ApiResponse<void>> {
         try {
-            const response = await userRoleAPI.put(`/cart/items/${itemId}`, data);
+            const response = await userRoleAPI.put(
+                `/cart/items/${itemId}`,
+                data
+            );
 
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error(
-                    response.msg || "Failed to update cart item"
+                    response.data.msg || "Failed to update cart item"
                 );
             }
+
+            return response.data;
         } catch (error) {
             console.error("Error updating cart item:", error);
             throw error;
@@ -162,15 +184,17 @@ class CartApiService {
     /**
      * Remove item from cart
      */
-    async removeFromCart(itemId: number): Promise<void> {
+    async removeFromCart(itemId: number): Promise<ApiResponse<void>> {
         try {
             const response = await userRoleAPI.delete(`/cart/items/${itemId}`);
 
-            if (!response.success) {
+            if (!response.data.success) {
                 throw new Error(
-                    response.msg || "Failed to remove item from cart"
+                    response.data.msg || "Failed to remove item from cart"
                 );
             }
+
+            return response.data;
         } catch (error) {
             console.error("Error removing from cart:", error);
             throw error;
@@ -180,13 +204,15 @@ class CartApiService {
     /**
      * Clear entire cart
      */
-    async clearCart(): Promise<void> {
+    async clearCart(): Promise<ApiResponse<void>> {
         try {
             const response = await userRoleAPI.delete("/cart");
 
-            if (!response.success) {
-                throw new Error(response.msg || "Failed to clear cart");
+            if (!response.data.success) {
+                throw new Error(response.data.msg || "Failed to clear cart");
             }
+
+            return response.data;
         } catch (error) {
             console.error("Error clearing cart:", error);
             throw error;

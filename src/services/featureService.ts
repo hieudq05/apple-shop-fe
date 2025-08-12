@@ -12,12 +12,12 @@ export interface Feature {
  * Fetch all features from the API
  * @returns Promise with all features
  */
-export const fetchFeatures = async (): Promise<Feature[]> => {
+export const fetchFeatures = async (): Promise<ApiResponse<Feature[]>> => {
     try {
         const response = await publicAPI.get<ApiResponse<Feature[]>>(
             "/features"
         );
-        return response.data.data || [];
+        return response.data;
     } catch (error) {
         console.error("Error fetching features:", error);
         throw error;
@@ -28,7 +28,7 @@ export const fetchFeatures = async (): Promise<Feature[]> => {
  * Fetch features for admin from the API
  * @returns Promise with all features for admin
  */
-export const fetchAdminFeatures = async (): Promise<Feature[]> => {
+export const fetchAdminFeatures = async (): Promise<ApiResponse<Feature[]>> => {
     try {
         const response = await privateAPI.get<ApiResponse<Feature[]>>(
             "/features",
@@ -38,7 +38,7 @@ export const fetchAdminFeatures = async (): Promise<Feature[]> => {
                 },
             }
         );
-        return response;
+        return response.data;
     } catch (error) {
         console.error("Error fetching admin features:", error);
         throw error;
@@ -54,7 +54,7 @@ export const fetchAdminFeatures = async (): Promise<Feature[]> => {
 export const createFeature = async (
     feature: { name: string; description: string; id: null },
     imageFile?: File
-): Promise<Feature> => {
+): Promise<ApiResponse<Feature>> => {
     try {
         if (imageFile) {
             const formData = new FormData();
@@ -80,6 +80,17 @@ export const createFeature = async (
                 }
             );
             return response.data;
+        } else {
+            // Handle case when imageFile is not provided
+            const response = await privateAPI.post<ApiResponse<Feature>>(
+                "/features",
+                {
+                    id: null,
+                    name: feature.name,
+                    description: feature.description,
+                }
+            );
+            return response.data;
         }
     } catch (error) {
         console.error("Error creating feature:", error);
@@ -96,7 +107,7 @@ export const createFeature = async (
 export const updateFeature = async (
     feature: Feature,
     imageFile?: File
-): Promise<Feature> => {
+): Promise<ApiResponse<Feature>> => {
     try {
         if (imageFile) {
             const formData = new FormData();
@@ -121,7 +132,7 @@ export const updateFeature = async (
                     },
                 }
             );
-            return response.data.data as Feature;
+            return response.data;
         } else {
             // Update feature without changing image
             const response = await privateAPI.put<ApiResponse<Feature>>(
@@ -133,7 +144,7 @@ export const updateFeature = async (
                     image: feature.image,
                 }
             );
-            return response.data.data as Feature;
+            return response.data;
         }
     } catch (error) {
         console.error("Error updating feature:", error);
@@ -146,9 +157,10 @@ export const updateFeature = async (
  * @param id Feature ID to delete
  * @returns Promise with success message
  */
-export const deleteFeature = async (id: number): Promise<void> => {
+export const deleteFeature = async (id: number): Promise<ApiResponse<void>> => {
     try {
-        await privateAPI.delete(`/features/${id}`);
+        const response = await privateAPI.delete(`/features/${id}`);
+        return response.data;
     } catch (error) {
         console.error("Error deleting feature:", error);
         throw error;

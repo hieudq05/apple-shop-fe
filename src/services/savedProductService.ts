@@ -50,7 +50,7 @@ class SavedProductService {
             const response = await userRoleAPI.get<
                 ApiResponse<SavedProductStatus>
             >(`/saved-products/${stockId}/is-saved`);
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error checking saved status:", error);
             throw error;
@@ -65,7 +65,7 @@ class SavedProductService {
             const response = await userRoleAPI.post<ApiResponse<SavedProduct>>(
                 "/saved-products/" + stockId
             );
-            return response;
+            return response.data;
         } catch (error) {
             console.error("Error saving product:", error);
             throw error;
@@ -92,13 +92,11 @@ class SavedProductService {
      */
     async getSavedProducts(): Promise<ApiResponse<SavedProduct[]>> {
         try {
-            const response = await userRoleAPI.get<{
-                content: SavedProduct[];
-                totalPages: number;
-                totalElements: number;
-            }>("/saved-products");
+            const response = await userRoleAPI.get<ApiResponse<SavedProduct[]>>(
+                "/saved-products"
+            );
 
-            return response;
+            return response.data;
         } catch (error: unknown) {
             console.error("Error getting saved products:", error);
             const err = error as { response?: { data?: { message?: string } } };
@@ -114,9 +112,12 @@ class SavedProductService {
     /**
      * Clear all saved products
      */
-    async clearAllSavedProducts(): Promise<void> {
+    async clearAllSavedProducts(): Promise<ApiResponse<void>> {
         try {
-            await userRoleAPI.delete("/saved-products/clear-all");
+            const response = await userRoleAPI.delete(
+                "/saved-products/clear-all"
+            );
+            return response.data;
         } catch (error: unknown) {
             console.error("Error clearing all saved products:", error);
             throw error;

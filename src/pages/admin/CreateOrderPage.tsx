@@ -5,7 +5,6 @@ import {
     ArrowLeft,
     Plus,
     Save,
-    Package,
     User,
     CreditCard,
     Calculator,
@@ -192,13 +191,16 @@ const CreateOrderPage: React.FC = () => {
                                 productName: product.name,
                                 colorId: stock.colorId,
                                 colorName: stock.colorName,
-                                colorHexCode: stock.colorHexCode,
+                                colorHexCode: stock.hexCode,
                                 price: stock.price,
                                 quantity: stock.quantity,
                                 photos:
                                     stock.productPhotos?.map((photo) => ({
                                         alt: photo.alt,
-                                        imageUrl: photo.imageUrl,
+                                        imageUrl:
+                                            typeof photo.imageUrl === "string"
+                                                ? photo.imageUrl
+                                                : String(photo.imageUrl),
                                         id: photo.id,
                                     })) || [],
                             });
@@ -335,7 +337,7 @@ const CreateOrderPage: React.FC = () => {
 
             if (response.success && response.data) {
                 // Filter active promotions and by type
-                const activePromotions = response.data.filter((promo) => {
+                const activePromotions = response.data.data.filter((promo) => {
                     if (!promo.isActive) return false;
 
                     if (type === "shipping") {
@@ -476,8 +478,12 @@ const CreateOrderPage: React.FC = () => {
                 size: 1,
             });
 
-            if (response.success && response.data && response.data.length > 0) {
-                const promotion = response.data[0];
+            if (
+                response.success &&
+                response.data &&
+                response.data.data.length > 0
+            ) {
+                const promotion = response.data.data[0];
 
                 if (!promotion.isActive) {
                     toast.error("Mã giảm giá không còn hiệu lực");
@@ -517,7 +523,10 @@ const CreateOrderPage: React.FC = () => {
                     colorName: stock.colorName,
                     price: stock.price,
                     total: stock.price,
-                    image: stock?.photos[0]?.imageUrl,
+                    image:
+                        stock.photos && stock.photos.length > 0
+                            ? stock.photos[0].imageUrl
+                            : undefined,
                 },
             ]);
         }
@@ -670,7 +679,7 @@ const CreateOrderPage: React.FC = () => {
             console.error("Error creating order:", error);
             const errorMessage =
                 error instanceof Error
-                    ? error.response.data.error.message
+                    ? error.message
                     : "Có lỗi xảy ra khi tạo đơn hàng";
             toast.error(errorMessage);
         } finally {
@@ -765,7 +774,11 @@ const CreateOrderPage: React.FC = () => {
                                 {selectedUser ? (
                                     <div className="flex items-center justify-between p-3 bg-foreground/5 rounded-xl border">
                                         <div className="flex items-center gap-3">
-                                            <img src={selectedUser.image} alt="" className="size-12 object-cover rounded-full" />
+                                            <img
+                                                src={selectedUser.image || ""}
+                                                alt=""
+                                                className="size-12 object-cover rounded-full"
+                                            />
                                             <div>
                                                 <div className="font-medium">
                                                     {selectedUser.firstName}{" "}
@@ -1547,7 +1560,17 @@ const CreateOrderPage: React.FC = () => {
                                                         }}
                                                     >
                                                         <div className="flex items-center gap-3">
-                                                            <img src={user.image} alt={user.name} className="w-12 h-12 rounded-full object-cover" />
+                                                            <img
+                                                                src={
+                                                                    user.image ||
+                                                                    ""
+                                                                }
+                                                                alt={
+                                                                    user.lastName ||
+                                                                    ""
+                                                                }
+                                                                className="w-12 h-12 rounded-full object-cover"
+                                                            />
                                                             <div>
                                                                 <div className="font-medium">
                                                                     {
@@ -1599,7 +1622,11 @@ const CreateOrderPage: React.FC = () => {
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                                                    <img src={item.image} alt={item.productName} className="w-full h-full object-cover rounded-lg" />
+                                                    <img
+                                                        src={item.image}
+                                                        alt={item.productName}
+                                                        className="w-full h-full object-cover rounded-lg"
+                                                    />
                                                 </div>
                                                 <div>
                                                     <div className="font-medium">

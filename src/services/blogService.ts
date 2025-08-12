@@ -1,3 +1,4 @@
+import type { ApiResponse } from "@/types/api";
 import { privateAPI } from "../utils/axios";
 
 export interface BlogAuthor {
@@ -20,18 +21,6 @@ export interface Blog {
     thumbnail?: string;
 }
 
-export interface BlogResponse {
-    success: boolean;
-    msg: string;
-    data: Blog[];
-    meta: {
-        currentPage: number;
-        pageSize: number;
-        totalPage: number;
-        totalElements: number;
-    };
-}
-
 export interface BlogParams {
     page?: number;
     size?: number;
@@ -49,7 +38,7 @@ export interface CreateBlogData {
 
 const blogService = {
     // Get all blogs with pagination and filters
-    getBlogs: async (params: BlogParams = {}): Promise<BlogResponse> => {
+    getBlogs: async (params: BlogParams = {}): Promise<ApiResponse<Blog[]>> => {
         try {
             const searchParams = new URLSearchParams();
 
@@ -68,7 +57,7 @@ const blogService = {
             const response = await privateAPI.get(
                 `/blogs?${searchParams.toString()}`
             );
-            return response as unknown as BlogResponse;
+            return response.data;
         } catch (error) {
             console.error("Error fetching blogs:", error);
             throw error;
@@ -76,16 +65,10 @@ const blogService = {
     },
 
     // Get blog by ID
-    getBlogById: async (
-        id: number
-    ): Promise<{ success: boolean; msg: string; data: Blog }> => {
+    getBlogById: async (id: number): Promise<ApiResponse<Blog>> => {
         try {
             const response = await privateAPI.get(`/blogs/${id}`);
-            return response as unknown as {
-                success: boolean;
-                msg: string;
-                data: Blog;
-            };
+            return response.data;
         } catch (error) {
             console.error("Error fetching blog:", error);
             throw error;
@@ -96,7 +79,7 @@ const blogService = {
     createBlog: async (
         data: CreateBlogData,
         imageFile?: File | null
-    ): Promise<{ success: boolean; msg: string; data: Blog }> => {
+    ): Promise<ApiResponse<Blog>> => {
         try {
             const requestData = new FormData();
 
@@ -122,11 +105,7 @@ const blogService = {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            return response as unknown as {
-                success: boolean;
-                msg: string;
-                data: Blog;
-            };
+            return response.data;
         } catch (error) {
             console.error("Error creating blog:", error);
             throw error;
@@ -138,7 +117,7 @@ const blogService = {
         id: number,
         data: Partial<CreateBlogData>,
         imageFile?: File | null
-    ): Promise<{ success: boolean; msg: string; data: Blog }> => {
+    ): Promise<ApiResponse<Blog>> => {
         try {
             const requestData = new FormData();
 
@@ -164,11 +143,7 @@ const blogService = {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            return response as unknown as {
-                success: boolean;
-                msg: string;
-                data: Blog;
-            };
+            return response.data;
         } catch (error) {
             console.error("Error updating blog:", error);
             throw error;
@@ -176,12 +151,10 @@ const blogService = {
     },
 
     // Delete blog
-    deleteBlog: async (
-        id: number
-    ): Promise<{ success: boolean; msg: string }> => {
+    deleteBlog: async (id: number): Promise<ApiResponse<null>> => {
         try {
             const response = await privateAPI.delete(`/blogs/${id}`);
-            return response as unknown as { success: boolean; msg: string };
+            return response.data;
         } catch (error) {
             console.error("Error deleting blog:", error);
             throw error;
@@ -189,18 +162,12 @@ const blogService = {
     },
 
     // Toggle blog publication status
-    toggleBlogStatus: async (
-        id: number
-    ): Promise<{ success: boolean; msg: string; data: Blog }> => {
+    toggleBlogStatus: async (id: number): Promise<ApiResponse<Blog>> => {
         try {
             const response = await privateAPI.put(
                 `/blogs/${id}/toggle-publish`
             );
-            return response as unknown as {
-                success: boolean;
-                msg: string;
-                data: Blog;
-            };
+            return response.data;
         } catch (error) {
             console.error("Error toggling blog status:", error);
             throw error;

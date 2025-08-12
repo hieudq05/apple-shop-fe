@@ -19,128 +19,8 @@ import {
 import { useCart } from "@/contexts/CartContext.tsx";
 import { useAuth } from "@/hooks/useAuthContext.ts";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchCategories } from "@/services/categoryService.ts";
+import { fetchCategories, type Category } from "@/services/categoryService.ts";
 import { useTheme } from "@/components/theme-provider";
-
-const navbarParams = [
-    {
-        name: "Cửa hàng",
-        href: "#",
-        childLinks: [
-            { name: "Mac", href: "/products/mac" },
-            { name: "iPad", href: "/products/ipad" },
-            { name: "iPhone", href: "/products/iphone" },
-            { name: "Watch", href: "/products/watch" },
-            { name: "AirPods", href: "/products/airpods" },
-        ],
-    },
-    {
-        name: "Mac",
-        href: "#",
-        childLinks: [
-            { name: "Tất cả Mac", href: "/products/mac" },
-            { name: "MacBook", href: "#" },
-            { name: "MacBook Air", href: "#" },
-            { name: "MacBook Pro", href: "#" },
-            { name: "iMac", href: "#" },
-            { name: "Mac Mini", href: "#" },
-            { name: "Mac Pro", href: "#" },
-        ],
-        accessories: [
-            { name: "MacBook Cases", href: "#" },
-            { name: "MacBook Chargers", href: "#" },
-            { name: "MacBook Keyboards", href: "#" },
-            { name: "MacBook Screen Protectors", href: "#" },
-            { name: "Mac Accessories", href: "#" },
-        ],
-    },
-    {
-        name: "Watch",
-        href: "#",
-        childLinks: [
-            { name: "Tất cả Apple Watch", href: "/products/watch" },
-            { name: "Apple Watch Series 9", href: "#" },
-            { name: "Apple Watch Ultra 2", href: "#" },
-            { name: "Apple Watch SE", href: "#" },
-        ],
-        accessories: [
-            { name: "Apple Watch Bands", href: "#" },
-            { name: "Apple Watch Chargers", href: "#" },
-            { name: "Apple Watch Cases", href: "#" },
-            { name: "Apple Watch Screen Protectors", href: "#" },
-        ],
-    },
-    {
-        name: "iPad",
-        href: "#",
-        childLinks: [
-            { name: "Tất cả iPad", href: "/products/ipad" },
-            { name: "iPad Pro", href: "#" },
-            { name: "iPad Air", href: "#" },
-            { name: "iPad", href: "#" },
-            { name: "iPad mini", href: "#" },
-        ],
-        accessories: [
-            { name: "iPad Cases", href: "#" },
-            { name: "iPad Keyboards", href: "#" },
-            { name: "Apple Pencil", href: "#" },
-            { name: "iPad Chargers", href: "#" },
-            { name: "iPad Cables", href: "#" },
-        ],
-    },
-    {
-        name: "iPhone",
-        href: "#",
-        childLinks: [
-            { name: "Tất cả iPhone", href: "/products/iphone" },
-            { name: "iPhone 15 Pro", href: "#" },
-            { name: "iPhone 15 Pro Max", href: "#" },
-            { name: "iPhone 15", href: "#" },
-            { name: "iPhone 15 Plus", href: "#" },
-        ],
-        accessories: [
-            { name: "iPhone Cases", href: "#" },
-            { name: "iPhone Screen Protectors", href: "#" },
-            { name: "iPhone Chargers", href: "#" },
-            { name: "iPhone Cables", href: "#" },
-        ],
-    },
-    {
-        name: "AirPods",
-        href: "#",
-        childLinks: [
-            { name: "Tất cả AirPods", href: "/products/airpods" },
-            { name: "AirPods Pro", href: "#" },
-            { name: "AirPods (3rd generation)", href: "#" },
-            { name: "AirPods Max", href: "#" },
-        ],
-        accessories: [
-            { name: "AirPods Case", href: "#" },
-            { name: "AirPods Pro Case", href: "#" },
-            { name: "AirPods Max Case", href: "#" },
-        ],
-    },
-    {
-        name: "Blog",
-        href: "/blog",
-        childLinks: [
-            { name: "Tất cả bài viết", href: "/blog" },
-            { name: "Tin tức", href: "/blog?category=1" },
-            { name: "Đánh giá sản phẩm", href: "/blog?category=2" },
-            { name: "Hướng dẫn", href: "/blog?category=3" },
-            { name: "Khuyến mãi", href: "/blog?category=4" },
-        ],
-    },
-    {
-        name: "Liên hệ",
-        href: "#",
-        childLinks: [
-            { name: "Hỗ trợ", href: "/support" },
-            { name: "Bảo hành", href: "/support" },
-            { name: "Đổi trả", href: "/support" },
-        ],
-    },
-];
 
 interface NavbarProps {
     onMenuToggle?: (isOpen: boolean) => void;
@@ -150,20 +30,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     const [openMenuIndex, setOpenMenuIndex] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
     const { getCartCount } = useCart();
     const { user, isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
     const { theme } = useTheme();
 
     const cartCount = getCartCount();
-    const [categories, setCategories] = useState([]);
+    const [categories, setCategories] = useState<Category[]>([]);
 
     useEffect(() => {
         const fetchNavbarCategories = async () => {
             try {
                 const response = await fetchCategories();
-                setCategories(response.data);
+                setCategories(response.data || []);
             } catch (error) {
                 console.error("Error fetching categories:", error);
             }
@@ -207,14 +86,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     const toggleMobileSubmenu = (index: string) => {
         if (isMobile) {
             setOpenMenuIndex(openMenuIndex === index ? null : index);
-        }
-    };
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (searchTerm.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-            setSearchTerm("");
         }
     };
 
@@ -350,7 +221,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                         )}
                                                     </div>
                                                 </div>
-                                                {link.accessories &&
+                                                {/* {link.accessories &&
                                                     link.accessories.length >
                                                         0 && (
                                                         <div
@@ -394,7 +265,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                                                                 )}
                                                             </div>
                                                         </div>
-                                                    )}
+                                                    )} */}
                                             </div>
                                         </MenuItems>
                                     </Transition>

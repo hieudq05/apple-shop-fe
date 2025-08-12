@@ -5,9 +5,10 @@ import {
     PencilIcon,
     TrashIcon,
     EyeIcon,
-    PhotoIcon,
 } from "@heroicons/react/24/outline";
-import adminProductService from "../../services/adminProductService";
+import adminProductService, {
+    type AdminProduct,
+} from "../../services/adminProductService";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -35,7 +36,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {Clock} from "lucide-react";
+import { Clock } from "lucide-react";
 
 interface ProductDetail {
     id: number;
@@ -96,7 +97,7 @@ const ProductDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const { categoryId } = useParams<{ categoryId: string }>();
     const navigate = useNavigate();
-    const [product, setProduct] = useState<ProductDetail | null>(null);
+    const [product, setProduct] = useState<AdminProduct | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -118,10 +119,6 @@ const ProductDetailPage: React.FC = () => {
                 parseInt(id)
             );
             if (response.success && response.data) {
-                console.log(
-                    "Product detail fetched successfully:",
-                    response.data
-                );
                 setProduct(response.data);
             } else {
                 console.error(
@@ -142,7 +139,7 @@ const ProductDetailPage: React.FC = () => {
             if (!product) return;
             const response = await adminProductService.deleteProduct(
                 product.id,
-                product.category.id
+                product.categoryId
             );
             if (response.success) {
                 console.log("Product deleted successfully");
@@ -248,14 +245,16 @@ const ProductDetailPage: React.FC = () => {
                         <h1 className="text-2xl font-bold text-foreground">
                             {product.name}
                         </h1>
-                        <p className="text-muted-foreground">ID: {product.id}</p>
+                        <p className="text-muted-foreground">
+                            ID: {product.id}
+                        </p>
                     </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
                     <Button asChild variant="outline" size="sm">
                         <Link
-                            to={`/admin/products/${product.category.id}/${product.id}/edit`}
+                            to={`/admin/products/${product.categoryId}/${product.id}/edit`}
                         >
                             <PencilIcon className="w-4 h-4 mr-2" />
                             Chỉnh sửa
@@ -425,7 +424,10 @@ const ProductDetailPage: React.FC = () => {
                                 </TableHeader>
                                 <TableBody>
                                     {product.stocks.map((stock) => (
-                                        <TableRow className={"h-18"} key={stock.id}>
+                                        <TableRow
+                                            className={"h-18"}
+                                            key={stock.id}
+                                        >
                                             <TableCell>
                                                 <div className="flex items-center space-x-2">
                                                     <div
@@ -553,7 +555,13 @@ const ProductDetailPage: React.FC = () => {
                                         Người tạo:
                                     </span>
                                     <div className="mt-1 flex gap-2 items-center">
-                                        <img src={product.createdBy?.image} alt="" className={"size-10 rounded-full object-cover"}/>
+                                        <img
+                                            src={product.createdBy?.image}
+                                            alt=""
+                                            className={
+                                                "size-10 rounded-full object-cover"
+                                            }
+                                        />
                                         <div>
                                             <p className="text-foreground">
                                                 {product.createdBy?.firstName}{" "}
@@ -570,7 +578,13 @@ const ProductDetailPage: React.FC = () => {
                                         Người cập nhật:
                                     </span>
                                     <div className="mt-1 flex gap-2 items-center">
-                                        <img src={product.updatedBy?.image} alt="" className={"size-10 rounded-full object-cover"}/>
+                                        <img
+                                            src={product.updatedBy?.image}
+                                            alt=""
+                                            className={
+                                                "size-10 rounded-full object-cover"
+                                            }
+                                        />
                                         <div>
                                             <p className="text-foreground">
                                                 {product.updatedBy?.firstName}{" "}
@@ -587,7 +601,11 @@ const ProductDetailPage: React.FC = () => {
                                         Ngày tạo:
                                     </span>
                                     <div className={"flex gap-2 items-center"}>
-                                        <Clock className={"size-4 mt-1 text-muted-foreground"}/>
+                                        <Clock
+                                            className={
+                                                "size-4 mt-1 text-muted-foreground"
+                                            }
+                                        />
                                         <p className="text-foreground mt-1">
                                             {formatDate(product.createdAt)}
                                         </p>
@@ -598,7 +616,11 @@ const ProductDetailPage: React.FC = () => {
                                         Cập nhật lần cuối:
                                     </span>
                                     <div className={"flex gap-2 items-center"}>
-                                        <Clock className={"size-4 mt-1 text-muted-foreground"}/>
+                                        <Clock
+                                            className={
+                                                "size-4 mt-1 text-muted-foreground"
+                                            }
+                                        />
                                         <p className="text-foreground mt-1">
                                             {formatDate(product.updatedAt)}
                                         </p>

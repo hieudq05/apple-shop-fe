@@ -25,6 +25,7 @@ export interface ApiOrderHistory {
     finalTotal: number;
     orderDetails: ApiOrderDetail[];
     shippingTrackingCode?: string;
+    vat: number;
 }
 
 // API response structure chi tiết đơn hàng
@@ -105,6 +106,7 @@ export interface OrderHistory {
     estimatedDelivery?: string;
     trackingNumber?: string;
     isReviewed?: boolean;
+    vat: number;
 }
 
 // Interface cho Order Detail UI
@@ -188,7 +190,7 @@ export const PAYMENT_METHOD_MAP: Record<string, string> = {
 export function transformApiOrderToOrderHistory(
     apiOrder: ApiOrderHistory
 ): OrderHistory {
-    const items: OrderHistoryItem[] = apiOrder.orderDetails.map((detail) => ({
+    const items: OrderHistoryItem[] = apiOrder.orderDetails?.map((detail) => ({
         id: detail.id,
         productId: detail.product.id,
         stockId: detail.stockId, // Added for review functionality

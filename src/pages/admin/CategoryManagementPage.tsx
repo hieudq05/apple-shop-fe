@@ -113,8 +113,15 @@ const CategoryManagementPage: React.FC = () => {
         try {
             setIsLoading(true);
             const response = await fetchAdminCategories(params);
-            setCategories(response.data);
-            setMetadata(response.meta);
+            setCategories(response.data || []);
+            setMetadata(
+                response.meta ?? {
+                    currentPage: 0,
+                    pageSize: 10,
+                    totalElements: 0,
+                    totalPage: 0,
+                }
+            );
         } catch (error) {
             console.error("Error fetching categories:", error);
         } finally {
@@ -168,24 +175,27 @@ const CategoryManagementPage: React.FC = () => {
                     {
                         name: formData.name,
                         description: formData.description,
+                        image: editingCategory.image,
                     },
                     editingCategory.id,
                     formData.image || undefined
                 );
                 // Update local state with form data
-                setCategories((prev) =>
-                    prev.map((category) =>
-                        category.id === editingCategory.id
-                            ? {
-                                  ...category,
-                                  name: formData.name,
-                                  description: formData.description,
-                              }
-                            : category
-                    )
-                );
-                toast.dismiss(loadingToast);
-                toast.success("Cập nhật danh mục thành công");
+                if (response.success) {
+                    setCategories((prev) =>
+                        prev.map((category) =>
+                            category.id === editingCategory.id
+                                ? {
+                                      ...category,
+                                      name: formData.name,
+                                      description: formData.description,
+                                  }
+                                : category
+                        )
+                    );
+                    toast.dismiss(loadingToast);
+                    toast.success("Cập nhật danh mục thành công");
+                }
             } else {
                 // Create new category
                 if (!formData.image) {
@@ -197,19 +207,27 @@ const CategoryManagementPage: React.FC = () => {
                     {
                         name: formData.name,
                         description: formData.description,
-                        image: null,
+                        image: undefined,
                     },
                     formData.image
                 );
                 // Add new category to local state
-                setCategories((prev) => [response, ...prev]);
-                // Update metadata total count
-                setMetadata((prev) => ({
-                    ...prev,
-                    totalElements: prev.totalElements + 1,
-                }));
-                toast.dismiss(loadingToast);
-                toast.success("Tạo danh mục mới thành công");
+                if (response.success) {
+                    setCategories((prev) => [
+                        response.data as Category,
+                        ...prev,
+                    ]);
+                    // Update metadata total count
+                    setMetadata((prev) => ({
+                        ...prev,
+                        totalElements: prev.totalElements + 1,
+                    }));
+                    toast.dismiss(loadingToast);
+                    toast.success("Tạo danh mục mới thành công");
+                } else {
+                    toast.dismiss(loadingToast);
+                    toast.error("Có lỗi xảy ra khi tạo danh mục");
+                }
             }
             closeForm();
         } catch (error) {

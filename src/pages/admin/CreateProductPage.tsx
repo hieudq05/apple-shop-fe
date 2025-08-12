@@ -67,7 +67,6 @@ import {
     type Instance,
 } from "@/services/instanceService.ts";
 import adminProductService from "@/services/adminProductService.ts";
-import { set } from "zod";
 import { Helmet } from "react-helmet-async";
 
 interface ProductPhoto {
@@ -142,9 +141,11 @@ const CreateProductPage: React.FC = () => {
         useState(false);
     const [newCategory, setNewCategory] = useState<{
         name: string;
+        description: string;
         file: File | null;
     }>({
         name: "",
+        description: "",
         file: null,
     });
 
@@ -190,6 +191,7 @@ const CreateProductPage: React.FC = () => {
         description: "",
         category: {
             id: null,
+            description: "",
             name: "",
             image: "",
         },
@@ -329,16 +331,6 @@ const CreateProductPage: React.FC = () => {
         newStocks[stockIndex].instanceProperties = newStocks[
             stockIndex
         ].instanceProperties.filter((_, i) => i !== propIndex);
-        setFormData((prev) => ({ ...prev, stocks: newStocks }));
-    };
-
-    const updateInstanceProperty = (
-        stockIndex: number,
-        propIndex: number,
-        name: string
-    ) => {
-        const newStocks = [...formData.stocks];
-        newStocks[stockIndex].instanceProperties[propIndex].name = name;
         setFormData((prev) => ({ ...prev, stocks: newStocks }));
     };
 
@@ -630,7 +622,7 @@ const CreateProductPage: React.FC = () => {
 
                 // Load features
                 const featuresData = await fetchAdminFeatures();
-                setPredefinedFeatures(featuresData.data);
+                setPredefinedFeatures(featuresData.data || []);
 
                 // Load colors
                 const colorsData = await fetchAdminColors();
@@ -638,7 +630,7 @@ const CreateProductPage: React.FC = () => {
 
                 // Load instances
                 const instancesData = await fetchAdminInstances();
-                setPredefinedInstances(instancesData.data);
+                setPredefinedInstances(instancesData.data || []);
             } catch (error) {
                 console.error("Error fetching data:", error);
                 setErrors((prev) => [
@@ -656,8 +648,6 @@ const CreateProductPage: React.FC = () => {
     }, []);
 
     const validateStep = (step: number): boolean => {
-        let errors: ErrorData[] = [];
-
         if (step === 0) {
             // Validate basic information
             if (!formData.name.trim()) {
@@ -928,7 +918,7 @@ const CreateProductPage: React.FC = () => {
 
             // Check if any stock has missing required data
             let hasStockErrors = false;
-            formData.stocks.forEach((stock, stockIndex) => {
+            formData.stocks.forEach((stock) => {
                 if (
                     !stock.color.name.trim() ||
                     !stock.color.hexCode.trim() ||
@@ -951,26 +941,6 @@ const CreateProductPage: React.FC = () => {
 
         setStepErrors((prev) => ({ ...prev, [step]: errors }));
         return errors.length === 0;
-    };
-
-    // Xử lý khi người dùng chọn category từ dropdown
-    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedCategoryId = parseInt(e.target.value);
-
-        if (selectedCategoryId === -1) {
-            // Người dùng chọn "Thêm danh mục mới"
-            setShowCreateCategoryModal(true);
-            return;
-        }
-
-        const selectedCategory =
-            categories.find((cat) => cat.id === selectedCategoryId) || null;
-        if (selectedCategory) {
-            setFormData((prev) => ({
-                ...prev,
-                category: selectedCategory,
-            }));
-        }
     };
 
     // Xử lý khi người dùng thay đổi tên category mới
@@ -1006,6 +976,7 @@ const CreateProductPage: React.FC = () => {
         const createdCategory: Category = {
             id: null, // Đặt id là null để backend tự tạo
             name: newCategory.name,
+            description: newCategory.name,
             image: newCategory.file
                 ? URL.createObjectURL(newCategory.file)
                 : "",
@@ -1020,7 +991,7 @@ const CreateProductPage: React.FC = () => {
 
         // Đóng modal và reset form
         setShowCreateCategoryModal(false);
-        setNewCategory({ name: "", file: null });
+        setNewCategory({ name: "", description: "", file: null });
     };
 
     const handleCreateFeature = () => {
@@ -3229,7 +3200,9 @@ const CreateProductPage: React.FC = () => {
                                         e.target.files &&
                                         setNewFeature((prev) => ({
                                             ...prev,
-                                            file: e.target.files[0],
+                                            file: e.target.files
+                                                ? e.target.files[0]
+                                                : null,
                                         }))
                                     }
                                     accept="image/*"
